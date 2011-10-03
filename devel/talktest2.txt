@@ -1,0 +1,6 @@
+[MindSpace::Node] $class->find_node: node:sky
+[MindSpace::Node] returning '(sky)'
+Processing link from 'sky' to 'turn'
+Can't locate object method "type" via package "MindSpace::LinkType" at MindSpace.pm line 507, <FILE> line 1091.
+Info: Freeing dictionary en/4.0.dict
+Info: Freeing dictionary en/4.0.affix

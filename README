@@ -1,0 +1,7 @@
+MindCore
+
+First off: 
+ - This project uses much of the utility functions and database abstraction utilities found in the AppCore project.
+ - AppCore lives on google code as 'appcorepl'
+ - AppCore is expected to be installed in /var/www/html/appcore (this SHOULD be changed in the future - convenient assumption for now during development.)
+
