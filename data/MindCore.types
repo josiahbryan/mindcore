@@ -71,7 +71,7 @@ AgentLink	CapableOf		1bb843f6-43c0-4558-9269-2dc769046cad
 Node	ConceptNode		fd6cf790-9eea-43a6-8fd7-cc8d564ee868
 Node	SpecificEntityNode	55f3b372-ef2d-4e02-8888-c6b0fe3d4405
 Node	PredicateNode		45def73a-59ec-4d36-a4dd-641f0ce290c4
-Node	ProceduralNode		50907460-f33a-469a-a1c0-767d2c30572a
+Node	ProcedureNode		50907460-f33a-469a-a1c0-767d2c30572a
 
 Node	ContextNode		42bf8948-06e5-4582-b73c-3e680e16eb50
 SpecificEntityNode	AgentNode	b1bf4efa-2dbd-43f6-97f8-9d7869b8b4f5

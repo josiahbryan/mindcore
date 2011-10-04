@@ -32,6 +32,7 @@ package MindCore::Node;
 	# when a node is deleted, the links leading from the node are deleted as well
 	__PACKAGE__->has_many(child_links => 'MindCore::Link');
 	
+	# Find outgoing links, optionally by type
 	sub links
 	{
 		my $self = shift;
@@ -47,28 +48,18 @@ package MindCore::Node;
 		}
 	}
 	
+	# Find incoming links, optionally by type
 	sub incoming_links 
 	{
 		my $self = shift;
 		my $type = shift;
 		if($type)
 		{
-			#print STDERR "$self: Finding links for type '$type' (ref:".ref($type).")\n";
-			return MindCore::Link->search( node => $self, type => $type->name );
+			return MindCore::Link->search_incoming_link_by_type( $self->id, $type->name );
 		}
 		else
 		{
-			#return MindCore::Link->search( node => $self );
-			#my $sql = "select L.* from links L, link_to L2 where L2.linkid=L.linkid and L2.nodeid=?";
-			if(!MindCore::Link->can('search_incoming_links'))
-			{
-				MindCore::Link->set_sql('incoming_links' => qq{select L.* from links L, link_to L2 where L2.linkid=L.linkid and L2.nodeid=?});
-			}
-			
-			my @results = MindCore::Link->search_incoming_links( $self->id );
-# 			use Data::Dumper;
-# 			print Dumper \@results;
-			return @results;
+			return MindCore::Link->search_incoming_links( $self->id );
 		}
 	}
 	

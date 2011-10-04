@@ -19,7 +19,7 @@ use MindCore::TruthValue;
 
 $SIG{__DIE__} = sub 
 	{
-		my $err = join(" ", @_);
+		my $err = join(" ", @_ ? @_ : $@);
 		#return if $err =~ /(can't locate|undefined sub|Server returned error: Not permitted for method)/i;
 		print STDERR AppCore::Common::print_stack_trace();
 		#die "Test";
@@ -62,7 +62,7 @@ package MindCore;
 	
 	sub load_types
 	{
-		my $input_file = shift || '/opt/mindcore-data/MindCore.types';
+		my $input_file = shift || '/opt/mindcore/data/MindCore.types';
 		
 		open(FILE,"<$input_file") || die "Cannot read $input_file: $!";
 		
@@ -129,9 +129,13 @@ package MindCore;
 	
 		my $callpkg = caller();
 		my $pkg  = shift;
+		
+		@_ = qw/_node _link :types :namespace/ 
+			if $_[0] eq ':all';
+		
 		my %test = map {$_=>1} @_;
 		
-		@_ = qw/_node/ if !@_;
+		@_ = qw/_node _link/ if !@_;
 		
 		foreach my $sub (@_)
 		{
@@ -183,6 +187,12 @@ package MindCore;
 	sub _node
 	{
 		return MindCore::Node->find_node(@_);
+	}
+	
+	# Utility method, shortcut to MindCore::Link->new()
+	sub _link
+	{
+		return MindCore::Link->new(@_);
 	}
 };
 

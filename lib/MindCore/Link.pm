@@ -82,6 +82,10 @@ package MindCore::Link;
 		]
 	});
 	
+	# Used in MindCore::Node::incoming_links()
+	__PACKAGE__->set_sql('incoming_links'         => qq{select L.* from links L, link_to L2 where L2.linkid=L.linkid and L2.nodeid=?});
+	__PACKAGE__->set_sql('incoming_links_by_type' => qq{select L.* from links L, link_to L2 where L2.linkid=L.linkid and L2.nodeid=? and L.type=?});
+	
 	__PACKAGE__->has_a(type => 'MindCore::LinkType',
 		inflate	=> sub {
 			my $str = shift;
