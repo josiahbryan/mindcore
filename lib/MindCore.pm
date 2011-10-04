@@ -17,23 +17,23 @@ use MindCore::Node;
 use MindCore::Procedure;
 use MindCore::TruthValue;
 
-$SIG{__DIE__} = sub 
-	{
-		my $err = join(" ", @_ ? @_ : $@);
-		#return if $err =~ /(can't locate|undefined sub|Server returned error: Not permitted for method)/i;
-		print STDERR AppCore::Common::print_stack_trace();
-		#die "Test";
-		
-		#my $user = AppCore::Common->context->user;
+# $SIG{__DIE__} = sub 
+# 	{
+# 		my $err = join(" ", @_ ? @_ : $@);
+# 		#return if $err =~ /(can't locate|undefined sub|Server returned error: Not permitted for method)/i;
+# 		print STDERR AppCore::Common::print_stack_trace();
+# 		#die "Test";
 # 		
-		#send_email('josiahbryan@gmail.com','[AppCore Error] '.get_full_url(),"$err\n----------------------------------\n".AppCore::Common::get_stack_trace()."\n----------------------------------\nURL:  ".get_full_url()."\nUser: ".($user ? $user->display : "(no user logged in)\n"),1,$user ? eval '$user->email' || "noemail-empid-$user\@noemail.error" : 'notloggedin@nouser.error' );
+# 		#my $user = AppCore::Common->context->user;
+# # 		
+# 		#send_email('josiahbryan@gmail.com','[AppCore Error] '.get_full_url(),"$err\n----------------------------------\n".AppCore::Common::get_stack_trace()."\n----------------------------------\nURL:  ".get_full_url()."\nUser: ".($user ? $user->display : "(no user logged in)\n"),1,$user ? eval '$user->email' || "noemail-empid-$user\@noemail.error" : 'notloggedin@nouser.error' );
+# # 		
+# # 		AppCore::Session->save();
 # 		
-# 		AppCore::Session->save();
-		
-		#error("Internal Server Error",$err);
-		die $err;
-		#exit;
-	};
+# 		#error("Internal Server Error",$err);
+# 		die $err;
+# 		#exit;
+# 	};
 	
 package MindCore; 
 {

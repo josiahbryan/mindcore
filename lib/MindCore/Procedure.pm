@@ -46,25 +46,24 @@ package MindCore::Procedure;
 		]
 	});
 	
-	sub new_procedure 
+	sub procedure 
 	{
 		my $class = shift;
 		my $agent = shift;
+		my $name = shift;
 		my $script = shift;
 		my $options = shift || {};
 		
-		my $self = $class->find_or_create({ 
-			agentid		=> $agent,
-			script		=> $script,
-		});
+		my $self = $class->by_field( agentid => $agent, name => $name );
 		
-		if($options || !$self->name)
+		if(!$self)
 		{		
-			$self->set(
-				name		=> $options->{name} || 'Proc',
-				output_type	=> $options->{output_type},
-				input_types	=> $options->{input_types},
-			);
+			$self = $class->insert({ 
+				agentid		=> $agent,
+				name		=> $name || 'Proc',
+				output_type	=> $options->{output_type} || '',
+				input_types	=> $options->{input_types} || '',
+			});
 			
 			# Don't have to update() here due to update() after node()
 			$self->name('Proc'.$self->id) if $agent->name eq 'Proc';
@@ -83,6 +82,13 @@ package MindCore::Procedure;
 				my $link = MindCore::Link->new($self->node, $agent->node, MindCore::PartOf());
 				#print STDERR __PACKAGE__."->new_procedure: link between self and parent: ".$link."\n";
 			}
+		}
+		
+		if($script && $self->script ne $script)
+		{
+			$self->script($script);
+	
+			$self->update if $self->is_changed;
 		}
 		
 		return $self;
@@ -118,12 +124,13 @@ package MindCore::Procedure;
 # 	}
 	
 	
-	sub _methods {
+	sub _methods 
+	{
 		my $pkg = shift;
 		my @list;
 		if(UNIVERSAL::isa($pkg, 'Class::DBI'))
 		{
-			@list = map { $_.'' } $pkg->columns;  
+			@list = map { $_.'' } $pkg->columns;
 		}
 		push @list, @{ Class::Inspector->methods($pkg, 'public') || [] };
 		return \@list;
@@ -144,21 +151,21 @@ package MindCore::Procedure;
 			$JE->new_function( print => sub { print AppCore::Common::date()," [JE] ", @_, "\n" } );
 			
 			$JE->bind_class(
-				package	=> 'MindCore::Node',
+				package		=> 'MindCore::Node',
 				constructor	=> 'find_node',
-				methods => _methods('MindCore::Node'),
+				methods		=> _methods('MindCore::Node'),
 			);
 					
 			$JE->bind_class(
-				package	=> 'MindCore::Link',
+				package		=> 'MindCore::Link',
 				constructor	=> 'new',
-				methods => _methods('MindCore::Link'),
+				methods		=> _methods('MindCore::Link'),
 			);
 			
 			$JE->bind_class(
-				package	=> 'MindCore::Procedure',
-				constructor	=> 'new_procedure',
-				methods => _methods('MindCore::Procedure'),
+				package		=> 'MindCore::Procedure',
+				constructor	=> 'procedure',
+				methods		=> _methods('MindCore::Procedure'),
 			);
 		}
 		
@@ -175,8 +182,8 @@ package MindCore::Procedure;
 		
 		$result = $result->value if UNIVERSAL::isa($result, 'JE::Object::Proxy');
 		
-		use Data::Dumper;
-		print "Result: ".Dumper($result);
+# 		use Data::Dumper;
+# 		print "Result: ".Dumper($result);
 		
 		return $result;
 		
