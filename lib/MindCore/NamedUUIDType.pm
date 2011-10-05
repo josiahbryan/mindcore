@@ -54,4 +54,5 @@ package MindCore::LinkType;
 	use base qw/MindCore::NamedUUIDType/;
 };
 
+
 1;

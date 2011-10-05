@@ -1,12 +1,5 @@
-// mindspace-types.pl uses this file to generate:
-//  - mindspace-types.definitions	- included in MindSpace.cpp inside the MindSpace namespace
-//  - mindspace-types.prototypes	- included in MindSpace.h inside MindSpace::MNodeType
-//
 // Format below is:
-// (Parent) (Name) (UUID) (List Flag)
-//
-// List flag may be obselete - we'll see...
-//
+	// (Parent) (Name) (UUID)
 
 ///////////////////////////////////////////
 // From ConceptNet 2.0
@@ -72,8 +65,11 @@ Node	ConceptNode		fd6cf790-9eea-43a6-8fd7-cc8d564ee868
 Node	SpecificEntityNode	55f3b372-ef2d-4e02-8888-c6b0fe3d4405
 Node	PredicateNode		45def73a-59ec-4d36-a4dd-641f0ce290c4
 Node	ProcedureNode		50907460-f33a-469a-a1c0-767d2c30572a
+Node	GoalNode		704e1259-2b1d-4a23-9c84-0a430e79cf09
 
-Node	ContextNode		42bf8948-06e5-4582-b73c-3e680e16eb50
+ProcedureNode	GoalQuantifierNode	97b819a7-f66f-4dd5-9835-c87cb757b6b5
+
+Node	ContextNode			42bf8948-06e5-4582-b73c-3e680e16eb50
 SpecificEntityNode	AgentNode	b1bf4efa-2dbd-43f6-97f8-9d7869b8b4f5
 
 Link	PartOfLink		7a28d331-5a86-4ce9-a124-14bf47c2cc8b
@@ -119,4 +115,21 @@ OrderedLink	ScholemLink	336cfff5-7146-4a28-9d7f-70f9a51291a7
 OrderedLink	ImplicationLink	03b18e28-907c-418f-bde9-8c9651f5a56b
 OrderedLink	EvaluationLink	cf1f8e18-ef5d-497c-8e17-e6286f9e8f8d	list
 
+
+/////////////////////////////////////////////////////
+// Sensor Types
+Sensor	VisionSensor		d14dc179-24fe-4ff8-bf55-198180b4d558
+Sensor	LocationSensor		ae1c5928-3339-4399-9b77-bc4e09c32a05
+Sensor	TextInputSensor		46990545-834b-4679-a9db-aa076a023771
+
+VisionSensor	ANSITextSensor	7c57df01-a9ff-4243-892c-027ef8f412af
+	
+/////////////////////////////////////////////////////
+// Output Types
+Output		MovementOutput	e9fcb6ce-4990-4fbc-96f9-0dabb9d46506
+Output		TextOutput	e8158b02-99bf-4202-a026-3dfa9efd944a
+
+MovementOutput	SimpleXYOutput	67d2dc17-53e7-4b53-82f5-50c9e14a7b63
+
+TextOutput	ANSITextOutput	376fee65-5b44-4a93-8722-29e94938a0d4
 

@@ -26,12 +26,17 @@ package MindCore::Goal;
 			# Symbolic node representing this goal
 			{	field	=> 'node',		type	=> 'int', linked => 'MindCore::Node' },
 			
+			{	field	=> 'context',		type	=> 'int', linked => 'MindCore::Context' },
+			{	field	=> 'ranking',		type	=> 'int' },
+			
 			# Nodes linked to this goal "describing" it perhaps? ### TODO Determin if this is relevant
 			{	field	=> 'nodes',		type	=> 'text' },
 			
 			### ?????????????? ### TODO ### Define what this is ########
-			{	field	=> 'quantifier',	type	=> 'text' },
+			#{	field	=> 'quantifier',	type	=> 'text' },
 			### ?????????????? ### TODO ### Define what this is ########
+			
+			{	field	=> 'quantifier',	type	=> 'int', linked => 'MindCore::Procedure' },
 			 
 			 
 		]
@@ -40,18 +45,44 @@ package MindCore::Goal;
 	sub new 
 	{
 		my $class = shift;
-		my $self = bless {
+		my $context = shift;
+		my $name = shift;
+		my $parent_goal = shift;
 		
-			parent_goal	=> undef,	# ref to $class
-			name		=> '',		# string
-			quantifier	=> undef, 	# ???
+		my $self = $class->insert({
+		
+			context		=> $context,
+			name		=> $name,
+			parent_goal	=> $parent_goal,
+			#quantifier	=> undef, 	# ???
+			
+			node	=> MindCore::Node->find_or_create({
+				 	name	=> $name,
+				 	type	=> MindCore::GoalNode()
+				}),
 			
 			# Should we ref a specific context here...? eg formalize the context to which this goal is relevant?
 			# .... ?
-			nodes		=> [], 		# refs to MindCore::Node ...?
-		}, $class;
+			#nodes		=> [], 		# refs to MindCore::Node ...?
+		});
 		
 		return $self;
+	}
+	
+	sub find_goal
+	{
+		my $self = shift;
+		my $context = shift;
+		my $name = shift;
+		my $pg = shift;
+		my $g = MindCore::Goal->by_field( context => $context, name => $name );
+		#print STDERR __PACKAGE__."->find_goal: name:'$name', g by field id:".($g?$g->id:'undef')."\n";
+		if(!$g)
+		{
+			$g = MindCore::Goal->new( $context, $name, $pg );
+			#print STDERR __PACKAGE__."->find_goal: name:'$name', created new goal id:".($g?$g->id:'undef')."\n";
+		}
+		return $g;
 	}
 	
 	sub evaluate

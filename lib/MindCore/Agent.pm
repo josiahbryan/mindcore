@@ -86,6 +86,16 @@ package MindCore::Agent;
 		# ...?
 	}
 	
+	sub avatar
+	{
+		my $self = shift;
+		my $av = shift;
+		
+		$self->{avatar} = $av if $av;
+		
+		return $self->{avatar};
+	}
+	
 };
 
 1;

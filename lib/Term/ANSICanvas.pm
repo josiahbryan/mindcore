@@ -2368,6 +2368,159 @@ sub print_debug_demo
 	$can->dump;
 	
 }
+
+sub scroll_canvas
+{
+	my $self = shift;
+	
+	my $dir  = shift || 'up';
+	my $amount = shift || 1;
+	
+	# Up/down are the only ones supported right now 
+	
+	my $h = $self->{height};
+	my $w = $self->{width};
+	
+	
+	if($dir eq 'up')
+	{
+		for $a (0..$h-1)
+		{
+			#next if $a <= $amount;
+			if($a < $h - $amount)
+			{
+				$self->{data}->[$a] = $self->{data}->[$a+$amount];
+				$self->{attr}->[$a] = $self->{attr}->[$a+$amount];
+			}
+			else
+			{
+				$self->{data}->[$a] = [];
+				$self->{attr}->[$a] = [];
+			}
+		}
+	}
+	elsif($dir eq 'down')
+	{
+		# -1 because say $h is 10, but at 10 that would be 11 lines...think about it, zero-based arrays, remember?
+		for my $a1 (0..$h-1)
+		{
+			my $a = $h-$a1-1;
+			
+			if($a >= $amount)
+			{
+				$self->{data}->[$a] = $self->{data}->[$a-$amount];
+				$self->{attr}->[$a] = $self->{attr}->[$a-$amount];
+			}
+			else
+			{
+				$self->{data}->[$a] = [];
+				$self->{attr}->[$a] = [];
+			}
+		}
+	}
+	
+	return $self;
+}
+
+sub print_demo10
+{
+	my $can = __PACKAGE__->new(10,40);
+	
+	#$can->string(0,2,"<r>H<y>e<g>l<b>l<c>o<m>, <r>W<y>o<g>r<b>l<c>d<m>!");
+	#$can->attroff;
+	#$can->fill('blue'); #,0,0,$can->height,$can->width,-1);
+	
+	my $text = <<'EOT';
+Fourscore and seven years ago our fathers brought forth on this
+continent a new nation, conceived in liberty and dedicated to the
+proposition that all men are created equal.
+
+Now we are engaged in a great civil war,   testing whether that nation
+or any nation so conceived and so dedicated can long endure. We are
+met on a great battlefield of that war. We have come to dedicate a
+portion of that field as a final resting-place for those who here gave
+their lives that that nation might live. It is altogether fitting and
+proper that we should do this.
+
+But in a larger sense, we cannot dedicate, we cannot consecrate, we
+cannot hallow this ground.  The brave men, living and dead who
+struggled here have consecrated it far above our poor power to add or
+detract. The world will little note nor long remember what we say
+here, but it can never forget what they did here. It is for us the
+living rather to be dedicated here to the unfinished work which they
+who fought here have thus far so nobly advanced. It is rather for us
+to be here dedicated to the great task remaining before us--that from
+these honored dead we take increased devotion to that cause for which
+they gave the last full measure of devotion--that we here highly
+resolve that these dead shall not have died in vain, that this nation
+under God shall have a new birth of freedom, and that government of
+the people, by the people, for the people shall not perish from the
+earth.
+EOT
+	
+	# Merge it all into one line per paragraph:
+	$text =~ s/\n(?=\S)/ /g;
+	$text =~ s/\n /\n\n/g;
+	
+	use Text::Wrapper;
+	my $wrapper = Text::Wrapper->new(columns=>$can->width);
+	my @lines = split/\n/, $wrapper->wrap($text);
+	
+	#print $text,"\n\n";
+	
+	#my $t1 = new Benchmark;
+	#my $td = timediff($t1, $t0);
+    	#print "mark1:",timestr($td),"\n";
+    
+	$can->fill(ON_BLUE); #,0,0,$can->height-5,$can->width-10,-1);
+	
+	$can->attron(BOLD, WHITE);
+	for(0..$#lines)
+	{
+		$can->string($_,0,$lines[$_]);
+	}
+	$can->attroff(BOLD);
+	
+# 	$can->fill([ON_GREEN,BOLD],2,2,$can->height-5,$can->width-7,-1);
+# 	
+# 	$can->box(0,4,$can->height-3,$can->width-11,ON_WHITE,BLACK,1,"What is This?",ON_WHITE,[RED]);
+# 	
+# 	$can->attroff;
+# 	
+# 	$can->locate(1,5);
+# 	$can->print("This has been a demo of\nTerm::ANSICanvas\n\nThank you for watching.\nEmail:\njosiahbryan\@gmail.com");
+# 	
+# 	my $t2 = new Benchmark;
+# 	$td = timediff($t2, $t1);
+# 	#print "mark2:",timestr($td),"\n";
+# 
+# 	print "\n".REVERSE().'[ Demo1 ]'.CLEAR()." >> [ Original Feature Test of Colors and copy_canvas() ]\n";
+# 	$can->dump;
+# 	
+# 	my $t3 = new Benchmark;
+# 	$td = timediff($t3, $t2);
+# 	#print "mark3:",timestr($td),"\n";
+# 
+# 
+# 	print "\n\nSection of canvas above from (7,4)-(10,10):\n";
+# 	my $c2 = $can->copy_canvas(7,4,10,10);
+# 	$c2->dump;
+# 	print "\n\n";
+# 	
+# 	my $t4 = new Benchmark;
+# 	$td = timediff($t4, $t3);
+# 	#print "mark4:",timestr($td),"\n";
+	print "\n".REVERSE().'[ Demo10 ]'.CLEAR()." >> [ scroll_canvas() test ]\n";
+	$can->dump;
+	print "-------\n";
+	
+	print "\n\nAfter scroll:\n";
+	$can->scroll_canvas('up');
+	$can->dump;
+	print "-------\n";
+
+}
+
 #print_debug_demo();
 
 # sub print_demo8()
@@ -2505,6 +2658,6 @@ sub print_debug_demo
 # print_demo7();
 # print_demo8();
 # print_demo9();
-
+# print_demo10();
 #exit;
 1;

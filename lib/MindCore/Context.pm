@@ -33,6 +33,27 @@ package MindCore::Context;
 		]
 	});
 	
+	# Add a 'has_many' relation to the Goals so that when a Context is deleted, the goals are deleted as well
+	__PACKAGE__->has_many(member_goals => 'MindCore::Goal');
+	
+	MindCore::Goal->set_sql('ordered_goals'         => qq{select G.* from goals G where context=? order by ranking});
+	
+	# Find goals in order
+	sub goals
+	{
+		my $self = shift;
+		return MindCore::Goal->search_goals($self->id);
+	}
+	
+	sub find_goal
+	{
+		my $self = shift;
+		my $name = shift;
+		my $pg = shift;
+		return MindCore::Goal->find_goal( $self, $name, $pg );
+	}
+	
+	
 	sub new_context 
 	{
 		my $class = shift;

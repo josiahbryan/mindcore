@@ -4,6 +4,8 @@ use lib '../lib';
 use MindCore qw/:namespace :types _node/;
 use Data::Dumper;
 
+#MindCore->apply_mysql_schema;
+
 # Simple enviro maybe...
 # 20 qs?
 # Try to "find" something...?
@@ -36,30 +38,35 @@ my $agent = MindCore::Agent->find_agent('Goalie');
 # # }
 # print "\t",$_,"\n" foreach @links;
 
-my $proc = MindCore::Procedure->procedure($agent,'Test',<<'--end--');
-	
-	print("Hello, World!");
-	print("Proc Name: ", proc.name());
-	print("Proc ID:   ", proc.id());
-	
-	var node = find_node("Socrates");
-	//print("node: ", node.name());
-	return node;
-	
---end--
+# my $proc = MindCore::Procedure->procedure($agent,'Test',<<'--end--');
+# 	
+# 	print("Hello, World!");
+# 	print("Proc Name: ", proc.name());
+# 	print("Proc ID:   ", proc.id());
+# 	
+# 	var node = find_node("Socrates");
+# 	//print("node: ", node.name());
+# 	return node;
+# 	
+# --end--
+# 
+# $proc->execute();
+# 
+# die $@ if $@;
+# 
+# print "Node:\n";
+# print "\t".$agent->node."\n";
+# print "Node ID: ".$agent->node->id."\n";
+# print "Links:\n";
+# my @links = $agent->node->incoming_links;
+# # foreach my $link (@links)
+# # {
+# # 	print STDERR "\tIncoming Link #".$link->id."\n";
+# # 	print STDERR "\t\t'$_' = '".$link->get($_)."'\n" foreach $link->columns; 
+# # }
+# print "\t",$_,"\n" foreach @links;
 
-$proc->execute();
+my $ctx = $agent->context;
 
-die $@ if $@;
-
-print "Node:\n";
-print "\t".$agent->node."\n";
-print "Node ID: ".$agent->node->id."\n";
-print "Links:\n";
-my @links = $agent->node->incoming_links;
-# foreach my $link (@links)
-# {
-# 	print STDERR "\tIncoming Link #".$link->id."\n";
-# 	print STDERR "\t\t'$_' = '".$link->get($_)."'\n" foreach $link->columns; 
-# }
-print "\t",$_,"\n" foreach @links;
+my $g = $ctx->find_goal('find red x');
+print STDERR "G: ".$g->name."\n";

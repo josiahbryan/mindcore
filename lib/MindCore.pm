@@ -6,6 +6,7 @@ use AppCore::Common;
 
 # Load our submodules 
 use MindCore::Agent;
+use MindCore::Agent::Avatar;
 use MindCore::Agent::Output;
 use MindCore::Agent::Sensor;
 use MindCore::Context;
@@ -102,6 +103,24 @@ package MindCore;
 				
 				*{"MindCore::$name"} = eval($sub);
 				die "Error importing node type $name:\n\tPerl: $sub\n\tError: $@\n" if @; 
+			}
+			elsif( $line_type =~ /sensor/i)
+			{
+				$MindCore::TypeCache{$name} ||= MindCore::Agent::SensorType->new($name,$uuid,[ @parent_list ]);
+				#my $sub = 'sub { $MindCore::TypeCache{"'.$name.'"} ||= MindCore::LinkType->new("'.$name.'","'.$uuid.'",['.$parent_string.']); }';
+				my $sub = 'sub { $MindCore::TypeCache{"'.$name.'"} }';
+				*{"MindCore::$name"} = eval($sub);
+				die "Error importing link type $name:\n\tPerl: $sub\n\tError: $@\n" if $@;
+				
+			}
+			elsif( $line_type =~ /output/i)
+			{
+				$MindCore::TypeCache{$name} ||= MindCore::Agent::OutputType->new($name,$uuid,[ @parent_list ]);
+				#my $sub = 'sub { $MindCore::TypeCache{"'.$name.'"} ||= MindCore::LinkType->new("'.$name.'","'.$uuid.'",['.$parent_string.']); }';
+				my $sub = 'sub { $MindCore::TypeCache{"'.$name.'"} }';
+				*{"MindCore::$name"} = eval($sub);
+				die "Error importing link type $name:\n\tPerl: $sub\n\tError: $@\n" if $@;
+				
 			}
 			else
 			{

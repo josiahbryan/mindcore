@@ -15,6 +15,8 @@ use Term::ANSICanvas;
 	$bg->box(3,10,4,16,ON_YELLOW,BOLD,0);
 	$bg->box(15,5,16,35,ON_YELLOW,BOLD,0);
 	
+	$bg->string(6,6,'<white><onred>X<clear>');
+	
 	my $c2 = Term::ANSICanvas->new(1,1);
 	#$c2->print("12345\n54321");
 	#$c2->fill([ON_GREEN,BOLD],0,0,$c2->height,$c2->width,-1);
@@ -38,7 +40,8 @@ use Term::ANSICanvas;
 	my $count =0;
 	
 	my $a = time;
-	while(++$count) #++$count<350)
+	#while(++$count) #++$count<350)
+	while(++$count<1000)
 	{
 		
 		$can->clear;
@@ -112,7 +115,8 @@ use Term::ANSICanvas;
 		$x= $new_x;
 		$y= $new_y;
 		
-		$can->render_canvas(int($y),int($x),$c2);
+		#$can->render_canvas(int($y),int($x),$c2);
+		$can->string(int($y),int($x),'<white><onblue>#<clear>');
 		
 		
 		$dx = -1 if $dx==0; #; #1 - int(rand()*2) if $dx == 0;
@@ -138,6 +142,7 @@ use Term::ANSICanvas;
 		print "\n$y,$x           \n($dx,$dy)              \n(".$can->height.",".$can->width.") [frame $count] [".sprintf("%.02f fps",$fps)."]      \n";
 		
 		
+		#sleep 1/30;
 		#sleep 1/100; #1/10;
 	}
 	
