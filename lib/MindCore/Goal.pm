@@ -66,6 +66,9 @@ package MindCore::Goal;
 			#nodes		=> [], 		# refs to MindCore::Node ...?
 		});
 		
+		#my $link = 
+		MindCore::Link->new($self->node, $parent_goal ? $parent_goal->node : $context->node, MindCore::PartOf());
+		
 		return $self;
 	}
 	
@@ -82,6 +85,7 @@ package MindCore::Goal;
 			$g = MindCore::Goal->new( $context, $name, $pg );
 			#print STDERR __PACKAGE__."->find_goal: name:'$name', created new goal id:".($g?$g->id:'undef')."\n";
 		}
+		#MindCore::Link->new($g->node, $g->parent_goal ? $g->parent_goal->node : $g->context->node, MindCore::PartOf());
 		return $g;
 	}
 	

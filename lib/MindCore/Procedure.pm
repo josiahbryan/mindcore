@@ -133,6 +133,8 @@ package MindCore::Procedure;
 			@list = map { $_.'' } $pkg->columns;
 		}
 		push @list, @{ Class::Inspector->methods($pkg, 'public') || [] };
+		use Data::Dumper;
+		#print Dumper $pkg, \@list;
 		return \@list;
 	}
 	
@@ -167,10 +169,30 @@ package MindCore::Procedure;
 				constructor	=> 'procedure',
 				methods		=> _methods('MindCore::Procedure'),
 			);
+			
+			$JE->bind_class(
+				package		=> 'MindCore::Context',
+				constructor	=> 'new_context',
+				methods		=> _methods('MindCore::Context'),
+			);
+			
+			$JE->bind_class(
+				package		=> 'MindCore::Goal',
+				constructor	=> 'find_goal',
+				methods		=> _methods('MindCore::Goal'),
+			);
+			
+			$JE->bind_class(
+				package		=> 'MindCore::Link::Destination::Array',
+				constructor	=> undef,
+				methods		=> _methods('MindCore::Link::Destination::Array'),
+			);
+			
+			
 		}
 		
 		$JE->{proc} = $self;
-		#$JE->{context} = $agent->current_context;
+		$JE->{context} = $agent->current_context;
 		$JE->{input_nodes} = $input_nodes;
 		$JE->{agent} = $agent;
 		

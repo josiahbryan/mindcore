@@ -31,6 +31,7 @@ package MindCore::Node;
 	# Add a 'has_many' relation to the Node (even though we handle the links() query below) so that
 	# when a node is deleted, the links leading from the node are deleted as well
 	__PACKAGE__->has_many(child_links => 'MindCore::Link');
+	__PACKAGE__->has_many(incoming_link_destinations => 'MindCore::Link::Destination');
 	
 	# Find outgoing links, optionally by type
 	sub links
@@ -40,12 +41,42 @@ package MindCore::Node;
 		if($type)
 		{
 			#print STDERR "$self: Finding links for type '$type' (ref:".ref($type).")\n";
-			return MindCore::Link->search( node => $self, type => $type->name );
+			$type = $type->value if UNIVERSAL::isa($type, 'JE::String');
+			my @result = MindCore::Link->search( node => $self, type => ref $type ? $type->name : $type );
+			return wantarray ? @result : \@result
 		}
 		else
 		{
-			return MindCore::Link->search( node => $self );
+			my @result = MindCore::Link->search( node => $self );
+			#print STDERR "__PACKAGE__->links: Returning ".($#result+1)." links\n";
+			return wantarray ? @result : \@result
 		}
+	}
+	
+	
+	# Search links from node (n1) to (x1...xN) nodes by the type of the destination nodes.
+	# Call linked_nodes($type) to use this query.
+	__PACKAGE__->set_sql('nodes_by_dest_node_type' => qq{select N.* from nodes N, links L, link_to L2 where L.nodeid=? and L.linkid=L2.linkid and L2.nodeid=N.nodeid and N.type=?});
+	 
+# 	# This wont work in the SQL
+# 	sub links_to
+# 	{
+# 		my $self = shift;
+# 		my $type = shift;
+# 		$type = $type->value if UNIVERSAL::isa($type, 'JE::String');
+# 		$type = $type->name  if UNIVERSAL::isa($type, 'MindCore::NodeType');
+# 		my @result = MindCore::Link->search_link_by_dest_node_type( $self->id, $type );
+# 		return wantarray ? @result : \@result;
+# 	}
+	
+	sub linked_nodes
+	{
+		my $self = shift;
+		my $type = shift;
+		$type = $type->value if UNIVERSAL::isa($type, 'JE::String');
+		$type = $type->name  if UNIVERSAL::isa($type, 'MindCore::NodeType');
+		my @result = MindCore::Node->search_nodes_by_dest_node_type( $self->id, $type );
+		return wantarray ? @result : \@result;
 	}
 	
 	# Find incoming links, optionally by type

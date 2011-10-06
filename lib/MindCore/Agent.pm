@@ -34,6 +34,8 @@ package MindCore::Agent;
 	# sends output nodes to output acutatorss
 	# updates context as to current inputs and outputs
 	
+	sub current_context { shift->context }
+	
 	sub new
 	{
 		my $class = shift;

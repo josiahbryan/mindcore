@@ -11,6 +11,10 @@ use Data::Dumper;
 # Try to "find" something...?
 # By asking questions about where it is maybe....?
 
+##############################################################################
+#  Find the agent
+##############################################################################
+
 my $agent = MindCore::Agent->find_agent('Goalie');
 # $agent->node->delete;
 # $agent->context->node->delete;
@@ -68,5 +72,111 @@ my $agent = MindCore::Agent->find_agent('Goalie');
 
 my $ctx = $agent->context;
 
+##############################################################################
+#  Find/Create the goal
+##############################################################################
+
 my $g = $ctx->find_goal('find red x');
-print STDERR "G: ".$g->name."\n";
+print "G: ".$g->name.", id: ".$g->id."\n";
+# #my @links = $agent->node->incoming_links;
+# my @links = $g->node->links;
+# print "\t",$_,"\n" foreach @links;
+# 
+
+##############################################################################
+#  Link the goal with its related concepts/entities/predicates
+##############################################################################
+
+my $verb = _node('find',  MindCore::ConceptNode);
+my $ent  = _node('red x', MindCore::SpecificEntityNode);
+Link($g->node, $agent->node, MindCore::PredicateSubjectLink);
+Link($g->node, $verb,        MindCore::PredicateLink);
+Link($g->node, $ent,         MindCore::PredicateObjectLink);
+
+ #my @links = $agent->node->incoming_links;
+my @links = $g->node->links;
+print "\t",$_,"\n" foreach @links;
+
+# foreach my $link (@links)
+# {
+# 	my @dest = @{ $link->to_nodes ||[] };
+# 	if(!@dest)
+# 	{
+# 		print "\t Link ID ".$link->id.": -- NO DESTINATIONS --\n";
+# 		$link->delete;
+# 	}
+# 	print "\t Link ID ".$link->id.": Dest: [$_]\n" foreach @dest;
+# }
+# 
+
+#$ent->type(MindCore::SpecificEntityNode);
+#$ent->update;
+#print "Debug: 'red x' type:".$ent->type."\n";
+
+#$ent->delete;
+
+# Setup test link
+Link( $ctx->node, [ $ent, _node("10,24", MindCore::ConceptNode) ], MindCore::LocationOf );
+
+print "Ctx Links:\n";
+my @links = $agent->context->node->links;
+print "\t",$_,"\n" foreach @links;
+
+
+##############################################################################
+#  Create the goal evaluation procedure
+##############################################################################
+
+my $proc = MindCore::Procedure->procedure($agent,$g->name.' Evaluation Procedure',<<'--end--');
+	
+	//var inputs = input_nodes;
+	//var node = find_node("Socrates");
+	//print("node: ", node.name());
+	//return node;
+	var g = input_nodes;
+	
+	print("Input goal: ",g.name());
+	
+	var pred = g.node().links("PredicateLink");
+	var predNode = pred[0].to_nodes().value(0);
+	var obj = g.node().links("PredicateObjectLink");
+	var objNode = obj[0].to_nodes().value(0);
+	
+	print("Predicate Concept: ", predNode);
+	print("Predicate Object: ", objNode);
+	
+	var ctx = context;
+	print("Context: ", ctx.node());
+	
+	var found = false;
+	var localLink = ctx.node().links("LocationOf");
+	print("Found ",localLink.length," 'LocationOf' links");
+	for(var i=0;i<localLink.length; i++)
+	{
+		var link = localLink[i];
+		var result = link.dest_by_name(objNode.name());
+		if(result.length)
+		{
+			result = link.dest_by_type("ConceptNode");
+			if(result.length)
+			{
+				print("    Location of "+objNode.name()+" is "+result[0]);
+				found = true;
+			}
+			else
+			{
+				print("    LocationOf Link "+i+" hit our object, but did not link to a ConceptNode");
+			}
+		}
+		else
+		{
+			print("    LocationOf Link "+i+" did not link to our object");
+		}
+	}
+	if(!found)
+		print(obj[0].to_nodes().value(0).name()," not found");
+	
+	
+--end--
+
+$proc->execute($g);

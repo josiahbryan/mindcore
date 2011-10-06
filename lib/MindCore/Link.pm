@@ -47,6 +47,13 @@ package MindCore::Link::Destination::Array;
 		#print Dumper $blessed;
 		return $blessed;
 	}
+	
+	sub value 
+	{
+		my $self = shift;
+		my $idx = shift;
+		return $self->[$idx];
+	}
 };
 
 package MindCore::Link;
@@ -85,6 +92,31 @@ package MindCore::Link;
 	# Used in MindCore::Node::incoming_links()
 	__PACKAGE__->set_sql('incoming_links'         => qq{select L.* from links L, link_to L2 where L2.linkid=L.linkid and L2.nodeid=?});
 	__PACKAGE__->set_sql('incoming_links_by_type' => qq{select L.* from links L, link_to L2 where L2.linkid=L.linkid and L2.nodeid=? and L.type=?});
+	
+	MindCore::Node->set_sql('dest_by_name' => qq{select N.* from links L, link_to L2, nodes N where L.linkid=? and L.linkid=L2.linkid and L2.nodeid=N.nodeid and N.name=?});
+	MindCore::Node->set_sql('dest_by_type' => qq{select N.* from links L, link_to L2, nodes N where L.linkid=? and L.linkid=L2.linkid and L2.nodeid=N.nodeid and N.type=?});
+	
+	sub dest_by_name
+	{
+		my $self = shift;
+		my $name = shift;
+		$name = $name->value if UNIVERSAL::isa($name, 'JE::String');
+		my @result = MindCore::Node->search_dest_by_name( $self->id, $name );
+		return wantarray ? @result : \@result;
+	}
+	
+	sub dest_by_type
+	{
+		my $self = shift;
+		my $type = shift;
+		$type = $type->value if UNIVERSAL::isa($type, 'JE::String');
+		$type = $type->name  if UNIVERSAL::isa($type, 'MindCore::NodeType');
+		my @result = MindCore::Node->search_dest_by_type( $self->id, $type );
+		return wantarray ? @result : \@result;
+	}
+	
+	# This wont work, since we reference L twice - once for the L.nodeid and again from L2.linkid=L.linkid
+	__PACKAGE__->set_sql('link_by_dest_node_type' => qq{select L.* from links_to L2, links L, nodes N where L.nodeid=? and L.linkid=L2.linkid and L2.linkid=L.linkid and L2.nodeid=N.nodeid and N.type=?});
 	
 	__PACKAGE__->has_a(type => 'MindCore::LinkType',
 		inflate	=> sub {
@@ -130,6 +162,24 @@ package MindCore::Link;
 			return join(',', map { $_->id } @{$obj || []});
 		}
 	);
+	
+	sub is_to 
+	{
+		my $self = shift;
+		my $node = shift;
+		my @test = grep { $_->id == $node->id } @{ $self->to_nodes || [] };
+		return @test ? 1:0;
+	}
+	
+	sub to_node_type
+	{
+		my $self = shift;
+		my $type = shift;
+		$type = $type->value if UNIVERSAL::isa($type, 'JE::String');
+		$type = $type->name  if UNIVERSAL::isa($type, 'MindCore::NodeType');
+		my @subset = grep { $_->type->name eq $type } @{ $self->to_nodes || [] };
+		return \@subset;
+	}
 	
 	# Add a 'has_many' relation to the Link for the destinations (even though we handle it via a to_nodes array) 
 	# when a link is deleted, the destination pointers are deleted as well
