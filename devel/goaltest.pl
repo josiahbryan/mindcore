@@ -84,6 +84,25 @@ print "G: ".$g->name.", id: ".$g->id."\n";
 # 
 
 ##############################################################################
+#  Seed our path - Find->Search->[Search Algorithms]->[Grid, Rand] (add more later ...)
+##############################################################################
+my $ct = MindCore::ConceptNode;
+Link(_node('find', $ct),   _node('search', $ct), MindCore::DefinedAs);
+
+my $search_node = _node('search algorithm', $ct);
+Link(_node('search', $ct), $search_node, MindCore::ConceptuallyRelatedTo);
+ 
+my $p_grid = MindCore::Procedure->procedure($agent,'Random Search Pattern','1');
+my $p_rand = MindCore::Procedure->procedure($agent,'Grid Search Pattern','1');
+Link($search_node, $p_grid->node, MindCore::ProcedureImplementationLink);
+Link($search_node, $p_rand->node, MindCore::ProcedureImplementationLink);
+
+print "Search Algorithm Links: \n";
+my @links = $search_node->links;
+print "\t",$_,"\n" foreach @links;
+
+
+##############################################################################
 #  Link the goal with its related concepts/entities/predicates
 ##############################################################################
 
@@ -93,6 +112,7 @@ Link($g->node, $agent->node, MindCore::PredicateSubjectLink);
 Link($g->node, $verb,        MindCore::PredicateLink);
 Link($g->node, $ent,         MindCore::PredicateObjectLink);
 
+print "Goal node links:\n";
  #my @links = $agent->node->incoming_links;
 my @links = $g->node->links;
 print "\t",$_,"\n" foreach @links;
@@ -160,7 +180,7 @@ my $proc = MindCore::Procedure->procedure($agent,$g->name.' Evaluation Procedure
 			result = link.dest_by_type("ConceptNode");
 			if(result.length)
 			{
-				print("    Location of "+objNode.name()+" is "+result[0]);
+				print("    Location of "+objNode.name()+" is "+result[0].name());
 				found = true;
 			}
 			else

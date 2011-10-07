@@ -100,8 +100,8 @@ package MindCore::Link;
 	{
 		my $self = shift;
 		my $name = shift;
-		$name = $name->value if UNIVERSAL::isa($name, 'JE::String');
-		my @result = MindCore::Node->search_dest_by_name( $self->id, $name );
+		#$name = $name->value if UNIVERSAL::isa($name, 'JE::String');
+		my @result = MindCore::Node->search_dest_by_name( $self->id, $name.'' );
 		return wantarray ? @result : \@result;
 	}
 	
@@ -109,9 +109,9 @@ package MindCore::Link;
 	{
 		my $self = shift;
 		my $type = shift;
-		$type = $type->value if UNIVERSAL::isa($type, 'JE::String');
+		#$type = $type->value if UNIVERSAL::isa($type, 'JE::String');
 		$type = $type->name  if UNIVERSAL::isa($type, 'MindCore::NodeType');
-		my @result = MindCore::Node->search_dest_by_type( $self->id, $type );
+		my @result = MindCore::Node->search_dest_by_type( $self->id, $type.'' );
 		return wantarray ? @result : \@result;
 	}
 	
@@ -175,8 +175,9 @@ package MindCore::Link;
 	{
 		my $self = shift;
 		my $type = shift;
-		$type = $type->value if UNIVERSAL::isa($type, 'JE::String');
+		#$type = $type->value if UNIVERSAL::isa($type, 'JE::String');
 		$type = $type->name  if UNIVERSAL::isa($type, 'MindCore::NodeType');
+		$type = $type .''; #force stringify
 		my @subset = grep { $_->type->name eq $type } @{ $self->to_nodes || [] };
 		return \@subset;
 	}

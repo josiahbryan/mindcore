@@ -41,8 +41,9 @@ package MindCore::Node;
 		if($type)
 		{
 			#print STDERR "$self: Finding links for type '$type' (ref:".ref($type).")\n";
-			$type = $type->value if UNIVERSAL::isa($type, 'JE::String');
-			my @result = MindCore::Link->search( node => $self, type => ref $type ? $type->name : $type );
+			#$type = $type->value if UNIVERSAL::isa($type, 'JE::String');
+			$type = $type->name  if UNIVERSAL::isa($type, 'MindCore::LinkType');
+			my @result = MindCore::Link->search( node => $self, type => $type.'' );
 			return wantarray ? @result : \@result
 		}
 		else
@@ -73,7 +74,7 @@ package MindCore::Node;
 	{
 		my $self = shift;
 		my $type = shift;
-		$type = $type->value if UNIVERSAL::isa($type, 'JE::String');
+		#$type = $type->value if UNIVERSAL::isa($type, 'JE::String');
 		$type = $type->name  if UNIVERSAL::isa($type, 'MindCore::NodeType');
 		my @result = MindCore::Node->search_nodes_by_dest_node_type( $self->id, $type );
 		return wantarray ? @result : \@result;

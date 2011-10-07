@@ -46,6 +46,27 @@ package MindCore::Procedure;
 		]
 	});
 	
+	sub from_node
+	{
+		my $class = shift;
+		my $node  = shift;
+		return $class->by_field( node => $node );
+	}
+	
+	sub set_script
+	{
+		my $self = shift;
+		my $script = shift;
+		# Avoid unnecessary database action
+		if($self->script ne $script)
+		{
+			$self->script($script);
+			$self->update;
+			return 1;
+		}
+		return 0;
+	}
+	
 	sub procedure 
 	{
 		my $class = shift;
@@ -218,4 +239,12 @@ package MindCore::Procedure;
 
 };
 
+
+package JE::String;
+{
+	use overload
+		'""' => sub { shift->value };
+};
+
 1;
+
