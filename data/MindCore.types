@@ -123,7 +123,15 @@ Sensor	VisionSensor		d14dc179-24fe-4ff8-bf55-198180b4d558
 Sensor	LocationSensor		ae1c5928-3339-4399-9b77-bc4e09c32a05
 Sensor	TextInputSensor		46990545-834b-4679-a9db-aa076a023771
 
-VisionSensor	ANSITextSensor	7c57df01-a9ff-4243-892c-027ef8f412af
+VisionSensor	ANSITextSensor		7c57df01-a9ff-4243-892c-027ef8f412af
+LocationSensor	SimpleXYLocationSensor	8c4996cf-dfbf-4e96-9932-c734e7f350a8
+
+// Intermix with their output node and link types;
+
+// LocationNode and subtypes are given as output by LocationSensor and subtypes
+Node		LocationNode		774fec55-37d6-4a61-bf43-594becb06ac0
+LocationNode	SimpleXYLocationNode	c683a399-4522-4ff1-aded-5de767a12554
+
 	
 /////////////////////////////////////////////////////
 // Output Types
@@ -133,4 +141,9 @@ Output		TextOutput	e8158b02-99bf-4202-a026-3dfa9efd944a
 MovementOutput	SimpleXYOutput	67d2dc17-53e7-4b53-82f5-50c9e14a7b63
 
 TextOutput	ANSITextOutput	376fee65-5b44-4a93-8722-29e94938a0d4
+
+/// SimpleXYOutput takes SimpleXYMovementVectors as input 
+Node		VectorNode	d1008edf-861f-4d6d-9b8f-012703644b25
+VectorNode	MovementVector	3b2cf1ae-016d-4069-afaf-940bdf8c1b69
+MovementVector	SimpleXYMovementVector	cb8fcfea-aaad-4e75-b2d2-97b49648e112
 

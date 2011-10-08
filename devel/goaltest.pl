@@ -102,6 +102,17 @@ my @links = $search_node->links;
 print "\t",$_,"\n" foreach @links;
 
 
+##############################
+# Let's pseudo-code a grid-search pattern
+# Basically, move in a straight vecotr (+-1,0 or 0,+-1) until encounter [something]
+# If we still are executing, means that [something] wasn't our goal, so decide
+# on new vector.
+# If vector was (1,0),  change vector to (0,1) for one step, then (-1,0)
+# If vector was (0,1),  change vector to (1,0) for one step, then (0,-1)
+# If vector was (-1,0), change vector to (...) ...
+# ...
+
+
 ##############################################################################
 #  Link the goal with its related concepts/entities/predicates
 ##############################################################################
@@ -122,7 +133,7 @@ print "\t",$_,"\n" foreach @links;
 # 	my @dest = @{ $link->to_nodes ||[] };
 # 	if(!@dest)
 # 	{
-# 		print "\t Link ID ".$link->id.": -- NO DESTINATIONS --\n";
+	# 		print "\t Link ID ".$link->id.": -- NO DESTINATIONS --\n";
 # 		$link->delete;
 # 	}
 # 	print "\t Link ID ".$link->id.": Dest: [$_]\n" foreach @dest;

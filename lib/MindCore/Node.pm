@@ -143,11 +143,11 @@ package MindCore::Node;
 		return $self;
 	}
 
-# 	sub name { shift->{name} }
-# 	sub type { shift->{type} }
-# 	sub lti  { shift->{lti}  }
-# 	sub lti  { shift->{sti}  }
-	
+	# ### \brief Lookup node by name \a $node. 
+	# ### \returns a MindCore::Node object if \a $node exists.
+	# - If \a $node does not exist AND \a $type is given, this creates a new node object and returns it.
+	# - If \a $node does not eixst, and \a $type is undefined or false, returns undef.
+	# Note: find_node() caches result of query for faster subsequent lookups.
 	sub find_node
 	{
 		my ($class,$node,$type) = @_;
@@ -163,7 +163,15 @@ package MindCore::Node;
 			$NODE_LOOKUP{$node} = $obj;
 		}
 		#print STDERR "[$class] returning '$NODE_LOOKUP{$node}'\n";
-		return $NODE_LOOKUP{$node};
+		my $n = $NODE_LOOKUP{$node};
+		
+		# Update the node type to match $type if its not correct
+		if($n && $type && $n->type->name ne (ref $type ? $type->name : $type))
+		{
+			$n->type($type);
+			$n->update;
+		}
+		return $n;
 	}
 };
 
