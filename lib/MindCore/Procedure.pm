@@ -67,6 +67,14 @@ package MindCore::Procedure;
 		return 0;
 	}
 	
+	sub load_script
+	{
+		my $self = shift;
+		my $file = shift;
+		$self->set_script(AppCore::Common->read_file($file));
+		return 1;
+	}
+	
 	sub procedure 
 	{
 		my $class = shift;
@@ -209,8 +217,21 @@ package MindCore::Procedure;
 				methods		=> _methods('MindCore::Link::Destination::Array'),
 			);
 			
+			$JE->bind_class(
+				package		=> 'MindCore::Node::GenericDataClass',
+				constructor	=> undef,
+				methods		=> _methods('MindCore::Node::GenericDataClass'),
+			);
 			
 		}
+		
+		$JE->{input} = 
+		{
+			proc	=> $self,
+			context	=> $agent->context,
+			agent	=> $agent,
+			input_nodes	=> $input_nodes,
+		};
 		
 		$JE->{proc} = $self;
 		$JE->{context} = $agent->current_context;

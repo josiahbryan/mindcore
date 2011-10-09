@@ -25,6 +25,7 @@ package MindCore::Node;
 			{	field	=> 'type',	type	=> 'varchar(255)' },
 			{	field	=> 'sti',	type	=> 'float' },
 			{	field	=> 'lti',	type	=> 'float' },
+			{	field	=> 'extra_data', type	=> 'text' },
 		]
 	});
 	
@@ -57,7 +58,8 @@ package MindCore::Node;
 	
 	# Search links from node (n1) to (x1...xN) nodes by the type of the destination nodes.
 	# Call linked_nodes($type) to use this query.
-	__PACKAGE__->set_sql('nodes_by_dest_node_type' => qq{select N.* from nodes N, links L, link_to L2 where L.nodeid=? and L.linkid=L2.linkid and L2.nodeid=N.nodeid and N.type=?});
+	__PACKAGE__->set_sql('nodes_by_dest_node_type' => qq{select N.* from nodes N, links L, link_to L2 where L.node=? and L.linkid=L2.linkid and L2.nodeid=N.nodeid and N.type=?});
+	#__PACKAGE__->set_sql('nodes_by_dest_node_name' => qq{select N.* from nodes N, links L, link_to L2 where L.nodeid=? and L.linkid=L2.linkid and L2.nodeid=N.nodeid and N.name=?});
 	 
 # 	# This wont work in the SQL
 # 	sub links_to
@@ -74,9 +76,11 @@ package MindCore::Node;
 	{
 		my $self = shift;
 		my $type = shift;
+		my $return_first = shift;
 		#$type = $type->value if UNIVERSAL::isa($type, 'JE::String');
 		$type = $type->name  if UNIVERSAL::isa($type, 'MindCore::NodeType');
 		my @result = MindCore::Node->search_nodes_by_dest_node_type( $self->id, $type );
+		return shift @result if $return_first;
 		return wantarray ? @result : \@result;
 	}
 	
@@ -166,13 +170,156 @@ package MindCore::Node;
 		my $n = $NODE_LOOKUP{$node};
 		
 		# Update the node type to match $type if its not correct
-		if($n && $type && $n->type->name ne (ref $type ? $type->name : $type))
+		#print STDERR "tn[1]: ".$n->type."\n";
+		#my $tn = $n->type->name;
+		if($n && $type && 
+			(!$n->type || 
+				($n->type->name ne (ref $type ? $type->name : $type))
+			)
+		)
 		{
 			$n->type($type);
 			$n->update;
 		}
+		#print STDERR "tn[2]: ".$n->type." [".$type."]\n";
 		return $n;
 	}
+
+	sub data#()
+	{
+		my $self = shift;
+		my $dat  = $self->{_user_data_inst} || $self->{_data};
+		if(!$dat)
+		{
+			return $self->{_data} = MindCore::Node::GenericDataClass->_init($self);
+		}
+		return $dat;
+	}
+	
+	# Method: set_data($ref)
+	# If $ref is a hashref, it creates a new ::GenericDataClass wrapper and sets that as the data class for this instance.
+	# If $ref is a reference (not a CODE or ARRAY), it checks to see if $ref can get,set,is_changed, and update - if true,
+	# it sets $ref as the object to be used as the data class.
+	sub set_data#($ref)
+	{
+		my $self = shift;
+		my $ref = shift;
+		if(ref $ref eq 'HASH')
+		{
+			$self->{_data} = MindCore::Node::GenericDataClass->_init($self);
+			$self->{_data}->set($_, $ref->{$_}) foreach keys %{$ref || {}};
+			$self->{_data}->update;
+		}
+		elsif(ref $ref && ref $ref !~ /(CODE|ARRAY)/)
+		{
+			foreach(qw/get set is_changed update/)
+			{
+				die "Cannot use ".ref($ref)." as a data class for Boards::Post: It does not implement $_()" if ! $ref->can($_);
+			}
+			
+			$self->{_user_data_inst} = $ref;
+		}
+		else
+		{
+			die "Cannot use non-hash or non-object value as an argument to Boards::Post->set_data()";
+		}
+		
+		return $ref;
+	}
+
 };
+
+# Package: MindCore::Node::GenericDataClass 
+# Designed to emulate a very very simple version of Class::DBI's API.
+# Provides get/set/is_changed/update. Not to be created directly, 
+# rather you should retrieve an instance of this class through the
+# MindCore::Node::GenericDataClass->data() method.
+# Note: You can use your own Class::DBI-compatible class as a data
+# container to be returned by MindCore::Node::GenericDataClass->data(). 
+# Just call $post->set_data($my_class_instance).
+# Copied from EAS::Workflow::Instance::GenericDataClass.
+package MindCore::Node::GenericDataClass;
+{
+	use vars qw/$AUTOLOAD/;
+	#use Storable qw/freeze thaw/;
+	use JSON qw/to_json from_json/;
+	use Data::Dumper;
+	
+	sub x
+	{
+		my($x,$k,$v)=@_;
+		#$x->{$k}=$v if defined $v;
+		#$x->{$k};
+		$x->set($k,$v) if defined $v;
+		return $x->get($k);
+	}
+	
+	sub AUTOLOAD 
+	{
+		my $node = shift;
+		my $name = $AUTOLOAD;
+		$name =~ s/.*:://;   # strip fully-qualified portion
+		
+		return if $name eq 'DESTROY';
+		
+		#print STDERR "DEBUG: AUTOLOAD() [$node] ACCESS $name\n"; # if $debug;
+		return $node->x($name,@_);
+	}
+	
+
+
+# Method: _init($inst,$ref)
+# Private, only to be initiated by the Post instance
+	sub _init
+	{
+		my $class = shift;
+		my $inst = shift;
+		#print STDERR "Debug: init '".$inst->data_store."'\n";
+		my $self = bless {data=>from_json($inst->extra_data ? $inst->extra_data  : '{}'),changed=>0,inst=>$inst}, $class;
+		#print STDERR "Debug: ".Dumper($self->{data});
+		return $self;
+		
+	}
+	
+	sub hash {shift->{data}}
+
+# Method: get($k)
+# Return the value for key $k
+	sub get#($k)
+	{
+		my $self = shift;
+		my $k = shift;
+		return $self->{data}->{$k};
+	}
+
+# Method: set($k,$v)
+# Set value for $k to $v
+	sub set#($k,$v)
+	{
+		my $self = shift;#shift->{shift()} = shift;
+		my ($k,$v) = @_;
+		#AppCore::Common::print_stack_trace();
+		$self->{data}->{$k} = $v;
+		$self->{changed} = 1;
+		return $self->{$k};
+	}
+
+# Method: is_changed()
+# Returns true if set() has been called
+	sub is_changed{shift->{changed}}
+
+# Method: update()
+# Commits the changes to the workflow instance object
+	sub update
+	{
+		my $self = shift;
+		my $json = to_json($self->{data});
+		$self->{inst}->extra_data($json);
+		$self->{inst}->{extra_data} = $json;
+		#print STDERR "Debug: save '".$self->{inst}->extra_data."' on post ".$self->{inst}."\n";
+		$self->{inst}->update;
+		$self->{changed} = 0;
+	}
+}
 
 1;

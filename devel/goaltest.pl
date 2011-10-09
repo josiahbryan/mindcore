@@ -111,6 +111,50 @@ print "\t",$_,"\n" foreach @links;
 # If vector was (0,1),  change vector to (1,0) for one step, then (0,-1)
 # If vector was (-1,0), change vector to (...) ...
 # ...
+#
+# For this proc, we need:
+# - Last known vector 
+# - Sensor Input (e.g. circle of objects around, ANSITextSensor)
+# 	- for use with "can we move in dir of vector?"
+#
+# Output: SimpleXYMovementVector Node
+#
+# Store in context: Last Known Vector
+#
+my $vec = _node('agent-test-vec',MindCore::SimpleXYMovementVector);
+$vec->set_data({x=>1,y=>0});
+# use Data::Dumper;
+# print Dumper $vec;
+Link( $ctx->node, [ $agent->node, $vec ], MindCore::SpatialLink );
+
+my $visual_ctx = _node('agent-vis-ctx', MindCore::SimpleTextVisualContext);
+$visual_ctx->set_data({
+	#N
+	'0-1'	=>	0,
+	#S 
+	'01'	=>	0,
+	#E 
+	'10'	=>	{ char => 'f', attr => 'foxy' },
+	#W 
+	'0-1'	=>	0,
+	#NE 
+	#EN
+	'1-1'	=>	0,
+	#SE
+	#ES
+	'11'	=>	0,
+	#NW
+	#WN
+	'-1-1'	=>	0,
+	#SW
+	#WS 
+	'-11'	=>	0,
+});
+Link( $ctx->node, [ $agent->node, $visual_ctx ], MindCore::SpatialLink );
+
+#my @list = $ctx->node()->linked_nodes("SimpleXYMovementVector");
+#print "SimpleXYMovementVector in context: ". @list .", first: ".shift(@list)."\n";
+
 
 
 ##############################################################################
@@ -152,6 +196,24 @@ Link( $ctx->node, [ $ent, _node("10,24", MindCore::ConceptNode) ], MindCore::Loc
 print "Ctx Links:\n";
 my @links = $agent->context->node->links;
 print "\t",$_,"\n" foreach @links;
+
+
+
+
+
+
+$p_grid->load_script('pgrid.js');
+print "First execution of pgrid:\n";
+$p_grid->execute();
+print "Next execution of pgrid:\n";
+my $output = $p_grid->execute();
+print "Output: $output\n";
+print "Output data: x:".$output->data->get('x')."\n";
+print "Output data: y:".$output->data->get('y')."\n";
+
+die "test done\n";
+
+
 
 
 ##############################################################################
