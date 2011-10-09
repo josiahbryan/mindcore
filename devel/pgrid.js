@@ -64,9 +64,8 @@ else
 
 
 print("Changing last known vector to 01");
-lastKnownVector.data().set("x",0);
-lastKnownVector.data().set("y",1);
-//lastKnownVector.data().update();
+lastKnownVector.data().set({x:0,y:1});
+lastKnownVector.data().update();
 
 
 return lastKnownVector;

@@ -208,8 +208,7 @@ $p_grid->execute();
 print "Next execution of pgrid:\n";
 my $output = $p_grid->execute();
 print "Output: $output\n";
-print "Output data: x:".$output->data->get('x')."\n";
-print "Output data: y:".$output->data->get('y')."\n";
+print "Output data: ".$output->data()."\n";
 
 die "test done\n";
 

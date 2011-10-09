@@ -238,12 +238,31 @@ package MindCore::Node;
 # container to be returned by MindCore::Node::GenericDataClass->data(). 
 # Just call $post->set_data($my_class_instance).
 # Copied from EAS::Workflow::Instance::GenericDataClass.
+package JE::Number;
+{
+	sub TO_JSON {
+		my $self = shift;
+		return $self->value;
+	}
+};
 package MindCore::Node::GenericDataClass;
 {
 	use vars qw/$AUTOLOAD/;
 	#use Storable qw/freeze thaw/;
 	use JSON qw/to_json from_json/;
 	use Data::Dumper;
+	
+	my $json = JSON->new;
+	$json->convert_blessed(1); 
+			
+	
+	use overload
+		'""' => sub {
+			my $self = shift;
+			#return ref($self)."($self->{name})";
+			return $json->encode($self->{data});
+		};
+	
 	
 	sub x
 	{
@@ -277,6 +296,7 @@ package MindCore::Node::GenericDataClass;
 		#print STDERR "Debug: init '".$inst->data_store."'\n";
 		my $self = bless {data=>from_json($inst->extra_data ? $inst->extra_data  : '{}'),changed=>0,inst=>$inst}, $class;
 		#print STDERR "Debug: ".Dumper($self->{data});
+		#delete $self->{data}->{'[object Object]'};
 		return $self;
 		
 	}
@@ -297,8 +317,39 @@ package MindCore::Node::GenericDataClass;
 	sub set#($k,$v)
 	{
 		my $self = shift;#shift->{shift()} = shift;
+		if(@_ == 1)
+		{
+			my $item = shift;
+			# Compat with JE
+			if(UNIVERSAL::isa($item,'JE::Object'))
+			{
+				$item = $item->value;
+			}
+			# Allow one to call ->set({key:value,...});
+			if(ref($item) eq 'HASH')
+			{
+				my $hash = shift;
+				foreach my $key (keys %$hash)
+				{
+					$self->set($key,$hash->{$key});
+				}
+			}
+			else
+			{
+				warn __PACKAGE__."->set($item): Need key->value to set";
+			}
+			return;
+		}
 		my ($k,$v) = @_;
 		#AppCore::Common::print_stack_trace();
+		
+		# Special-case for JE compatibility
+		if(UNIVERSAL::isa($v,'JE::Number') ||
+		   UNIVERSAL::isa($v,'JE::String'))
+		{
+			$v = $v->value;
+		}
+		
 		$self->{data}->{$k} = $v;
 		$self->{changed} = 1;
 		return $self->{$k};
@@ -313,7 +364,7 @@ package MindCore::Node::GenericDataClass;
 	sub update
 	{
 		my $self = shift;
-		my $json = to_json($self->{data});
+		my $json = $json->encode($self->{data});
 		$self->{inst}->extra_data($json);
 		$self->{inst}->{extra_data} = $json;
 		#print STDERR "Debug: save '".$self->{inst}->extra_data."' on post ".$self->{inst}."\n";
