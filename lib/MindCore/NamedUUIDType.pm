@@ -2,6 +2,10 @@ use strict;
 
 package MindCore::NamedUUIDType;
 {
+	sub NAME() {0};
+	sub UUID() {1};	
+	sub PARENTS() {2};
+	
 	our %XREF;
 	our %ALL_TYPES_XREF;
 	
@@ -9,13 +13,13 @@ package MindCore::NamedUUIDType;
 		'""' => sub {
 			my $self = shift;
 			my $pkg = ref($self);
-			$pkg =~ s/^.*::([^\::]+)$/$1/g;
-			return $pkg."($self->{name})"; 
+			#$pkg =~ s/^.*::([^\::]+)$/$1/g;
+			return $pkg."(".$self->[NAME].")"; 
 		};
 	
 	sub new {
 		my ($class,$name,$uuid,$parent_list) = @_;
-		my $self = bless { name => $name, uuid => $uuid, parent_list => $parent_list }, $class;
+		my $self = bless [ $name, $uuid, $parent_list ], $class;
 		$XREF{$class.'::'.$uuid} = $self;
 		$XREF{$class.'::'.$name} = $self;
 		$ALL_TYPES_XREF{$name}   = $self;
@@ -28,20 +32,20 @@ package MindCore::NamedUUIDType;
 	{
 		my $self = shift;
 		my $other_type = shift;
-		return 1 if $self->name eq $other_type->name;
-		my @list = @{$self->{parent_list} || []};
+		return 1 if $self->[NAME] eq $other_type->[NAME];
+		my @list = @{$self->[PARENTS] || []};
 		return 0 if !@list;
 		foreach my $parent (@list)
 		{
 			next if !$parent;
-			return 1 if $parent->name eq $other_type->name;
+			return 1 if $parent->[NAME] eq $other_type->[NAME];
 			return 1 if $parent->inherits($other_type);
 		}
 		return 0;
 	}
 	
-	sub name { shift->{name} }
-	sub uuid { shift->{uuid} }
+	sub name { shift->[NAME] }
+	sub uuid { shift->[UUID] }
 	sub lookup
 	{
 		my $class = shift;

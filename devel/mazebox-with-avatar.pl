@@ -329,8 +329,93 @@ sub get_avatar
 	
 	$agent->{tick_hook} = sub
 	{
-		my $node = $p_grid->execute();
-		$avatar->output_request($output, [$node]);
+		if(0)
+		{
+			my $node = $p_grid->execute();
+			$avatar->output_request($output, [$node]);
+			return;
+		}
+		else
+		{
+			
+			my $ctx_node = $agent->context->node;
+			
+			# SimpleXYMovementVector stores (x,y) as attributes of the data() function:
+			# var x = lastKnownVector.data().get("x");
+			#var lastKnownVector = ctxNode.linked_node(Types.SimpleXYMovementVector);
+			my $lastKnownVector = $ctx_node->linked_node(MindCore::SimpleXYMovementVector);
+			
+			#var vectorData = lastKnownVector.data();
+			my $vectorData = $lastKnownVector->data();
+			
+	# 		// SimpleTextVisualContext store visual context as data hanging off it in eight different
+	# 		// attributes named, appropriatly: 
+	# 		// N,S,E,W,NE,SE,NW,SW
+	# 		// or
+	# 		// 0-1 01 01 0-1 1-1 11 -1-1 -11
+	# 		// Both keys are valid.
+	# 		// The data stored in those atributes is a hash of {char: "character", attr:[,,,,]} where attr is a list of flags/values for ansi attributes
+	# 		// visualContext should be current as of the LAST move
+			my $visualContext = $ctx_node->linked_node(MindCore::SimpleTextVisualContext);
+			
+			my $vectorStr = int($vectorData->x).",".int($vectorData->y);
+			
+	# 		//print("Debug: vectorStr: ", vectorStr);
+	# 		//print("Visual Context: ",visualContext);
+			print("Old Vector: ",$vectorData->x,",",$vectorData->y,"\n");
+			
+			my $visualInfo = $visualContext->data->get($vectorStr);
+			if($visualInfo)
+			{
+				#//print("Saw something at "+vectorStr+", Character '", visualInfo.char, "', attr: ", visualInfo.attr);
+				print("Saw something at $vectorStr, Character '", $visualInfo, "'\n");
+				
+				if($vectorStr eq "1,0")
+				{
+					$vectorData->set({x=>0,y=>1, turn=>"-1,0"});	
+				}
+				elsif($vectorStr eq "0,1")
+				{
+					$vectorData->set({x=>-1,y=>0, turn=>"0,-1"});
+				}
+				elsif($vectorStr eq "-1,0")
+				{
+					$vectorData->set({x=>0,y=>-1, turn=>"1,0"});
+				}
+				elsif($vectorStr eq "0,-1")
+				{
+					$vectorData->set({x=>1,y=>0, turn=>"0,1"});
+				}
+				
+				print("New Vector: ",$vectorData->x,",",$vectorData->y,"\n");
+			}
+			else
+			{
+				my $alt = rand() > 0.5 ? "1,0" : "";
+				my $inTurn = $vectorData->turn;
+				if($inTurn eq "-1,0"){
+					$vectorData->set({x=>-1,y=>0, turn=>$alt});
+				}elsif($inTurn eq "0,-1"){
+					$vectorData->set({x=>0,y=>-1, turn=>$alt});
+				}elsif($inTurn eq "1,0"){
+					$vectorData->set({x=>1,y=>0, turn=>$alt});
+				}elsif($inTurn eq "0,1"){
+					$vectorData->set({x=>0,y=>1, turn=>$alt});
+				}
+				
+				print("No visual info at ".$vectorStr."\n");
+			}
+			
+	# 		// if(vectorData.is_changed())
+	# 		// 	vectorData.update();
+	# 			
+	# 		// print("Changing last known vector to 01");
+	# 		// vectorData.update({x:0,y:1});
+			
+			#return $lastKnownVector;
+			
+			$avatar->output_request($output, [$lastKnownVector]);
+		}
 	};
 	
 	return $avatar;
@@ -375,8 +460,8 @@ use Term::ANSIScreen qw/:cursor :screen/;
 	my $count =0;
 	
 	my $a = time;
-	while(++$count) #++$count<350)
-	#while(++$count<1000)
+	#while(++$count) #++$count<350)
+	while(++$count<200)
 	{
 		
 		print locate(25,0), "Count $count\n";
@@ -484,7 +569,7 @@ use Term::ANSIScreen qw/:cursor :screen/;
 		
 		#sleep 1;
 		#sleep 1/20;
-		sleep 1/30;
+		#sleep 1/30;
 		#sleep 1/100; #1/10;
 		
 	}
