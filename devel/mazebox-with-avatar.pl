@@ -93,10 +93,20 @@ package MindCore::Agent::Avatar::Mazebox;
 			my $vd = $visual_ctx->data;
 			my ($x,$y) = ($ld->x,$ld->y);
 			
-			my @points = qw/0,-1 0,1 1,0 -1,0 1,-1 1,1 -1,-1 -1,1/;
+			my @points = qw/
+				 0,-1
+				 0,1
+				 1,0
+				-1,0
+				
+				 1,-1
+				-1,1
+				 1,1
+				-1,-1
+				/;
 			my %visual_data = map { $_ => $self->look_at($x, $y, split ',') } @points;
-			use Data::Dumper;
-			print Dumper(\%visual_data); 
+			#use Data::Dumper;
+			#print Dumper(\%visual_data); 
 # 			$vd->update({
 # 				#N
 # 				'0-1'	=>	$self->lookat(,
@@ -119,7 +129,7 @@ package MindCore::Agent::Avatar::Mazebox;
 # 				#WS 
 # 				'-11'	=>	0,
 # 			});
-			$vd->update(\%visual_data);
+			$vd->set(\%visual_data);
 			return $visual_ctx;
 		}
 		else
@@ -179,7 +189,7 @@ package MindCore::Agent::Avatar::Mazebox;
 			}
 			else
 			{
-				$ld->update({x=>$new_x,y=>$new_y});
+				$ld->set({x=>$new_x,y=>$new_y});
 				
 				# Cheating ... kinda ... not very elegant, anyway.
 				#$self->canvas->{agent_pos} = {$x=>$new_x,y=>$new_y};
@@ -310,7 +320,7 @@ sub get_avatar
 		MindCore::Link->new($ctx_node, [ $agent->node, $location_node ], MindCore::LocationOf);	
 	}
 	
-	$location_node->data->update({x=>2,y=>2});
+	$location_node->data->set({x=>2,y=>2});
 
 	# Just a placeholder so we have somewhere to send to now...
 	my $output = MindCore::Agent::Output->find_or_create({ agentid => $agent, type => MindCore::SimpleXYOutput, output_node_types=>qw/SimpleXYMovementVector/ }),
@@ -365,8 +375,8 @@ use Term::ANSIScreen qw/:cursor :screen/;
 	my $count =0;
 	
 	my $a = time;
-	#while(++$count) #++$count<350)
-	while(++$count<1000)
+	while(++$count) #++$count<350)
+	#while(++$count<1000)
 	{
 		
 		print locate(25,0), "Count $count\n";
@@ -474,7 +484,7 @@ use Term::ANSIScreen qw/:cursor :screen/;
 		
 		#sleep 1;
 		#sleep 1/20;
-		#sleep 1/30;
+		sleep 1/30;
 		#sleep 1/100; #1/10;
 		
 	}

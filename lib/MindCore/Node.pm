@@ -87,8 +87,26 @@ package MindCore::Node;
 		my $return_first = shift;
 		#$type = $type->value if UNIVERSAL::isa($type, 'JE::String');
 		$type = $type->name  if UNIVERSAL::isa($type, 'MindCore::NodeType');
-		my @result = MindCore::Node->search_nodes_by_dest_node_type( $self->id, $type );
-		return shift @result if $return_first;
+		
+# 		my @result = MindCore::Node->search_nodes_by_dest_node_type( $self->id, $type );
+# 		return $result[0] if $return_first;
+# 		return wantarray ? @result : \@result;
+		
+		
+		my $key = $self->id.$type;
+		my $result = $self->{nodes_by_dest_node_type_cache}->{$key};
+		if(!$result)
+		{
+			my @result = MindCore::Node->search_nodes_by_dest_node_type( $self->id, $type );
+			if(@result)
+			{
+				$self->{nodes_by_dest_node_type_cache}->{$key} = \@result;
+			}
+			$result = \@result;
+		}
+		my @result = @$result;
+		#my @result = MindCore::Node->search_nodes_by_dest_node_type( $self->id, $type );
+		return $result[0] if $return_first;
 		return wantarray ? @result : \@result;
 	}
 	
@@ -363,7 +381,12 @@ package MindCore::Node::GenericDataClass;
 	{
 		my $self = shift;
 		# Allow users to call update({hashref}) with keys to set
-		$self->set(shift) if @_ == 1;
+		if(@_ == 1)
+		{
+			# TODO Change assumption...maybe? Assume calls to update({hashref}) want to *set* ALL the data values, so clear out any old...
+			$self->{data} = {};
+			$self->set(shift);
+		}
 		
 		my $json = $json->encode($self->{data});
 		$self->{inst}->extra_data($json);

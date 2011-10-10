@@ -28,8 +28,21 @@ package MindCore::Agent;
 		]
 	});
 	
-	__PACKAGE__->has_many(sensors => 'MindCore::Agent::Sensor');
-	__PACKAGE__->has_many(outputs => 'MindCore::Agent::Output');
+	__PACKAGE__->has_many(sensor_objects => 'MindCore::Agent::Sensor');
+	__PACKAGE__->has_many(output_objects => 'MindCore::Agent::Output');
+	
+	sub sensors
+	{
+		my $self = shift;
+		my $result = $self->{sensor_cache};
+		if(!$result)
+		{
+			my @result = $self->sensor_objects;
+			$self->{sensor_cache} = \@result if @result;
+			$result = \@result; 
+		}
+		return @{$result || []};
+	}
 	 
 	sub outputs_for_node
 	{

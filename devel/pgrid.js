@@ -44,7 +44,7 @@ var vectorData = lastKnownVector.data();
 // visualContext should be current as of the LAST move
 var visualContext = ctxNode.linked_node(Types.SimpleTextVisualContext);
 
-var vectorStr = vectorData.get('x')+","+vectorData.get('y');
+var vectorStr = parseInt(vectorData.get('x'))+","+parseInt(vectorData.get('y'));
 
 //print("Debug: vectorStr: ", vectorStr);
 //print("Visual Context: ",visualContext);
@@ -62,31 +62,48 @@ if(visualInfo)
 // 	
 	if(vectorStr == "1,0")
 	{
-		vectorData.update({x:0,y:1});	
+		vectorData.set({x:0,y:1, turn:"-1,0"});	
 	}
 	else
 	if(vectorStr == "0,1")
 	{
-		vectorData.update({x:-1,y:0});
+		vectorData.set({x:-1,y:0, turn:"0,-1"});
 	}
 	else
 	if(vectorStr == "-1,0")
 	{
-		vectorData.update({x:0,y:-1});
+		vectorData.set({x:0,y:-1, turn:"1,0"});
 	}
 	else
 	if(vectorStr == "0,-1")
 	{
-		vectorData.update({x:1,y:0});
+		vectorData.set({x:1,y:0, turn:"0,1"});
 	}
 	
 	print("New Vector: ",vectorData.get('x'),",",vectorData.get('y'));
 }
 else
 {
+	var alt = Math.random() > 0.5 ? "1,0" : "";
+	var inTurn = vectorData.get('turn');
+	if(inTurn == "-1,0")
+		vectorData.set({x:-1,y:0,turn:alt});
+	else
+	if(inTurn == "0,-1")
+		vectorData.set({x:0,y:-1,turn:alt});
+	else
+	if(inTurn == "1,0")
+		vectorData.set({x:1,y:0,turn:alt});
+	else
+	if(inTurn == "0,1")
+		vectorData.set({x:0,y:1,turn:alt});
+	
 	print("No visual info at "+vectorStr);
 }
 
+// if(vectorData.is_changed())
+// 	vectorData.update();
+	
 // print("Changing last known vector to 01");
 // vectorData.update({x:0,y:1});
 
