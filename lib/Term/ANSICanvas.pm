@@ -451,8 +451,8 @@ sub getchr
 	my $clip_c1 =  $self->{clip}->{col}  || 0;
 	my $clip_c2 = ($self->{clip}->{col2} || $self->{width}) -1;
 	
-	return $self if $row < $clip_r1 || $row > $clip_r2;
-	return $self if $col < $clip_c1 || $col > $clip_c2;
+	return undef if $row < $clip_r1 || $row > $clip_r2;
+	return undef if $col < $clip_c1 || $col > $clip_c2;
 		
 	my $width = $self->{width};
 

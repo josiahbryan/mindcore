@@ -38,9 +38,6 @@ use MindCore::TruthValue;
 	
 package MindCore; 
 {
-	
-	
-	
 	sub apply_mysql_schema
 	{
 		my $self = shift;
@@ -87,7 +84,7 @@ package MindCore;
 			$TypeNames{$name} = $name;
 			
 			#my $parent_string = join(',',map { 'MindCore::'.$_.'()' } grep { $_ ne 'Node' && $_ ne 'Link'} split( /,/, $line_type ) );
-			my @parent_list = map { MindCore::NodeType->lookup($_) } grep { $_ ne 'Node' && $_ ne 'Link'} split( /,/, $line_type );
+			my @parent_list = map { MindCore::NamedUUIDType->lookup($_) } grep { $_ ne 'Node' && $_ ne 'Link'} split( /,/, $line_type );
 			
 			#print STDERR "Importing type '$name' ... [$parent_string]\n";
 			if( $line_type =~ /node/i)

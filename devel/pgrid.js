@@ -44,7 +44,7 @@ var vectorData = lastKnownVector.data();
 // visualContext should be current as of the LAST move
 var visualContext = ctxNode.linked_node(Types.SimpleTextVisualContext);
 
-var vectorStr = ""+vectorData.get('x')+""+vectorData.get('y');
+var vectorStr = vectorData.get('x')+","+vectorData.get('y');
 
 //print("Debug: vectorStr: ", vectorStr);
 //print("Visual Context: ",visualContext);
@@ -53,28 +53,29 @@ print("Old Vector: ",vectorData.get('x'),",",vectorData.get('y'));
 var visualInfo = visualContext.data().get(vectorStr);
 if(visualInfo)
 {
-	print("Saw something at "+vectorStr+", Character '", visualInfo.char, "', attr: ", visualInfo.attr);
+	//print("Saw something at "+vectorStr+", Character '", visualInfo.char, "', attr: ", visualInfo.attr);
+	print("Saw something at "+vectorStr+", Character '", visualInfo, "'");
 // 	if(vectorData.get("inTurn"))
 // 	{
 // 	
 // 	}
 // 	
-	if(vectorStr == "10")
+	if(vectorStr == "1,0")
 	{
 		vectorData.update({x:0,y:1});	
 	}
 	else
-	if(vectorStr == "01")
+	if(vectorStr == "0,1")
 	{
 		vectorData.update({x:-1,y:0});
 	}
 	else
-	if(vectorStr == "-10")
+	if(vectorStr == "-1,0")
 	{
 		vectorData.update({x:0,y:-1});
 	}
 	else
-	if(vectorStr == "0-1")
+	if(vectorStr == "0,-1")
 	{
 		vectorData.update({x:1,y:0});
 	}

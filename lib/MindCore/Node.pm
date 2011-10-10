@@ -264,7 +264,7 @@ package MindCore::Node::GenericDataClass;
 		};
 	
 	
-	sub x
+	sub _get_set
 	{
 		my($x,$k,$v)=@_;
 		#$x->{$k}=$v if defined $v;
@@ -282,7 +282,7 @@ package MindCore::Node::GenericDataClass;
 		return if $name eq 'DESTROY';
 		
 		#print STDERR "DEBUG: AUTOLOAD() [$node] ACCESS $name\n"; # if $debug;
-		return $node->x($name,@_);
+		return $node->_get_set($name,@_);
 	}
 	
 

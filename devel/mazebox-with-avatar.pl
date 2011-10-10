@@ -10,7 +10,7 @@ use MindCore::Agent::Avatar;
 use MindCore::Agent::Sensor;
 use MindCore::Agent::Output;
 
-MindCore->apply_mysql_schema;
+#MindCore->apply_mysql_schema;
 
 package MindCore::Agent::Avatar::Mazebox;
 {
@@ -41,6 +41,8 @@ package MindCore::Agent::Avatar::Mazebox;
 		#my $ctx_node = $self->agent->context->node;
 		#my $location_node = $ctx_node->linked_node(MindCore::SimpleXYLocationNode);
 		my @sensors = $self->agent->sensors;
+		#use Data::Dumper;
+		#print Dumper(\@sensors);
 		$self->sensor_query($_) foreach @sensors;
 		
 		$self->agent->tick;
@@ -57,15 +59,17 @@ package MindCore::Agent::Avatar::Mazebox;
 		my $dy = shift;
 		my $lx = $x+$dx;
 		my $ly = $y+$dy;
-		my $v = $self->canvas->getchr($lx,$ly);
-		print STDERR __PACKAGE__."->look_at: ($x,$y) + ($dx,$dy) = ($lx,$ly) = ($v)\n";
-		return $v eq ' ' ? undef : $v;
+		my $v = $self->canvas->getchr($ly,$lx);
+		#print STDERR __PACKAGE__."->look_at: ($x,$y) + ($dx,$dy) = ($lx,$ly) = ($v)   \n";
+		my $char = $v eq ' ' ? undef : $v;
+		return $char; #{ char => $char, attr => undef };
 	}
 	
 	sub sensor_query 
 	{
 		my $self = shift;
 		my $sensor = shift;
+		#print STDERR "Sensor query: $sensor\n";
 		
 		return undef if !$sensor;
 		if($sensor->type->inherits(MindCore::VisionSensor))
@@ -89,8 +93,10 @@ package MindCore::Agent::Avatar::Mazebox;
 			my $vd = $visual_ctx->data;
 			my ($x,$y) = ($ld->x,$ld->y);
 			
-			my @points = qw/0,-1 0,1 1,0 0,-1 1,-1 1,1 -1,-1 -1,1/;
-			my %visual_data = map { $self->lookat($x, $y, split ',') } @points; 
+			my @points = qw/0,-1 0,1 1,0 -1,0 1,-1 1,1 -1,-1 -1,1/;
+			my %visual_data = map { $_ => $self->look_at($x, $y, split ',') } @points;
+			use Data::Dumper;
+			print Dumper(\%visual_data); 
 # 			$vd->update({
 # 				#N
 # 				'0-1'	=>	$self->lookat(,
@@ -118,7 +124,7 @@ package MindCore::Agent::Avatar::Mazebox;
 		}
 		else
 		{
-			print STDERR __PACKAGE__."->sensor_query: Unknown sensor type: ".$sensor->type."\n";
+			print __PACKAGE__."->sensor_query: Unknown sensor type: ".$sensor->type."\n";
 		}
 		
 		
@@ -136,19 +142,20 @@ package MindCore::Agent::Avatar::Mazebox;
 			my @list = @$output_nodes;
 			if(!@list)
 			{
-				print STDERR __PACKAGE__."->output_request: No output nodes given to SimpleXYOutput\n";
+				print __PACKAGE__."->output_request: No output nodes given to SimpleXYOutput\n";
 				return;
 			}
 			 
 			my $output_vector = shift @list;
 			if(!$output_vector->type->inherits(MindCore::SimpleXYMovementVector))
 			{
-				print STDERR __PACKAGE__."->output_request: Output node given is not a SimpleXYMovementVector or subtype - it's a ".$output_vector->type."\n";
+				print __PACKAGE__."->output_request: Output node given is not a SimpleXYMovementVector or subtype - it's a ".$output_vector->type."\n";
 				return;
 			}
 			
 			my $vd = $output_vector->data;
 			my ($vx,$vy) = ($vd->x,$vd->y);
+			print "Vector node: $vd [$vx,$vy]\n";
 			
 			my $ctx_node = $self->agent->context->node;
 			
@@ -160,6 +167,7 @@ package MindCore::Agent::Avatar::Mazebox;
 			}
 			
 			my $ld = $location_node->data;
+			print "Location node: $ld\n";
 			my ($x,$y) = ($ld->x,$ld->y);
 			
 			my ($new_x, $new_y) = ($vx+$x, $vy+$y);
@@ -167,21 +175,23 @@ package MindCore::Agent::Avatar::Mazebox;
 			
 			if($char ne ' ')
 			{
-				print STDERR __PACKAGE__."->output_request: Can't move to ($new_x,$new_y) (vec: $vx,$vy) - '$char' is there\n";
+				print __PACKAGE__."->output_request: Can't move to ($new_x,$new_y) (vec: $vx,$vy) - '$char' is there\n";
 			}
 			else
 			{
 				$ld->update({x=>$new_x,y=>$new_y});
 				
 				# Cheating ... kinda ... not very elegant, anyway.
-				$self->canvas->{agent_pos} = {$x=>$new_x,y=>$new_y};
-				print STDERR __PACKAGE__."->output_request: Moved agent to ($new_x,$new_y) (vec: $vx,$vy)\n"; 
+				#$self->canvas->{agent_pos} = {$x=>$new_x,y=>$new_y};
+				$self->{x} = $new_x;
+				$self->{y} = $new_y;
+				print __PACKAGE__."->output_request: Moved agent to ($new_x,$new_y) (vec: $vx,$vy)\n"; 
 			}
 			
 		}
 		else
 		{
-			print STDERR __PACKAGE__."->output_request: Unknown output type: ".$output->type."\n";
+			print __PACKAGE__."->output_request: Unknown output type: ".$output->type."\n";
 		}
 		
 		return 0; # output not enacted
@@ -292,6 +302,16 @@ sub get_avatar
 # 	
 # 	die "test done\n";
 
+	my $ctx_node = $agent->context->node;
+	my $location_node = $ctx_node->linked_node(MindCore::SimpleXYLocationNode);
+	if(!$location_node)
+	{
+		$location_node = _node($agent->name.' Location', MindCore::SimpleXYLocationNode);
+		MindCore::Link->new($ctx_node, [ $agent->node, $location_node ], MindCore::LocationOf);	
+	}
+	
+	$location_node->data->update({x=>2,y=>2});
+
 	# Just a placeholder so we have somewhere to send to now...
 	my $output = MindCore::Agent::Output->find_or_create({ agentid => $agent, type => MindCore::SimpleXYOutput, output_node_types=>qw/SimpleXYMovementVector/ }),
 	# $agent will call $agent->avatar->output_request($output,[$nodes..]) when it needs an output
@@ -306,6 +326,8 @@ sub get_avatar
 	return $avatar;
 
 }
+
+use Term::ANSIScreen qw/:cursor :screen/;
 
 #print STDERR "Test\n";
 	my $bg = Term::ANSICanvas->new(20,40);
@@ -347,6 +369,7 @@ sub get_avatar
 	while(++$count<1000)
 	{
 		
+		print locate(25,0), "Count $count\n";
 		$can->clear;
 		#$can->line([ON_BLUE,RED],$y,$x,$y+($oy * sign($dy)),$x+($ox * sign($dx)),' ');
 		
@@ -418,8 +441,8 @@ sub get_avatar
 # 			
 # 		}
 		
-		$x = $can->{agent_pos}->{x} || 1;
-		$y = $can->{agent_pos}->{y} || 1;
+		$x = $avatar->{x} || 1; #$can->{agent_pos}->{x} || 1;
+		$y = $avatar->{y} || 1; #$can->{agent_pos}->{y} || 1;
 		
 		#$can->render_canvas(int($y),int($x),$c2);
 		$can->string(int($y),int($x),'<white><onblue>#<clear>');
@@ -446,11 +469,14 @@ sub get_avatar
 		my $fps = $count/$d;
 		
 		#print "\n$y,$x           \n($dx,$dy)              \n(".$can->height.",".$can->width.") [frame $count] [".sprintf("%.02f fps",$fps)."]      \n";
-		print "\n$y,$x           \n".$can->height.",".$can->width.") [frame $count] [".sprintf("%.02f fps",$fps)."]      \n";
+		print "\n$y,$x           \n(".$can->height.",".$can->width.") [frame $count] [".sprintf("%.02f fps",$fps)."]      \n";
 		
 		
+		#sleep 1;
+		#sleep 1/20;
 		#sleep 1/30;
 		#sleep 1/100; #1/10;
+		
 	}
 	
 	my $b = time;

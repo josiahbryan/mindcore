@@ -3,6 +3,7 @@ use strict;
 package MindCore::NamedUUIDType;
 {
 	our %XREF;
+	our %ALL_TYPES_XREF;
 	
 	use overload
 		'""' => sub {
@@ -17,11 +18,14 @@ package MindCore::NamedUUIDType;
 		my $self = bless { name => $name, uuid => $uuid, parent_list => $parent_list }, $class;
 		$XREF{$class.'::'.$uuid} = $self;
 		$XREF{$class.'::'.$name} = $self;
+		$ALL_TYPES_XREF{$name}   = $self;
+		$ALL_TYPES_XREF{$uuid}   = $self;
 		#print STDERR "$class: $name -> $uuid\n";
 		return $self;
 	}
 	
-	sub inherits {
+	sub inherits 
+	{
 		my $self = shift;
 		my $other_type = shift;
 		return 1 if $self->name eq $other_type->name;
@@ -42,6 +46,11 @@ package MindCore::NamedUUIDType;
 	{
 		my $class = shift;
 		my $value = shift;
+		if($class eq 'MindCore::NamedUUIDType')
+		{
+			return $ALL_TYPES_XREF{$value};
+		}
+		
 		return $XREF{$class.'::'.$value};
 	}
 };
