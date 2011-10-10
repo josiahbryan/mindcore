@@ -24,10 +24,12 @@ package MindCore::NamedUUIDType;
 	sub inherits {
 		my $self = shift;
 		my $other_type = shift;
+		return 1 if $self->name eq $other_type->name;
 		my @list = @{$self->{parent_list} || []};
 		return 0 if !@list;
 		foreach my $parent (@list)
 		{
+			next if !$parent;
 			return 1 if $parent->name eq $other_type->name;
 			return 1 if $parent->inherits($other_type);
 		}

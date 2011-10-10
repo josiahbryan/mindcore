@@ -1,6 +1,9 @@
 use strict;
 package MindCore::Agent;
 {
+	use MindCore::Agent::Sensor;
+	use MindCore::Agent::Output;
+
 	use base 'AppCore::DBI';
 	
 	__PACKAGE__->meta({
@@ -24,6 +27,27 @@ package MindCore::Agent;
 			
 		]
 	});
+	
+	__PACKAGE__->has_many(sensors => 'MindCore::Agent::Sensor');
+	__PACKAGE__->has_many(outputs => 'MindCore::Agent::Output');
+	 
+	sub outputs_for_node
+	{
+		my $self = shift;
+		my $node = shift;
+		return undef if !$node;
+		return $self->outputs_by_node_type($node->type);
+	}
+	
+	sub outputs_by_node_type
+	{
+		my $self = shift;
+		my $type = shift;
+		$type = $type->name if UNIVERSAL::isa($type, 'MindCore::NodeType');
+		my @result = MindCore::Agent::Output->search_outputs_by_node_type($self->id, $type);
+		return wantarray ? @result : \@result;	
+	}
+	
 	
 	# The execute of procedures-
 	# Evaluates which procedures to run ...todo, how?
@@ -86,6 +110,12 @@ package MindCore::Agent;
 	sub tick 
 	{
 		# ...?
+		my $self = shift;
+		# ### HHACKKKKKK
+		if($self->{tick_hook})
+		{
+			$self->{tick_hook}->($self);
+		}
 	}
 	
 	sub avatar
@@ -97,7 +127,6 @@ package MindCore::Agent;
 		
 		return $self->{avatar};
 	}
-	
 };
 
 1;

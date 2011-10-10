@@ -237,6 +237,7 @@ package MindCore::Procedure;
 		$JE->{context} = $agent->current_context;
 		$JE->{input_nodes} = $input_nodes;
 		$JE->{agent} = $agent;
+		$JE->{Types} = \%MindCore::TypeNames;
 		
 		my $result = $JE->eval($self->script);
 		if($@)

@@ -60,6 +60,7 @@ package MindCore;
 	
 	our %TypeCache;
 	our %TypeUUIDs;
+	our %TypeNames;
 	
 	sub load_types
 	{
@@ -83,6 +84,7 @@ package MindCore;
 			#print STDERR "$line_type\n";
 			
 			$TypeUUIDs{$name} = $uuid;
+			$TypeNames{$name} = $name;
 			
 			#my $parent_string = join(',',map { 'MindCore::'.$_.'()' } grep { $_ ne 'Node' && $_ ne 'Link'} split( /,/, $line_type ) );
 			my @parent_list = map { MindCore::NodeType->lookup($_) } grep { $_ ne 'Node' && $_ ne 'Link'} split( /,/, $line_type );

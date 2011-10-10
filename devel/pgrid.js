@@ -30,15 +30,9 @@ var ctxNode = context.node();
 
 // SimpleXYMovementVector stores (x,y) as attributes of the data() function:
 // var x = lastKnownVector.data().get("x");
-var lastKnownVector = ctxNode.linked_nodes("SimpleXYMovementVector",1); // 1 = return first
-//var  = searchResults.length ? searchResults[0] : null; 
-//print("Debug: lastKnownVector: "+lastKnownVector.length+", valid?"+(lastKnownVector?true:false));
+var lastKnownVector = ctxNode.linked_node(Types.SimpleXYMovementVector);
 
-var v = 
-{ 
-	x: lastKnownVector ? lastKnownVector.data().get("x") : 0,
-	y: lastKnownVector ? lastKnownVector.data().get("y") : 0
-}; 
+var vectorData = lastKnownVector.data();
 
 // SimpleTextVisualContext store visual context as data hanging off it in eight different
 // attributes named, appropriatly: 
@@ -48,24 +42,51 @@ var v =
 // Both keys are valid.
 // The data stored in those atributes is a hash of {char: "character", attr:[,,,,]} where attr is a list of flags/values for ansi attributes
 // visualContext should be current as of the LAST move
-var visualContext = ctxNode.linked_nodes("SimpleTextVisualContext",1); // 1 forces to return first node not a list
-//var  = searchResults.length ? searchResults[0] : null; 
+var visualContext = ctxNode.linked_node(Types.SimpleTextVisualContext);
 
-var attrToCheck = ""+(v.x)+""+(v.y);
+var vectorStr = ""+vectorData.get('x')+""+vectorData.get('y');
 
-print("Debug: attrToCheck: ", attrToCheck);
-print("Visual Context: ",visualContext);
+//print("Debug: vectorStr: ", vectorStr);
+//print("Visual Context: ",visualContext);
+print("Old Vector: ",vectorData.get('x'),",",vectorData.get('y'));
 
-var visualInfo = visualContext.data().get(attrToCheck);
+var visualInfo = visualContext.data().get(vectorStr);
 if(visualInfo)
-	print("Visual Info: ", visualInfo.char, ", attr: ", visualInfo.attr);
+{
+	print("Saw something at "+vectorStr+", Character '", visualInfo.char, "', attr: ", visualInfo.attr);
+// 	if(vectorData.get("inTurn"))
+// 	{
+// 	
+// 	}
+// 	
+	if(vectorStr == "10")
+	{
+		vectorData.update({x:0,y:1});	
+	}
+	else
+	if(vectorStr == "01")
+	{
+		vectorData.update({x:-1,y:0});
+	}
+	else
+	if(vectorStr == "-10")
+	{
+		vectorData.update({x:0,y:-1});
+	}
+	else
+	if(vectorStr == "0-1")
+	{
+		vectorData.update({x:1,y:0});
+	}
+	
+	print("New Vector: ",vectorData.get('x'),",",vectorData.get('y'));
+}
 else
-	print("No visual info at "+attrToCheck);
+{
+	print("No visual info at "+vectorStr);
+}
 
-
-print("Changing last known vector to 01");
-lastKnownVector.data().set({x:0,y:1});
-lastKnownVector.data().update();
-
+// print("Changing last known vector to 01");
+// vectorData.update({x:0,y:1});
 
 return lastKnownVector;

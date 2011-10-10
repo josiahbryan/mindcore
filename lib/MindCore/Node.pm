@@ -72,6 +72,14 @@ package MindCore::Node;
 # 		return wantarray ? @result : \@result;
 # 	}
 	
+	# ### \return first linked node matching $type
+	sub linked_node
+	{
+		my $self = shift;
+		my $type = shift;
+		return $self->linked_nodes($type,1);
+	}
+	
 	sub linked_nodes
 	{
 		my $self = shift;
@@ -238,24 +246,16 @@ package MindCore::Node;
 # container to be returned by MindCore::Node::GenericDataClass->data(). 
 # Just call $post->set_data($my_class_instance).
 # Copied from EAS::Workflow::Instance::GenericDataClass.
-package JE::Number;
-{
-	sub TO_JSON {
-		my $self = shift;
-		return $self->value;
-	}
-};
 package MindCore::Node::GenericDataClass;
 {
 	use vars qw/$AUTOLOAD/;
 	#use Storable qw/freeze thaw/;
-	use JSON qw/to_json from_json/;
+	use JSON::XS;
 	use Data::Dumper;
 	
-	my $json = JSON->new;
-	$json->convert_blessed(1); 
-			
+	my $json = JSON::XS->new;
 	
+			
 	use overload
 		'""' => sub {
 			my $self = shift;
@@ -294,7 +294,7 @@ package MindCore::Node::GenericDataClass;
 		my $class = shift;
 		my $inst = shift;
 		#print STDERR "Debug: init '".$inst->data_store."'\n";
-		my $self = bless {data=>from_json($inst->extra_data ? $inst->extra_data  : '{}'),changed=>0,inst=>$inst}, $class;
+		my $self = bless {data=>$json->decode($inst->extra_data ? $inst->extra_data  : '{}'),changed=>0,inst=>$inst}, $class;
 		#print STDERR "Debug: ".Dumper($self->{data});
 		#delete $self->{data}->{'[object Object]'};
 		return $self;
@@ -321,17 +321,14 @@ package MindCore::Node::GenericDataClass;
 		{
 			my $item = shift;
 			# Compat with JE
-			if(UNIVERSAL::isa($item,'JE::Object'))
-			{
-				$item = $item->value;
-			}
+			$item = $item->value if UNIVERSAL::isa($item,'JE::Object');
+			
 			# Allow one to call ->set({key:value,...});
 			if(ref($item) eq 'HASH')
 			{
-				my $hash = shift;
-				foreach my $key (keys %$hash)
+				foreach my $key (keys %$item)
 				{
-					$self->set($key,$hash->{$key});
+					$self->set($key,$item->{$key});
 				}
 			}
 			else
@@ -340,6 +337,7 @@ package MindCore::Node::GenericDataClass;
 			}
 			return;
 		}
+		
 		my ($k,$v) = @_;
 		#AppCore::Common::print_stack_trace();
 		
@@ -364,6 +362,9 @@ package MindCore::Node::GenericDataClass;
 	sub update
 	{
 		my $self = shift;
+		# Allow users to call update({hashref}) with keys to set
+		$self->set(shift) if @_ == 1;
+		
 		my $json = $json->encode($self->{data});
 		$self->{inst}->extra_data($json);
 		$self->{inst}->{extra_data} = $json;

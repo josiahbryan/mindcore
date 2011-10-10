@@ -33,8 +33,12 @@ package MindCore::Agent::Output;
 			{	field	=> 'subclass',		type	=> 'varchar(255)' }, # Perl subclass of MindCore::Agent::Output that implements the required functionality 
 			{	field	=> 'node',		type	=> 'int', linked => 'MindCore::Node' }, # Specific Entity Node
 			# TODO Enum input node types...? Or links? Or some other pattern?
+			# TODO: Find more elegant way of doing this...
+			{	field	=> 'output_node_types',	type	=> 'text' 	},
 		]
 	});
+	
+	__PACKAGE__->set_sql(outputs_by_node_type => qq{select O.* from outputs O where O.agentid=? and O.output_node_types like ?});
 	
 	__PACKAGE__->has_a(type => 'MindCore::Agent::OutputType',
 		inflate	=> sub {
