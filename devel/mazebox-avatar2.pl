@@ -319,7 +319,7 @@ sub get_avatar
 	my $location_node = $ctx_node->linked_node(MindCore::SimpleXYLocationNode);
 	if(!$location_node)
 	{
-		$location_node = _node($agent->name.' Location', MindCore::SimpleXYLocationNode);
+		$location_node = MindCore::Node->new(MindCore::SimpleXYLocationNode);
 		MindCore::Link->new($ctx_node, [ $agent->node, $location_node ], MindCore::LocationOf);	
 	}
 	

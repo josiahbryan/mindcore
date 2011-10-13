@@ -73,6 +73,7 @@ package MindCore::Node;
 # 	}
 	
 	# ### \return first linked node matching $type
+	# If \$auto_create is true, automatically creates a new node
 	sub linked_node
 	{
 		my $self = shift;
@@ -81,7 +82,7 @@ package MindCore::Node;
 		my $node = $self->linked_nodes($type,1);
 		if(!$node && $auto_create)
 		{
-			$node = $class->new(undef,$type);
+			$node = $self->new($type);
 		}
 		return $node;
 	}
@@ -155,9 +156,11 @@ package MindCore::Node;
 	sub new 
 	{
 		my $class = shift;
-		my ($name, $type) = @_;
+		my ($type, $name) = @_;
 		
-		my $self = $class->by_field(name => $name );
+		my $self;
+		
+		$self = $class->by_field(name => $name) if $name;
 		if(!$self)
 		{
 # 			$self = bless {
@@ -194,7 +197,7 @@ package MindCore::Node;
 			#print STDERR "[$class] cache miss, got from db: [".ref($obj)."] obj:'$obj'\n";
 			if(!$obj && $type)
 			{
-				$obj = $class->new($node,$type);
+				$obj = $class->new($type,$node);
 			}
 			$NODE_LOOKUP{$node} = $obj;
 		}
