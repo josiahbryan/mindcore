@@ -61,6 +61,18 @@ package MindCore::Agent;
 		return wantarray ? @result : \@result;	
 	}
 	
+	sub context_links_string
+	{
+		my $self = shift;
+		my @buffer;
+		push @buffer, "Ctx Node:\n";
+		push @buffer, "\t".$self->context->node."\n";
+		push @buffer, "Ctx Links:\n";
+		my @links = $self->context->node->links;
+		push @buffer, "\t",$_,"\n" foreach @links;
+		return join '', @buffer;
+	}
+	
 	
 	# The execute of procedures-
 	# Evaluates which procedures to run ...todo, how?

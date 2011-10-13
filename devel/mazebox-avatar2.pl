@@ -219,6 +219,7 @@ sub get_avatar
 	my $agent = MindCore::Agent->find_agent('Goalie');
 	
 	my $ctx = $agent->context;
+	my $cnode = $ctx->node;
 	
 	##############################################################################
 	#  Find/Create the goal
@@ -269,13 +270,15 @@ sub get_avatar
 	#
 	# Store in context: Last Known Vector
 	#
-	my $vec = _node('agent-test-vec',MindCore::SimpleXYMovementVector);
+	#my $vec = _node('agent-test-vec',MindCore::SimpleXYMovementVector);
+	my $vec = $cnode->linked_node(MindCore::SimpleXYMovementVector);
 	$vec->set_data({x=>1,y=>0});
 	# use Data::Dumper;
 	# print Dumper $vec;
 	Link( $ctx->node, [ $agent->node, $vec ], MindCore::SpatialLink );
 	
-	my $visual_ctx = _node('agent-vis-ctx', MindCore::SimpleTextVisualContext);
+	#my $visual_ctx = _node('agent-vis-ctx', MindCore::SimpleTextVisualContext);
+	my $visual_ctx = $cnode->linked_node(MindCore::SimpleXYMovementVector);
 	$visual_ctx->set_data({
 		#N
 		'0-1'	=>	0,
@@ -417,6 +420,8 @@ sub get_avatar
 			$avatar->output_request($output, [$lastKnownVector]);
 		}
 	};
+	
+	die $agent->context_links_string;
 	
 	return $avatar;
 

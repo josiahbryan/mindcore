@@ -77,7 +77,13 @@ package MindCore::Node;
 	{
 		my $self = shift;
 		my $type = shift;
-		return $self->linked_nodes($type,1);
+		my $auto_create = shift || 0;
+		my $node = $self->linked_nodes($type,1);
+		if(!$node && $auto_create)
+		{
+			$node = $class->new(undef,$type);
+		}
+		return $node;
 	}
 	
 	sub linked_nodes
