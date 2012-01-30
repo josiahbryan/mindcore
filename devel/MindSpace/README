@@ -1,0 +1,7 @@
+MindSpace is the knowledge network for MindCog.
+- Nodes are symbolic representations of concepts, words, ideas, etc
+	- Nodes have importance rankings
+- Links between nodes define:
+	- Inheritance (ISA) / Set Membership
+	- Implication
+- Links may have Truth Values 

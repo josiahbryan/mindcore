@@ -1,0 +1,105 @@
+\section{Mind\-Space::MNode\-Type Class Reference}
+\label{classMindSpace_1_1MNodeType}\index{MindSpace::MNodeType@{MindSpace::MNodeType}}
+Object representing the type of a node.  
+
+
+{\tt \#include $<$Mind\-Space.h$>$}
+
+\subsection*{Public Member Functions}
+\begin{CompactItemize}
+\item 
+\bf{MNode\-Type} ()
+\item 
+\bf{MNode\-Type} (const QString \&uuid, const QString \&name)
+\item 
+\bf{$\sim$MNode\-Type} ()
+\item 
+bool \bf{is\-Null} ()
+\item 
+QString \bf{uuid} () const 
+\item 
+QString \bf{name} () const 
+\item 
+bool \bf{operator==} (const \bf{MNode\-Type} \&a, const \bf{MNode\-Type} \&b)
+\end{CompactItemize}
+\subsection*{Static Public Member Functions}
+\begin{CompactItemize}
+\item 
+static \bf{MNode\-Type} \bf{find\-Node\-Type} (const QString \&uuid, const QString \&define\-If\-Not\-Exists=\char`\"{}\char`\"{})
+\item 
+static const \bf{MNode\-Type} \& \bf{Concept\-Node} ()
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+Object representing the type of a node. 
+
+
+
+\subsection{Constructor \& Destructor Documentation}
+\index{MindSpace::MNodeType@{Mind\-Space::MNode\-Type}!MNodeType@{MNodeType}}
+\index{MNodeType@{MNodeType}!MindSpace::MNodeType@{Mind\-Space::MNode\-Type}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}Mind\-Space::MNode\-Type::MNode\-Type ()\hspace{0.3cm}{\tt  [inline]}}\label{classMindSpace_1_1MNodeType_e651f7816673388a01406a674f134b12}
+
+
+Creates a NULL node type \index{MindSpace::MNodeType@{Mind\-Space::MNode\-Type}!MNodeType@{MNodeType}}
+\index{MNodeType@{MNodeType}!MindSpace::MNodeType@{Mind\-Space::MNode\-Type}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}Mind\-Space::MNode\-Type::MNode\-Type (const QString \& {\em uuid}, const QString \& {\em name})\hspace{0.3cm}{\tt  [inline]}}\label{classMindSpace_1_1MNodeType_61fde4f9a30ba792ce619e878164cf31}
+
+
+Creates a new \doxyref{MNode\-Type}{p.}{classMindSpace_1_1MNodeType} object with the given {\em uuid\/} and {\em name\/} \index{MindSpace::MNodeType@{Mind\-Space::MNode\-Type}!~MNodeType@{$\sim$MNodeType}}
+\index{~MNodeType@{$\sim$MNodeType}!MindSpace::MNodeType@{Mind\-Space::MNode\-Type}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}Mind\-Space::MNode\-Type::$\sim$MNode\-Type ()\hspace{0.3cm}{\tt  [inline]}}\label{classMindSpace_1_1MNodeType_6342c10a8613e5ce618afe46468e9f10}
+
+
+Removes this node type from the static map of node types 
+
+\subsection{Member Function Documentation}
+\index{MindSpace::MNodeType@{Mind\-Space::MNode\-Type}!ConceptNode@{ConceptNode}}
+\index{ConceptNode@{ConceptNode}!MindSpace::MNodeType@{Mind\-Space::MNode\-Type}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}const \bf{MNode\-Type} \& Mind\-Space::MNode\-Type::Concept\-Node ()\hspace{0.3cm}{\tt  [static]}}\label{classMindSpace_1_1MNodeType_6a80c2c15beea67b3e0c178c794978e0}
+
+
+Shared reference to special \doxyref{MNode\-Type}{p.}{classMindSpace_1_1MNodeType} 'Concept\-Node', represents a concept node type.\begin{itemize}
+\item UUID: \char`\"{}fd6cf790-9eea-43a6-8fd7-cc8d564ee868\char`\"{}\item Name: \char`\"{}Concept\-Node \end{itemize}
+\index{MindSpace::MNodeType@{Mind\-Space::MNode\-Type}!findNodeType@{findNodeType}}
+\index{findNodeType@{findNodeType}!MindSpace::MNodeType@{Mind\-Space::MNode\-Type}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}static \bf{MNode\-Type} Mind\-Space::MNode\-Type::find\-Node\-Type (const QString \& {\em uuid}, const QString \& {\em define\-If\-Not\-Exists} = {\tt \char`\"{}\char`\"{}})\hspace{0.3cm}{\tt  [inline, static]}}\label{classMindSpace_1_1MNodeType_8f7eb09c137c2903e417da212c4378ca}
+
+
+\begin{Desc}
+\item[Returns:]A \doxyref{MNode\-Type}{p.}{classMindSpace_1_1MNodeType} object of the given {\em uuid\/} if it exists. If the {\em uuid\/} does not exist, and {\em define\-If\-Not\-Exists\/} is empty, then a null link type is returned. If the {\em uuid\/} does not exist, and {\em define\-If\-Not\-Exists\/} is NOT empty, then a new \doxyref{MNode\-Type}{p.}{classMindSpace_1_1MNodeType} object with the given {\em uuid\/} and {\em define\-If\-Not\-Exists\/} as the name is returned. \end{Desc}
+\index{MindSpace::MNodeType@{Mind\-Space::MNode\-Type}!isNull@{isNull}}
+\index{isNull@{isNull}!MindSpace::MNodeType@{Mind\-Space::MNode\-Type}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}bool Mind\-Space::MNode\-Type::is\-Null ()\hspace{0.3cm}{\tt  [inline]}}\label{classMindSpace_1_1MNodeType_d6ab8c4f9578482cf77ec3ce2e39a21a}
+
+
+\begin{Desc}
+\item[Returns:]true if this node type is null (no UUID) \end{Desc}
+\index{MindSpace::MNodeType@{Mind\-Space::MNode\-Type}!name@{name}}
+\index{name@{name}!MindSpace::MNodeType@{Mind\-Space::MNode\-Type}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}QString Mind\-Space::MNode\-Type::name () const\hspace{0.3cm}{\tt  [inline]}}\label{classMindSpace_1_1MNodeType_d28041f06f31daa0ca04a2488f042b70}
+
+
+\begin{Desc}
+\item[Returns:]the Name of the node type \end{Desc}
+\index{MindSpace::MNodeType@{Mind\-Space::MNode\-Type}!operator==@{operator==}}
+\index{operator==@{operator==}!MindSpace::MNodeType@{Mind\-Space::MNode\-Type}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}bool Mind\-Space::MNode\-Type::operator== (const \bf{MNode\-Type} \& {\em a}, const \bf{MNode\-Type} \& {\em b})\hspace{0.3cm}{\tt  [inline]}}\label{classMindSpace_1_1MNodeType_1e38a8a19845b4059805cbfc1f223de0}
+
+
+\begin{Desc}
+\item[Returns:]true if {\em a\/} has the same UUID as {\em b\/} \end{Desc}
+\index{MindSpace::MNodeType@{Mind\-Space::MNode\-Type}!uuid@{uuid}}
+\index{uuid@{uuid}!MindSpace::MNodeType@{Mind\-Space::MNode\-Type}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}QString Mind\-Space::MNode\-Type::uuid () const\hspace{0.3cm}{\tt  [inline]}}\label{classMindSpace_1_1MNodeType_fb46eefa2ce49b06eeb2d3ee4c33edd9}
+
+
+\begin{Desc}
+\item[Returns:]the UUID if the node type \end{Desc}
+
+
+The documentation for this class was generated from the following files:\begin{CompactItemize}
+\item 
+\bf{Mind\-Space.h}\item 
+Mind\-Space.cpp\end{CompactItemize}

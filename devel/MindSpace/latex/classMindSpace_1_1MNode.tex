@@ -1,0 +1,296 @@
+\section{Mind\-Space::MNode Class Reference}
+\label{classMindSpace_1_1MNode}\index{MindSpace::MNode@{MindSpace::MNode}}
+A \doxyref{MNode}{p.}{classMindSpace_1_1MNode} represents a single node in \doxyref{Mind\-Space}{p.}{namespaceMindSpace}. Nodes are joined together by \doxyref{MLink}{p.}{classMindSpace_1_1MLink} objects.  
+
+
+{\tt \#include $<$Mind\-Space.h$>$}
+
+\subsection*{Public Slots}
+\begin{CompactItemize}
+\item 
+void \bf{set\-Type} (\bf{MNode\-Type} type)
+\item 
+void \bf{set\-Content} (const QString \&content)
+\item 
+void \bf{set\-Long\-Term\-Importance} (double imp)
+\item 
+void \bf{set\-Short\-Term\-Importance} (double imp)
+\item 
+void \bf{set\-Links} (const QList$<$ \bf{MLink} $\ast$ $>$ \&links)
+\item 
+void \bf{add\-Link} (\bf{MLink} $\ast$link)
+\item 
+void \bf{remove\-Link} (\bf{MLink} $\ast$link)
+\end{CompactItemize}
+\subsection*{Signals}
+\begin{CompactItemize}
+\item 
+void \bf{link\-Added} (\bf{MLink} $\ast$link)
+\item 
+void \bf{link\-Removed} (\bf{MLink} $\ast$link)
+\end{CompactItemize}
+\subsection*{Public Member Functions}
+\begin{CompactItemize}
+\item 
+\bf{MNode} ()
+\item 
+\bf{MNode} (const QString \&content=\char`\"{}\char`\"{}, \bf{Mind\-Space::MNode\-Type} type=MNode\-Type::Concept\-Node())
+\item 
+QString \bf{uuid} ()
+\item 
+\bf{MNode\-Type} \bf{type} ()
+\item 
+QString \bf{content} ()
+\item 
+double \bf{long\-Term\-Importance} ()
+\item 
+double \bf{short\-Term\-Importance} ()
+\item 
+const QList$<$ \bf{MLink} $\ast$ $>$ \& \bf{links} ()
+\end{CompactItemize}
+\subsection*{Protected Member Functions}
+\begin{CompactItemize}
+\item 
+void \bf{create\-Uuid} ()
+\begin{CompactList}\small\item\em Creates a new UUID for this node. \item\end{CompactList}\end{CompactItemize}
+\subsection*{Protected Attributes}
+\begin{CompactItemize}
+\item 
+QString \bf{m\_\-uuid}
+\item 
+\bf{MNode\-Type} \bf{m\_\-type}
+\item 
+QString \bf{m\_\-content}
+\item 
+double \bf{m\_\-long\-Term\-Importance}
+\item 
+double \bf{m\_\-short\-Term\-Importance}
+\item 
+QList$<$ \bf{MLink} $\ast$ $>$ \bf{m\_\-links}
+\end{CompactItemize}
+\subsection*{Properties}
+\begin{CompactItemize}
+\item 
+QString \bf{uuid}\hspace{0.3cm}{\tt  []}
+\item 
+\bf{Mind\-Space::MNode\-Type} \bf{type}\hspace{0.3cm}{\tt  []}
+\item 
+QString \bf{content}\hspace{0.3cm}{\tt  []}
+\item 
+double \bf{long\-Term\-Importance}\hspace{0.3cm}{\tt  []}
+\item 
+double \bf{short\-Term\-Importance}\hspace{0.3cm}{\tt  []}
+\item 
+QList$<$ \bf{MLink} $\ast$ $>$ \bf{links}\hspace{0.3cm}{\tt  []}
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+A \doxyref{MNode}{p.}{classMindSpace_1_1MNode} represents a single node in \doxyref{Mind\-Space}{p.}{namespaceMindSpace}. Nodes are joined together by \doxyref{MLink}{p.}{classMindSpace_1_1MLink} objects. 
+
+
+
+\subsection{Constructor \& Destructor Documentation}
+\index{MindSpace::MNode@{Mind\-Space::MNode}!MNode@{MNode}}
+\index{MNode@{MNode}!MindSpace::MNode@{Mind\-Space::MNode}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}Mind\-Space::MNode::MNode ()}\label{classMindSpace_1_1MNode_cc61a5729792f35b72567a949515328f}
+
+
+Create an empty \doxyref{MNode}{p.}{classMindSpace_1_1MNode} with type set to Mind\-Space::Concept\-Node and LTI/STI to 1.0 each \index{MindSpace::MNode@{Mind\-Space::MNode}!MNode@{MNode}}
+\index{MNode@{MNode}!MindSpace::MNode@{Mind\-Space::MNode}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}Mind\-Space::MNode::MNode (const QString \& {\em content} = {\tt \char`\"{}\char`\"{}}, \bf{Mind\-Space::MNode\-Type} {\em type} = {\tt MNodeType::ConceptNode()})}\label{classMindSpace_1_1MNode_9267ce0918ffcf2cfbddffa79417084f}
+
+
+Creates a new \doxyref{MNode}{p.}{classMindSpace_1_1MNode} with the given {\em content\/} and {\em type\/} (defaults to Mind\-Space::Concept\-Node) 
+
+\subsection{Member Function Documentation}
+\index{MindSpace::MNode@{Mind\-Space::MNode}!addLink@{addLink}}
+\index{addLink@{addLink}!MindSpace::MNode@{Mind\-Space::MNode}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void Mind\-Space::MNode::add\-Link (\bf{MLink} $\ast$ {\em link})\hspace{0.3cm}{\tt  [slot]}}\label{classMindSpace_1_1MNode_d823e889fd85b7e0f3cba02e409a5c1a}
+
+
+Add link {\em link\/} to the internal list of links. {\em emits\/} link\-Added \index{MindSpace::MNode@{Mind\-Space::MNode}!content@{content}}
+\index{content@{content}!MindSpace::MNode@{Mind\-Space::MNode}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}QString Mind\-Space::MNode::content ()\hspace{0.3cm}{\tt  [inline]}}\label{classMindSpace_1_1MNode_24e6920045aebc6b94e4279a6a549279}
+
+
+\begin{Desc}
+\item[Returns:]the content of this node.\end{Desc}
+\begin{Desc}
+\item[See also:]\doxyref{content}{p.}{classMindSpace_1_1MNode_1d649e5b6dad72c41f132e8622b42be6} \end{Desc}
+\index{MindSpace::MNode@{Mind\-Space::MNode}!createUuid@{createUuid}}
+\index{createUuid@{createUuid}!MindSpace::MNode@{Mind\-Space::MNode}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void Mind\-Space::MNode::create\-Uuid ()\hspace{0.3cm}{\tt  [protected]}}\label{classMindSpace_1_1MNode_c2d2d8febc93c5598453ea434491cd17}
+
+
+Creates a new UUID for this node. 
+
+Creates a new UUID for this node only if no UUID already assigned.\begin{Desc}
+\item[See also:]\doxyref{uuid}{p.}{classMindSpace_1_1MNode_72be81de0a090c9010056d432ccd18b3} \end{Desc}
+\index{MindSpace::MNode@{Mind\-Space::MNode}!linkAdded@{linkAdded}}
+\index{linkAdded@{linkAdded}!MindSpace::MNode@{Mind\-Space::MNode}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void Mind\-Space::MNode::link\-Added (\bf{MLink} $\ast$ {\em link})\hspace{0.3cm}{\tt  [signal]}}\label{classMindSpace_1_1MNode_61d115ed10ca57d740c26cbecbeb4f38}
+
+
+Emitted when a link is added to this node \index{MindSpace::MNode@{Mind\-Space::MNode}!linkRemoved@{linkRemoved}}
+\index{linkRemoved@{linkRemoved}!MindSpace::MNode@{Mind\-Space::MNode}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void Mind\-Space::MNode::link\-Removed (\bf{MLink} $\ast$ {\em link})\hspace{0.3cm}{\tt  [signal]}}\label{classMindSpace_1_1MNode_be17408aa8ce7efce240bf5655da3b49}
+
+
+Emitted when a link is removed from this node \index{MindSpace::MNode@{Mind\-Space::MNode}!links@{links}}
+\index{links@{links}!MindSpace::MNode@{Mind\-Space::MNode}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}const QList$<$\bf{MLink}$\ast$$>$\& Mind\-Space::MNode::links ()\hspace{0.3cm}{\tt  [inline]}}\label{classMindSpace_1_1MNode_81e975ed188fa1f76e6a32d47052ce32}
+
+
+\begin{Desc}
+\item[Returns:]the links pointing from and to this node.\end{Desc}
+\begin{Desc}
+\item[See also:]\doxyref{links}{p.}{classMindSpace_1_1MNode_f5f815312b448a5539872802985c2542} \end{Desc}
+\index{MindSpace::MNode@{Mind\-Space::MNode}!longTermImportance@{longTermImportance}}
+\index{longTermImportance@{longTermImportance}!MindSpace::MNode@{Mind\-Space::MNode}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}double Mind\-Space::MNode::long\-Term\-Importance ()\hspace{0.3cm}{\tt  [inline]}}\label{classMindSpace_1_1MNode_ad834eb1b7e3409849f402805ff57a20}
+
+
+\begin{Desc}
+\item[Returns:]the Long Term Importance of this node.\end{Desc}
+\begin{Desc}
+\item[See also:]\doxyref{long\-Term\-Importance}{p.}{classMindSpace_1_1MNode_e970eb0281e98a3da1b8012036c83b72} \end{Desc}
+\index{MindSpace::MNode@{Mind\-Space::MNode}!removeLink@{removeLink}}
+\index{removeLink@{removeLink}!MindSpace::MNode@{Mind\-Space::MNode}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void Mind\-Space::MNode::remove\-Link (\bf{MLink} $\ast$ {\em link})\hspace{0.3cm}{\tt  [slot]}}\label{classMindSpace_1_1MNode_95d53c2eebf895f69ada769293703094}
+
+
+Remove link {\em link\/} from the internal list of links. {\em emits\/} link\-Removed \index{MindSpace::MNode@{Mind\-Space::MNode}!setContent@{setContent}}
+\index{setContent@{setContent}!MindSpace::MNode@{Mind\-Space::MNode}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void Mind\-Space::MNode::set\-Content (const QString \& {\em content})\hspace{0.3cm}{\tt  [slot]}}\label{classMindSpace_1_1MNode_2792ce0eb78ec7d33d99e7aa77cc2deb}
+
+
+Set the content of this node to {\em content\/}.\begin{Desc}
+\item[See also:]\doxyref{content}{p.}{classMindSpace_1_1MNode_1d649e5b6dad72c41f132e8622b42be6} \end{Desc}
+\index{MindSpace::MNode@{Mind\-Space::MNode}!setLinks@{setLinks}}
+\index{setLinks@{setLinks}!MindSpace::MNode@{Mind\-Space::MNode}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void Mind\-Space::MNode::set\-Links (const QList$<$ \bf{MLink} $\ast$ $>$ \& {\em links})\hspace{0.3cm}{\tt  [slot]}}\label{classMindSpace_1_1MNode_93270916b395120bc486f58f8cf6fa3b}
+
+
+Set the list of links for this node to {\em links\/}.\begin{Desc}
+\item[See also:]\doxyref{links}{p.}{classMindSpace_1_1MNode_f5f815312b448a5539872802985c2542} \end{Desc}
+\index{MindSpace::MNode@{Mind\-Space::MNode}!setLongTermImportance@{setLongTermImportance}}
+\index{setLongTermImportance@{setLongTermImportance}!MindSpace::MNode@{Mind\-Space::MNode}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void Mind\-Space::MNode::set\-Long\-Term\-Importance (double {\em imp})\hspace{0.3cm}{\tt  [slot]}}\label{classMindSpace_1_1MNode_2e1e816b26a3b9b153475bf8e60be7d0}
+
+
+Set the long term importance of this node to {\em imp\/}.\begin{Desc}
+\item[See also:]\doxyref{long\-Term\-Importance}{p.}{classMindSpace_1_1MNode_e970eb0281e98a3da1b8012036c83b72} \end{Desc}
+\index{MindSpace::MNode@{Mind\-Space::MNode}!setShortTermImportance@{setShortTermImportance}}
+\index{setShortTermImportance@{setShortTermImportance}!MindSpace::MNode@{Mind\-Space::MNode}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void Mind\-Space::MNode::set\-Short\-Term\-Importance (double {\em imp})\hspace{0.3cm}{\tt  [slot]}}\label{classMindSpace_1_1MNode_fa3ce173d8be14ee178ac3b62e9914d5}
+
+
+Set the short term importance of this node to {\em imp\/}.\begin{Desc}
+\item[See also:]\doxyref{short\-Term\-Importance}{p.}{classMindSpace_1_1MNode_636f4acdd9faa90256ca70ed0cc61ac4} \end{Desc}
+\index{MindSpace::MNode@{Mind\-Space::MNode}!setType@{setType}}
+\index{setType@{setType}!MindSpace::MNode@{Mind\-Space::MNode}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}void Mind\-Space::MNode::set\-Type (\bf{MNode\-Type} {\em type})\hspace{0.3cm}{\tt  [slot]}}\label{classMindSpace_1_1MNode_a26bcace971b7b63f9c8647630d980f6}
+
+
+Set the \doxyref{MNode\-Type}{p.}{classMindSpace_1_1MNodeType} of this node to {\em type\/}.\begin{Desc}
+\item[See also:]\doxyref{type}{p.}{classMindSpace_1_1MNode_017ab6a06d1c726f2e2785db2b9dc94d} \end{Desc}
+\index{MindSpace::MNode@{Mind\-Space::MNode}!shortTermImportance@{shortTermImportance}}
+\index{shortTermImportance@{shortTermImportance}!MindSpace::MNode@{Mind\-Space::MNode}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}double Mind\-Space::MNode::short\-Term\-Importance ()\hspace{0.3cm}{\tt  [inline]}}\label{classMindSpace_1_1MNode_8b63a978f1b5f66f59b74c8f43763e5f}
+
+
+\begin{Desc}
+\item[Returns:]the short term importance of this node.\end{Desc}
+\begin{Desc}
+\item[See also:]\doxyref{short\-Term\-Importance}{p.}{classMindSpace_1_1MNode_636f4acdd9faa90256ca70ed0cc61ac4} \end{Desc}
+\index{MindSpace::MNode@{Mind\-Space::MNode}!type@{type}}
+\index{type@{type}!MindSpace::MNode@{Mind\-Space::MNode}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}\bf{MNode\-Type} Mind\-Space::MNode::type ()\hspace{0.3cm}{\tt  [inline]}}\label{classMindSpace_1_1MNode_26bf9afdf6f06b3d90606cd2022ae428}
+
+
+\begin{Desc}
+\item[Returns:]the \doxyref{MNode\-Type}{p.}{classMindSpace_1_1MNodeType} of this node.\end{Desc}
+\begin{Desc}
+\item[See also:]\doxyref{type}{p.}{classMindSpace_1_1MNode_017ab6a06d1c726f2e2785db2b9dc94d} \end{Desc}
+\index{MindSpace::MNode@{Mind\-Space::MNode}!uuid@{uuid}}
+\index{uuid@{uuid}!MindSpace::MNode@{Mind\-Space::MNode}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}QString Mind\-Space::MNode::uuid ()\hspace{0.3cm}{\tt  [inline]}}\label{classMindSpace_1_1MNode_f68942eeafcc656fe738595115ccdc29}
+
+
+\begin{Desc}
+\item[Returns:]the UUID of this node.\end{Desc}
+\begin{Desc}
+\item[See also:]\doxyref{uuid}{p.}{classMindSpace_1_1MNode_72be81de0a090c9010056d432ccd18b3} \end{Desc}
+
+
+\subsection{Member Data Documentation}
+\index{MindSpace::MNode@{Mind\-Space::MNode}!m_content@{m\_\-content}}
+\index{m_content@{m\_\-content}!MindSpace::MNode@{Mind\-Space::MNode}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}QString \bf{Mind\-Space::MNode::m\_\-content}\hspace{0.3cm}{\tt  [protected]}}\label{classMindSpace_1_1MNode_ba5027d3852d02d0163a40649c5db4b2}
+
+
+The content of this node \index{MindSpace::MNode@{Mind\-Space::MNode}!m_links@{m\_\-links}}
+\index{m_links@{m\_\-links}!MindSpace::MNode@{Mind\-Space::MNode}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}QList$<$\bf{MLink}$\ast$$>$ \bf{Mind\-Space::MNode::m\_\-links}\hspace{0.3cm}{\tt  [protected]}}\label{classMindSpace_1_1MNode_f3ac500e39ef493140f5fdeb075e0e82}
+
+
+The links from and to this node \index{MindSpace::MNode@{Mind\-Space::MNode}!m_longTermImportance@{m\_\-longTermImportance}}
+\index{m_longTermImportance@{m\_\-longTermImportance}!MindSpace::MNode@{Mind\-Space::MNode}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}double \bf{Mind\-Space::MNode::m\_\-long\-Term\-Importance}\hspace{0.3cm}{\tt  [protected]}}\label{classMindSpace_1_1MNode_7f9b080c41169d5534597c6128c3a29f}
+
+
+The long term importance of this node \index{MindSpace::MNode@{Mind\-Space::MNode}!m_shortTermImportance@{m\_\-shortTermImportance}}
+\index{m_shortTermImportance@{m\_\-shortTermImportance}!MindSpace::MNode@{Mind\-Space::MNode}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}double \bf{Mind\-Space::MNode::m\_\-short\-Term\-Importance}\hspace{0.3cm}{\tt  [protected]}}\label{classMindSpace_1_1MNode_6d0c57c9d94895101374710f77452dfd}
+
+
+The short term importance of this node \index{MindSpace::MNode@{Mind\-Space::MNode}!m_type@{m\_\-type}}
+\index{m_type@{m\_\-type}!MindSpace::MNode@{Mind\-Space::MNode}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}\bf{MNode\-Type} \bf{Mind\-Space::MNode::m\_\-type}\hspace{0.3cm}{\tt  [protected]}}\label{classMindSpace_1_1MNode_43ec4833c29b25ddc1deac7551f3de4e}
+
+
+The \doxyref{MNode\-Type}{p.}{classMindSpace_1_1MNodeType} of this node \index{MindSpace::MNode@{Mind\-Space::MNode}!m_uuid@{m\_\-uuid}}
+\index{m_uuid@{m\_\-uuid}!MindSpace::MNode@{Mind\-Space::MNode}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}QString \bf{Mind\-Space::MNode::m\_\-uuid}\hspace{0.3cm}{\tt  [protected]}}\label{classMindSpace_1_1MNode_2034edf94f56b73f4269ecc1717c6607}
+
+
+The UUID of this node 
+
+\subsection{Property Documentation}
+\index{MindSpace::MNode@{Mind\-Space::MNode}!content@{content}}
+\index{content@{content}!MindSpace::MNode@{Mind\-Space::MNode}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}QString Mind\-Space::MNode::content\hspace{0.3cm}{\tt  [read, write]}}\label{classMindSpace_1_1MNode_1d649e5b6dad72c41f132e8622b42be6}
+
+
+The Content of this node \index{MindSpace::MNode@{Mind\-Space::MNode}!links@{links}}
+\index{links@{links}!MindSpace::MNode@{Mind\-Space::MNode}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}QList$<$\bf{MLink}$\ast$$>$ Mind\-Space::MNode::links\hspace{0.3cm}{\tt  [read, write]}}\label{classMindSpace_1_1MNode_f5f815312b448a5539872802985c2542}
+
+
+The list of links from and to this \doxyref{MNode}{p.}{classMindSpace_1_1MNode} \index{MindSpace::MNode@{Mind\-Space::MNode}!longTermImportance@{longTermImportance}}
+\index{longTermImportance@{longTermImportance}!MindSpace::MNode@{Mind\-Space::MNode}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}double Mind\-Space::MNode::long\-Term\-Importance\hspace{0.3cm}{\tt  [read, write]}}\label{classMindSpace_1_1MNode_e970eb0281e98a3da1b8012036c83b72}
+
+
+The long term importance of this node \index{MindSpace::MNode@{Mind\-Space::MNode}!shortTermImportance@{shortTermImportance}}
+\index{shortTermImportance@{shortTermImportance}!MindSpace::MNode@{Mind\-Space::MNode}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}double Mind\-Space::MNode::short\-Term\-Importance\hspace{0.3cm}{\tt  [read, write]}}\label{classMindSpace_1_1MNode_636f4acdd9faa90256ca70ed0cc61ac4}
+
+
+The short term importance of this node \index{MindSpace::MNode@{Mind\-Space::MNode}!type@{type}}
+\index{type@{type}!MindSpace::MNode@{Mind\-Space::MNode}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}\bf{Mind\-Space::MNode\-Type} Mind\-Space::MNode::type\hspace{0.3cm}{\tt  [read, write]}}\label{classMindSpace_1_1MNode_017ab6a06d1c726f2e2785db2b9dc94d}
+
+
+The \doxyref{MNode\-Type}{p.}{classMindSpace_1_1MNodeType} of this node \index{MindSpace::MNode@{Mind\-Space::MNode}!uuid@{uuid}}
+\index{uuid@{uuid}!MindSpace::MNode@{Mind\-Space::MNode}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}QString Mind\-Space::MNode::uuid\hspace{0.3cm}{\tt  [read]}}\label{classMindSpace_1_1MNode_72be81de0a090c9010056d432ccd18b3}
+
+
+The UUID of this \doxyref{MNode}{p.}{classMindSpace_1_1MNode} 
+
+The documentation for this class was generated from the following files:\begin{CompactItemize}
+\item 
+\bf{Mind\-Space.h}\item 
+Mind\-Space.cpp\end{CompactItemize}

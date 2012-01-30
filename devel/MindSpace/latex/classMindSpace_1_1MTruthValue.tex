@@ -1,0 +1,114 @@
+\section{Mind\-Space::MTruth\-Value Class Reference}
+\label{classMindSpace_1_1MTruthValue}\index{MindSpace::MTruthValue@{MindSpace::MTruthValue}}
+Truthfulness assertion for a link.  
+
+
+{\tt \#include $<$Mind\-Space.h$>$}
+
+\subsection*{Public Types}
+\begin{CompactItemize}
+\item 
+\bf{Simple\-Truth} = 1
+\item 
+\bf{Range\-Truth}
+\item 
+enum \bf{Truth\-Type} \{ \bf{Simple\-Truth} =  1, 
+\bf{Range\-Truth}
+ \}
+\begin{CompactList}\small\item\em Truth\-Type The types of Truthfulness represented by this value. \item\end{CompactList}\end{CompactItemize}
+\subsection*{Public Member Functions}
+\begin{CompactItemize}
+\item 
+\bf{MTruth\-Value} ()
+\item 
+\bf{MTruth\-Value} (double value)
+\item 
+\bf{MTruth\-Value} (double range\-A, double range\-B)
+\item 
+\bf{Truth\-Type} \bf{type} ()
+\item 
+double \bf{value} ()
+\item 
+double \bf{range\-A} ()
+\item 
+double \bf{range\-B} ()
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+Truthfulness assertion for a link. 
+
+
+
+\subsection{Member Enumeration Documentation}
+\index{MindSpace::MTruthValue@{Mind\-Space::MTruth\-Value}!TruthType@{TruthType}}
+\index{TruthType@{TruthType}!MindSpace::MTruthValue@{Mind\-Space::MTruth\-Value}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}enum \bf{Mind\-Space::MTruth\-Value::Truth\-Type}}\label{classMindSpace_1_1MTruthValue_13bd39f64a968baf8c2eea442a8f8d44}
+
+
+Truth\-Type The types of Truthfulness represented by this value. 
+
+\begin{Desc}
+\item[Enumerator: ]\par
+\begin{description}
+\index{SimpleTruth@{SimpleTruth}!MindSpace::MTruthValue@{MindSpace::MTruthValue}}\index{MindSpace::MTruthValue@{MindSpace::MTruthValue}!SimpleTruth@{SimpleTruth}}\item[{\em 
+Simple\-Truth\label{classMindSpace_1_1MTruthValue_13bd39f64a968baf8c2eea442a8f8d444d0b9d8e303ed2fe83c6da89f21e1bde}
+}]Simple probability value between 0.0 and 1.0, inclusive \index{RangeTruth@{RangeTruth}!MindSpace::MTruthValue@{MindSpace::MTruthValue}}\index{MindSpace::MTruthValue@{MindSpace::MTruthValue}!RangeTruth@{RangeTruth}}\item[{\em 
+Range\-Truth\label{classMindSpace_1_1MTruthValue_13bd39f64a968baf8c2eea442a8f8d44828d8cd67f84d1de10b24713eb444dc3}
+}]A probability range between two values \end{description}
+\end{Desc}
+
+
+
+\subsection{Constructor \& Destructor Documentation}
+\index{MindSpace::MTruthValue@{Mind\-Space::MTruth\-Value}!MTruthValue@{MTruthValue}}
+\index{MTruthValue@{MTruthValue}!MindSpace::MTruthValue@{Mind\-Space::MTruth\-Value}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}Mind\-Space::MTruth\-Value::MTruth\-Value ()\hspace{0.3cm}{\tt  [inline]}}\label{classMindSpace_1_1MTruthValue_59f7b61a72bf682dffb143b3ccf0a1cb}
+
+
+Creates a Simple\-Truth value of 1.0 \index{MindSpace::MTruthValue@{Mind\-Space::MTruth\-Value}!MTruthValue@{MTruthValue}}
+\index{MTruthValue@{MTruthValue}!MindSpace::MTruthValue@{Mind\-Space::MTruth\-Value}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}Mind\-Space::MTruth\-Value::MTruth\-Value (double {\em value})\hspace{0.3cm}{\tt  [inline]}}\label{classMindSpace_1_1MTruthValue_afc9e155b1af9ee31163e2eccb00da8b}
+
+
+Creates a Simple\-Truth value of {\em value\/} \index{MindSpace::MTruthValue@{Mind\-Space::MTruth\-Value}!MTruthValue@{MTruthValue}}
+\index{MTruthValue@{MTruthValue}!MindSpace::MTruthValue@{Mind\-Space::MTruth\-Value}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}Mind\-Space::MTruth\-Value::MTruth\-Value (double {\em range\-A}, double {\em range\-B})\hspace{0.3cm}{\tt  [inline]}}\label{classMindSpace_1_1MTruthValue_6b62a33ee963af64eaff59c8ec777cd9}
+
+
+Creates a Range\-Truth value representing truthfulness between {\em range\-A\/} and {\em range\-B\/} 
+
+\subsection{Member Function Documentation}
+\index{MindSpace::MTruthValue@{Mind\-Space::MTruth\-Value}!rangeA@{rangeA}}
+\index{rangeA@{rangeA}!MindSpace::MTruthValue@{Mind\-Space::MTruth\-Value}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}double Mind\-Space::MTruth\-Value::range\-A ()\hspace{0.3cm}{\tt  [inline]}}\label{classMindSpace_1_1MTruthValue_0115aba6d64c95360f01287fd69ead61}
+
+
+\begin{Desc}
+\item[Returns:]the start value for a Range\-Truth \end{Desc}
+\index{MindSpace::MTruthValue@{Mind\-Space::MTruth\-Value}!rangeB@{rangeB}}
+\index{rangeB@{rangeB}!MindSpace::MTruthValue@{Mind\-Space::MTruth\-Value}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}double Mind\-Space::MTruth\-Value::range\-B ()\hspace{0.3cm}{\tt  [inline]}}\label{classMindSpace_1_1MTruthValue_00b1172aa5ba4ea690149dc6fa8ae0ec}
+
+
+\begin{Desc}
+\item[Returns:]the end value for a Range\-Truth \end{Desc}
+\index{MindSpace::MTruthValue@{Mind\-Space::MTruth\-Value}!type@{type}}
+\index{type@{type}!MindSpace::MTruthValue@{Mind\-Space::MTruth\-Value}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}\bf{Truth\-Type} Mind\-Space::MTruth\-Value::type ()\hspace{0.3cm}{\tt  [inline]}}\label{classMindSpace_1_1MTruthValue_c0d0c348838efbcaf80b399738585587}
+
+
+\begin{Desc}
+\item[Returns:]the Truth\-Type of this value \end{Desc}
+\index{MindSpace::MTruthValue@{Mind\-Space::MTruth\-Value}!value@{value}}
+\index{value@{value}!MindSpace::MTruthValue@{Mind\-Space::MTruth\-Value}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}double Mind\-Space::MTruth\-Value::value ()\hspace{0.3cm}{\tt  [inline]}}\label{classMindSpace_1_1MTruthValue_aeb28096520f5285d857a2595e0eefed}
+
+
+\begin{Desc}
+\item[Returns:]the Simple\-Truth value \end{Desc}
+
+
+The documentation for this class was generated from the following file:\begin{CompactItemize}
+\item 
+\bf{Mind\-Space.h}\end{CompactItemize}

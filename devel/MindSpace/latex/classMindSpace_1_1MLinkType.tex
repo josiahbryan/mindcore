@@ -1,0 +1,105 @@
+\section{Mind\-Space::MLink\-Type Class Reference}
+\label{classMindSpace_1_1MLinkType}\index{MindSpace::MLinkType@{MindSpace::MLinkType}}
+Object representing the type of a \doxyref{MLink}{p.}{classMindSpace_1_1MLink}.  
+
+
+{\tt \#include $<$Mind\-Space.h$>$}
+
+\subsection*{Public Member Functions}
+\begin{CompactItemize}
+\item 
+\bf{MLink\-Type} ()
+\item 
+\bf{MLink\-Type} (const QString \&uuid, const QString \&name)
+\item 
+\bf{$\sim$MLink\-Type} ()
+\item 
+bool \bf{is\-Null} ()
+\item 
+QString \bf{uuid} () const 
+\item 
+QString \bf{name} () const 
+\item 
+bool \bf{operator==} (const \bf{MLink\-Type} \&a, const \bf{MLink\-Type} \&b)
+\end{CompactItemize}
+\subsection*{Static Public Member Functions}
+\begin{CompactItemize}
+\item 
+static \bf{MLink\-Type} \bf{find\-Link\-Type} (const QString \&uuid, const QString \&define\-If\-Not\-Exists=\char`\"{}\char`\"{})
+\item 
+static const \bf{MLink\-Type} \& \bf{Part\-Of\-Link} ()
+\end{CompactItemize}
+
+
+\subsection{Detailed Description}
+Object representing the type of a \doxyref{MLink}{p.}{classMindSpace_1_1MLink}. 
+
+
+
+\subsection{Constructor \& Destructor Documentation}
+\index{MindSpace::MLinkType@{Mind\-Space::MLink\-Type}!MLinkType@{MLinkType}}
+\index{MLinkType@{MLinkType}!MindSpace::MLinkType@{Mind\-Space::MLink\-Type}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}Mind\-Space::MLink\-Type::MLink\-Type ()\hspace{0.3cm}{\tt  [inline]}}\label{classMindSpace_1_1MLinkType_b2ac2cb3ce71c29cc720b6233d3177b9}
+
+
+Creates a NULL link type object \index{MindSpace::MLinkType@{Mind\-Space::MLink\-Type}!MLinkType@{MLinkType}}
+\index{MLinkType@{MLinkType}!MindSpace::MLinkType@{Mind\-Space::MLink\-Type}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}Mind\-Space::MLink\-Type::MLink\-Type (const QString \& {\em uuid}, const QString \& {\em name})\hspace{0.3cm}{\tt  [inline]}}\label{classMindSpace_1_1MLinkType_530ce20ad00f6818f1400af60e0675c2}
+
+
+Creates a new \doxyref{MLink\-Type}{p.}{classMindSpace_1_1MLinkType} with the given {\em uuid\/} and {\em name\/} \index{MindSpace::MLinkType@{Mind\-Space::MLink\-Type}!~MLinkType@{$\sim$MLinkType}}
+\index{~MLinkType@{$\sim$MLinkType}!MindSpace::MLinkType@{Mind\-Space::MLink\-Type}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}Mind\-Space::MLink\-Type::$\sim$MLink\-Type ()\hspace{0.3cm}{\tt  [inline]}}\label{classMindSpace_1_1MLinkType_4af719f6102c5f7b7809f01da6549e80}
+
+
+Removes this link type from the static map of link types 
+
+\subsection{Member Function Documentation}
+\index{MindSpace::MLinkType@{Mind\-Space::MLink\-Type}!findLinkType@{findLinkType}}
+\index{findLinkType@{findLinkType}!MindSpace::MLinkType@{Mind\-Space::MLink\-Type}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}static \bf{MLink\-Type} Mind\-Space::MLink\-Type::find\-Link\-Type (const QString \& {\em uuid}, const QString \& {\em define\-If\-Not\-Exists} = {\tt \char`\"{}\char`\"{}})\hspace{0.3cm}{\tt  [inline, static]}}\label{classMindSpace_1_1MLinkType_d1a81f4af1e3b657e67315c467fd82ec}
+
+
+\begin{Desc}
+\item[Returns:]A \doxyref{MLink\-Type}{p.}{classMindSpace_1_1MLinkType} object of the given {\em uuid\/} if it exists. If the {\em uuid\/} does not exist, and {\em define\-If\-Not\-Exists\/} is empty, then a null link type is returned. If the {\em uuid\/} does not exist, and {\em define\-If\-Not\-Exists\/} is NOT empty, then a new \doxyref{MLink\-Type}{p.}{classMindSpace_1_1MLinkType} object with the given {\em uuid\/} and {\em define\-If\-Not\-Exists\/} as the name is returned. \end{Desc}
+\index{MindSpace::MLinkType@{Mind\-Space::MLink\-Type}!isNull@{isNull}}
+\index{isNull@{isNull}!MindSpace::MLinkType@{Mind\-Space::MLink\-Type}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}bool Mind\-Space::MLink\-Type::is\-Null ()\hspace{0.3cm}{\tt  [inline]}}\label{classMindSpace_1_1MLinkType_fb57a23801cb69b626c1fe27d7689d48}
+
+
+\begin{Desc}
+\item[Returns:]true if this link type is null (no UUID) \end{Desc}
+\index{MindSpace::MLinkType@{Mind\-Space::MLink\-Type}!name@{name}}
+\index{name@{name}!MindSpace::MLinkType@{Mind\-Space::MLink\-Type}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}QString Mind\-Space::MLink\-Type::name () const\hspace{0.3cm}{\tt  [inline]}}\label{classMindSpace_1_1MLinkType_78f6fa0fbb8bfb04f7477f97c0a7b081}
+
+
+\begin{Desc}
+\item[Returns:]the Name of the link \end{Desc}
+\index{MindSpace::MLinkType@{Mind\-Space::MLink\-Type}!operator==@{operator==}}
+\index{operator==@{operator==}!MindSpace::MLinkType@{Mind\-Space::MLink\-Type}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}bool Mind\-Space::MLink\-Type::operator== (const \bf{MLink\-Type} \& {\em a}, const \bf{MLink\-Type} \& {\em b})\hspace{0.3cm}{\tt  [inline]}}\label{classMindSpace_1_1MLinkType_7e3729641c99b0fdee52ffeb9437a56a}
+
+
+\begin{Desc}
+\item[Returns:]true if {\em a\/} has the same \doxyref{uuid()}{p.}{classMindSpace_1_1MLinkType_d6b0408cf8459e73eebb6adab574c115} as {\em b\/} \end{Desc}
+\index{MindSpace::MLinkType@{Mind\-Space::MLink\-Type}!PartOfLink@{PartOfLink}}
+\index{PartOfLink@{PartOfLink}!MindSpace::MLinkType@{Mind\-Space::MLink\-Type}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}const \bf{MLink\-Type} \& Mind\-Space::MLink\-Type::Part\-Of\-Link ()\hspace{0.3cm}{\tt  [static]}}\label{classMindSpace_1_1MLinkType_ed3e63d504e301e45fd9d9e374f17880}
+
+
+Shared reference to special link type Part\-Of\-Link.\begin{itemize}
+\item UUID: \char`\"{}7a28d331-5a86-4ce9-a124-14bf47c2cc8b\char`\"{}\item Name: \char`\"{}Part\-Of\-Link\char`\"{} \end{itemize}
+\index{MindSpace::MLinkType@{Mind\-Space::MLink\-Type}!uuid@{uuid}}
+\index{uuid@{uuid}!MindSpace::MLinkType@{Mind\-Space::MLink\-Type}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}QString Mind\-Space::MLink\-Type::uuid () const\hspace{0.3cm}{\tt  [inline]}}\label{classMindSpace_1_1MLinkType_d6b0408cf8459e73eebb6adab574c115}
+
+
+\begin{Desc}
+\item[Returns:]the UUID if the link \end{Desc}
+
+
+The documentation for this class was generated from the following files:\begin{CompactItemize}
+\item 
+\bf{Mind\-Space.h}\item 
+Mind\-Space.cpp\end{CompactItemize}

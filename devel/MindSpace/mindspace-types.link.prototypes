@@ -1,0 +1,52 @@
+/** \file mindspace-types.link.prototypes - Generated from MindSpace.types by mindspace-types.pl **/
+
+/** Shared reference to special link type PartOfLink */
+static const MLinkType & PartOfLink();
+/** Shared reference to special link type InheritsFromLink */
+static const MLinkType & InheritsFromLink();
+/** Shared reference to special link type PredicateSubjectLink */
+static const MLinkType & PredicateSubjectLink();
+/** Shared reference to special link type PredicateObjectLink */
+static const MLinkType & PredicateObjectLink();
+/** Shared reference to special link type PredicateLink */
+static const MLinkType & PredicateLink();
+/** Shared reference to special link type UnorderedLink */
+static const MLinkType & UnorderedLink();
+/** Shared reference to special link type OrderedLink */
+static const MLinkType & OrderedLink();
+/** Shared reference to special link type SetLink */
+static const MLinkType & SetLink();
+/** Shared reference to special link type ListLink */
+static const MLinkType & ListLink();
+/** Shared reference to special link type MemberLink */
+static const MLinkType & MemberLink();
+/** Shared reference to special link type SubsetLink */
+static const MLinkType & SubsetLink();
+/** Shared reference to special link type AndLink */
+static const MLinkType & AndLink();
+/** Shared reference to special link type OrLink */
+static const MLinkType & OrLink();
+/** Shared reference to special link type NotLink */
+static const MLinkType & NotLink();
+/** Shared reference to special link type FalseLink */
+static const MLinkType & FalseLink();
+/** Shared reference to special link type TrueLink */
+static const MLinkType & TrueLink();
+/** Shared reference to special link type ContextLink */
+static const MLinkType & ContextLink();
+/** Shared reference to special link type TypedVariableLink */
+static const MLinkType & TypedVariableLink();
+/** Shared reference to special link type BindLink */
+static const MLinkType & BindLink();
+/** Shared reference to special link type ForAllLink */
+static const MLinkType & ForAllLink();
+/** Shared reference to special link type ExistLink */
+static const MLinkType & ExistLink();
+/** Shared reference to special link type AverageLink */
+static const MLinkType & AverageLink();
+/** Shared reference to special link type ScholemLink */
+static const MLinkType & ScholemLink();
+/** Shared reference to special link type ImplicationLink */
+static const MLinkType & ImplicationLink();
+/** Shared reference to special link type EvaluationLink */
+static const MLinkType & EvaluationLink();
