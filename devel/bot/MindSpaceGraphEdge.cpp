@@ -9,7 +9,9 @@ static const double Pi = 3.14159265358979323846264338327950288419717;
 static double TwoPi = 2.0 * Pi;
 
 MindSpaceGraphEdge::MindSpaceGraphEdge(MindSpaceGraphNode *sourceNode, MindSpaceGraphNode *destNode)
-	: m_arrowSize(10)
+	: m_arrowSize(4)
+	, m_weight(1.0)
+	, m_color(Qt::black)
 {
 	setAcceptedMouseButtons(0);
 	m_source = sourceNode;
@@ -72,13 +74,22 @@ QRectF MindSpaceGraphEdge::boundingRect() const
 	if (!m_source || !m_dest)
 		return QRectF();
 	
-	qreal penWidth = 1;
+	qreal penWidth = weight();
 	qreal extra = (penWidth + m_arrowSize) / 2.0;
 	
-	return QRectF(m_sourcePoint, QSizeF(m_destPoint.x() - m_sourcePoint.x(),
-					    m_destPoint.y() - m_sourcePoint.y()))
+	QRectF lineRect = QRectF(m_sourcePoint, QSizeF(m_destPoint.x() - m_sourcePoint.x(),
+					               m_destPoint.y() - m_sourcePoint.y()))
 		.normalized()
 		.adjusted(-extra, -extra, extra, extra);
+		
+	QFont font("", 4);
+	QFontMetrics metrics(font);
+	QLineF line(m_sourcePoint, m_destPoint);
+	QString string = m_label; //QString("%1").arg(line.angle());
+	QRectF textRect = QRectF(metrics.boundingRect(string));
+	textRect.moveTo(line.pointAt(.5));
+	
+	return lineRect.united(textRect.adjusted(-extra,-extra,extra,extra));
 }
 
 void MindSpaceGraphEdge::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
@@ -91,7 +102,7 @@ void MindSpaceGraphEdge::paint(QPainter *painter, const QStyleOptionGraphicsItem
 		return;
 	
 	// Draw the line itself
-	painter->setPen(QPen(Qt::black, 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+	painter->setPen(QPen(m_color, m_weight, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
 	painter->drawLine(line);
 	
 	// Draw the arrows
@@ -111,7 +122,16 @@ void MindSpaceGraphEdge::paint(QPainter *painter, const QStyleOptionGraphicsItem
 	QPointF destArrowP2 = m_destPoint + QPointF(sin(angle - Pi + Pi / 3) * m_arrowSize,
 						    cos(angle - Pi + Pi / 3) * m_arrowSize);
 	
-	painter->setBrush(Qt::black);
+	painter->setBrush(m_color); //Qt::black);
 	//painter->drawPolygon(QPolygonF() << line.p1() << sourceArrowP1 << sourceArrowP2);
 	painter->drawPolygon(QPolygonF() << line.p2() << destArrowP1 << destArrowP2);
+	
+	if(!m_label.isEmpty())
+	{
+		painter->save();
+		QFont font("",4);
+		painter->setFont(font);
+		painter->drawText(line.pointAt(.5), m_label); //QString("%1").arg(line.angle()));
+		painter->restore();
+	}
 }

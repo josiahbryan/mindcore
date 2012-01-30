@@ -3,6 +3,8 @@
 #include <QPainter>
 #include <QStyleOption>
 
+#include <QDebug>
+
 #include "MindSpaceGraphEdge.h"
 #include "MindSpaceGraphNode.h"
 #include "MindSpaceGraphWidget.h"
@@ -12,6 +14,7 @@ MindSpaceGraphNode::MindSpaceGraphNode(MindSpaceGraphWidget *graphWidget, const 
 	, m_graph(graphWidget)
 	, m_weight(1.)
 	, m_label(label)
+	, m_color(Qt::green)
 {
 	setFlag(ItemIsMovable);
 	setFlag(ItemSendsGeometryChanges);
@@ -61,7 +64,9 @@ void MindSpaceGraphNode::calculateForces()
 	
 	// Now subtract all forces pulling items together
 	// TODO Why 3.? Magic number...
-	double weight = (double)(m_edgeList.size() + 1) * 3. * m_weight;
+	double weight = (double)(m_edgeList.size() + 1) * 5. * m_weight;
+	//qDebug() << this << "Weight: "<<weight;
+
 	foreach (MindSpaceGraphEdge *edge, m_edgeList) 
 	{
 		QPointF pos;
@@ -96,8 +101,16 @@ bool MindSpaceGraphNode::advance()
 QRectF MindSpaceGraphNode::boundingRect() const
 {
 	qreal adjust = 2;
-	return QRectF(-10 - adjust, -10 - adjust,
-		       23 + adjust,  23 + adjust);
+	QRectF shapeRect = QRectF(-10 - adjust, -10 - adjust,
+		                   23 + adjust,  23 + adjust);
+
+	QFont font("", 5);
+	QFontMetrics metrics(font);
+	QRectF textRect = QRectF(metrics.boundingRect(m_label));
+	textRect.moveTo(-8,2);
+	
+	return shapeRect.united(textRect.adjusted(-adjust,-adjust,+adjust,+adjust));
+	
 }
 
 QPainterPath MindSpaceGraphNode::shape() const
@@ -110,21 +123,21 @@ QPainterPath MindSpaceGraphNode::shape() const
 void MindSpaceGraphNode::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *)
 {
 	painter->setPen(Qt::NoPen);
-	painter->setBrush(Qt::darkGray);
-	painter->drawEllipse(-7, -7, 20, 20);
+	painter->setBrush(QColor(0,0,0,100)); //Qt::darkGray);
+	painter->drawEllipse(-9.5, -9.5, 20, 20);
 	
 	QRadialGradient gradient(-3, -3, 10);
 	if (option->state & QStyle::State_Sunken) 
 	{
 		gradient.setCenter(3, 3);
 		gradient.setFocalPoint(3, 3);
-		gradient.setColorAt(1, QColor(Qt::yellow).light(120));
-		gradient.setColorAt(0, QColor(Qt::darkYellow).light(120));
+		gradient.setColorAt(1, m_color.darker(220));
+		gradient.setColorAt(0, m_color.lighter(420));
 	}
 	else 
 	{
-		gradient.setColorAt(0, Qt::yellow);
-		gradient.setColorAt(1, Qt::darkYellow);
+		gradient.setColorAt(0, m_color.lighter(420));
+		gradient.setColorAt(1, m_color.darker(120));
 	}
 	
 	painter->setBrush(gradient);
@@ -133,9 +146,7 @@ void MindSpaceGraphNode::paint(QPainter *painter, const QStyleOptionGraphicsItem
 	
 	if(!m_label.isEmpty())
 	{
-		QFont font = painter->font();
-		font.setBold(false);
-		font.setPointSize(5);
+		QFont font("",5);
 		painter->setFont(font);
 		//painter->setPen(Qt::gray);
 		//painter->drawText(textRect.translated(2, 2), message);

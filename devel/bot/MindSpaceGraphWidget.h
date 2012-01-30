@@ -14,6 +14,9 @@ public:
 	
 	void itemMoved();
 
+public slots:
+	void addTestItem();
+
 protected:
 	void keyPressEvent(QKeyEvent *);
 	void timerEvent(QTimerEvent *);

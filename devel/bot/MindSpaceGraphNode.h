@@ -28,6 +28,9 @@ public:
 	void setLabel(const QString& label) { m_label=label; }
 	QString label() { return m_label; }
 	
+	void setColor(const QColor& c) { m_color=c; }
+	QColor color() { return m_color; }
+	
 	QRectF boundingRect() const;
 	QPainterPath shape() const;
 	void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
@@ -44,6 +47,7 @@ private:
 	MindSpaceGraphWidget *m_graph;
 	double m_weight;
 	QString m_label;
+	QColor m_color;
 };
 
 #endif

@@ -148,9 +148,28 @@ QString MLink::toString(const MLink *link, const MNode *from)
 	}
 }
 
+
+/** Destroy the MSpace **/
+MSpace::~MSpace() {}
+
+MSpace *MSpace::s_activeSpace = 0;
+
+MNode *MSpace::uuidToNode(const QString& uuid)
+{
+	/// TODO
+	return 0;
+}
+
+MLink *MSpace::uuidToLink(const QString& uuid)
+{
+	/// TODO
+	return 0;
+}
+
+
 /** Create an empty MNode with type set to MindSpace::ConceptNode and LTI/STI to 1.0 each */
 MNode::MNode()
-	: QObject()
+	: QStorableObject()
 	, m_type(MNodeType::ConceptNode())
 	, m_content("")
 	, m_longTermImportance(1.0)
@@ -170,7 +189,7 @@ MNode::~MNode()
 
 /** Creates a new MNode with the given \a content and \a type (defaults to MindSpace::ConceptNode) */
 MNode::MNode( const QString& content, MindSpace::MNodeType type )
-	: QObject()
+	: QStorableObject()
 	, m_type(type)
 	, m_content(content)
 	, m_longTermImportance(1.0)
@@ -238,11 +257,34 @@ void MNode::createUuid()
 	m_uuid = QUuid::createUuid().toString();
 }
 
+// From QStorableObject, used to return storable versions of the 'links' and 'type' properties
+QVariant MNode::storableProperty(QString name)
+{
+	if(name == "links")
+		return QVariant();
+	else
+	if(name == "type")
+		return type().toVariant();
+	else
+		return property(qPrintable(name));
+}
+
+void MNode::setStoredProperty(QString name, QVariant value)
+{
+	if(name == "links")
+		return;
+	else
+	if(name == "type")
+		setType(MNodeType::fromVariant(value));
+	else
+		setProperty(qPrintable(name), value);
+}
+
 
 /*******************/
 /** Creates an empty (null) MLink with the predefined link type 'PartOfLink'. \sa isNull */
 MLink::MLink()
-	: QObject()
+	: QStorableObject()
 	, m_node1(0)
 	, m_node2(0)
 	, m_linkType(MLinkType::PartOfLink())
@@ -253,7 +295,7 @@ MLink::MLink()
 
 /** Creates a new MLink from \a node1 to \a node2 with the givne \a linkType and \a truth value */
 MLink::MLink(MNode* node1, MNode* node2, MLinkType linkType, MTruthValue truth)
-	: QObject()
+	: QStorableObject()
 	, m_node1(node1)
 	, m_node2(node2)
 	, m_linkType(linkType)
@@ -266,7 +308,7 @@ MLink::MLink(MNode* node1, MNode* node2, MLinkType linkType, MTruthValue truth)
 
 /** Creates a new MLink from \a node1 to the \a argumentList with the givne \a linkType and \a truth value */
 MLink::MLink(MNode* node1, QList<MNode*> argumentList, MLinkType linkType, MTruthValue truth)
-	: QObject()
+	: QStorableObject()
 	, m_node1(node1)
 	, m_node2(0)
 	, m_args(argumentList)
@@ -317,5 +359,56 @@ void MLink::createUuid()
 	m_uuid = QUuid::createUuid().toString();
 }
 
+// From QStorableObject, used to return storable versions of the relevant properties (all except 'uuid' need to be sanitized by these functions)
+QVariant MLink::storableProperty(QString name)
+{
+	if(name == "node1")
+		return node1()->uuid();
+	else
+	if(name == "node2")
+		return node2()->uuid();
+	else
+	if(name == "arguments")
+	{
+		QVariantList list;
+		foreach(MNode *node, arguments())
+			list << node->uuid();
+		return list;
+	}
+	else
+	if(name == "truthValue")
+		return truthValue().toVariant();
+	else
+	if(name == "type")
+		return type().toVariant();
+	else
+		return property(qPrintable(name));
+}
+
+void MLink::setStoredProperty(QString name, QVariant value)
+{
+	if(name == "node1")
+		setNode1(MSpace::activeSpace()->uuidToNode(value.toString()));
+	else
+	if(name == "node2")
+		setNode2(MSpace::activeSpace()->uuidToNode(value.toString()));
+	else
+	if(name == "arguments")
+	{
+		QVariantList list = value.toList();
+		QList<MNode*> nodeList;
+		foreach(QVariant value, list)
+			nodeList << MSpace::activeSpace()->uuidToNode(value.toString());
+		setArguments(nodeList);
+	}
+	else
+	if(name == "truthValue")
+		setTruthValue(MTruthValue::fromVariant(value));
+	else
+	if(name == "type")
+		setType(MLinkType::fromVariant(value));
+	else
+		setProperty(qPrintable(name), value);
+}
 
 }; /* namespace MindSpace */

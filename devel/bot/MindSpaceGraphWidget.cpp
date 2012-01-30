@@ -16,7 +16,7 @@ MindSpaceGraphWidget::MindSpaceGraphWidget()
 {
 	QGraphicsScene *scene = new QGraphicsScene(this);
 	scene->setItemIndexMethod(QGraphicsScene::NoIndex);
-	scene->setSceneRect(-200, -200, 400, 400);
+	scene->setSceneRect(-1000, -1000, 2000, 2000);
 	setScene(scene);
 	setCacheMode(CacheBackground);
 	setViewportUpdateMode(BoundingRectViewportUpdate);
@@ -72,17 +72,27 @@ MindSpaceGraphWidget::MindSpaceGraphWidget()
 // 	node42->setPos(60, 50);
 // 	centerNode2->setPos(0, 50);
 	
-	srand((unsigned)time(0));
+	//srand((unsigned)time(0));
+	srand(3729);
 	
+	_node("human",    MNodeType::ConceptNode());
 	_node("man",      MNodeType::ConceptNode());
+	_node("woman",    MNodeType::ConceptNode());
 	_node("mortal",   MNodeType::ConceptNode());
 	_node("air",      MNodeType::ConceptNode());
 	_node("water",    MNodeType::ConceptNode());
 	_node("Socrates", MNodeType::SpecificEntityNode());
+	_node("Josiah",   MNodeType::SpecificEntityNode());
+	_node("Ashley",   MNodeType::SpecificEntityNode());
 	_node("breath",   MNodeType::PredicateNode());	// predicate nodes expect an incoming non-preciate node link and an outgoing non-precicate node link
+	_node("love",     MNodeType::PredicateNode());
 	
 	new MLink(_node("Socrates"), _node("man"),    MLinkType::InheritsFromLink());
-	new MLink(_node("man"),      _node("mortal"), MLinkType::InheritsFromLink());
+	new MLink(_node("Josiah"),   _node("man"),    MLinkType::InheritsFromLink());
+	new MLink(_node("Ashley"),   _node("woman"),    MLinkType::InheritsFromLink());
+	new MLink(_node("man"),      _node("human"), MLinkType::InheritsFromLink());
+	new MLink(_node("woman"),    _node("human"), MLinkType::InheritsFromLink());
+	new MLink(_node("human"),    _node("mortal"), MLinkType::InheritsFromLink());
 // 	new MLink(_node("man"),      _node("breath"), MLinkType::PredicateSubjectLink());
 // 	new MLink(_node("breath"),   _node("air"),    MLinkType::PredicateObjectLink());
 // 	new MLink(_node("breath"),   _node("water"),  MLinkType::PredicateObjectLink(), MTruthValue(0.1));
@@ -92,15 +102,17 @@ MindSpaceGraphWidget::MindSpaceGraphWidget()
 	//new MLink(_node("breath"),   QList<MNode*>() << _node("man") << _node("air"),    MLinkType::EvaluationLink());
 	//new MLink(_node("breath"),   QList<MNode*>() << _node("man") << _node("water"),  MLinkType::EvaluationLink(), MTruthValue(0.1));
 	
-	new MLink(_node("man"),   QList<MNode*>() << _node("breath") << _node("air"),    MLinkType::PredicateLink());
-	new MLink(_node("man"),   QList<MNode*>() << _node("breath") << _node("water"),  MLinkType::PredicateLink(), MTruthValue(0.1));
+	new MLink(_node("human"),   QList<MNode*>() << _node("breath") << _node("air"),    MLinkType::PredicateLink());
+	new MLink(_node("human"),   QList<MNode*>() << _node("breath") << _node("water"),  MLinkType::PredicateLink(), MTruthValue(0.1));
+	new MLink(_node("Josiah"),   QList<MNode*>() << _node("love") << _node("Ashley"),  MLinkType::PredicateLink());
 	
-	qDebug() << _node("Socrates");
-	qDebug() << _node("man");
-	qDebug() << _node("mortal");
-	qDebug() << _node("air");
-	qDebug() << _node("water");
-	qDebug() << _node("breath");
+// 	qDebug() << _node("Socrates");
+// 	qDebug() << _node("man");
+// 	qDebug() << _node("woman");
+// 	qDebug() << _node("mortal");
+// 	qDebug() << _node("air");
+// 	qDebug() << _node("water");
+// 	qDebug() << _node("breath");
 	
 	QHash<MNode*,MindSpaceGraphNode*> graphNodes;
 	
@@ -112,6 +124,8 @@ MindSpaceGraphWidget::MindSpaceGraphWidget()
 		graphNode->setPos(rand() % 400 - 200, rand() % 400 - 200);
 		scene->addItem(graphNode);
 		graphNodes[node] = graphNode;
+		
+		m_centerNode = graphNode; // for use in addTestItem()
 	}
 	
 	QList<MLink*> linksProcessed;
@@ -125,29 +139,44 @@ MindSpaceGraphWidget::MindSpaceGraphWidget()
 			
 			MindSpaceGraphNode *startNode = graphNodes[link->node1()];
 			
-			double value = link->truthValue().value();
-			
-			MindSpaceGraphNode *typeNode;
-			//typeNode = new MindSpaceGraphNode(this, QString("%1%2").arg(value<1.0?QString::number(value):"").arg(link->type().name()));
-			typeNode = new MindSpaceGraphNode(this, QString("%1%2").arg(value<1.0?"!":"").arg(link->type().name()));
-			typeNode->setPos(rand() % 400 - 200, rand() % 400 - 200);
-			scene->addItem(typeNode);
-			
-			scene->addItem(new MindSpaceGraphEdge(startNode, typeNode));
-			
 			QList<MNode*> args = link->arguments();
 			if(!args.isEmpty())
 			{
+				double value = link->truthValue().value();
+			
+				MindSpaceGraphNode *typeNode;
+				typeNode = new MindSpaceGraphNode(this, QString("%2 %1").arg(value<1.0?QString::number(value):"").arg(link->type().name()));
+				//typeNode = new MindSpaceGraphNode(this, QString("%1%2").arg(value<1.0?"!":"").arg(link->type().name()));
+				
+				typeNode->setPos(rand() % 400 - 200, rand() % 400 - 200);
+				typeNode->setColor(QColor(255,150,50)); // orange
+				scene->addItem(typeNode);
+				
+				MindSpaceGraphEdge *edge = new MindSpaceGraphEdge(startNode, typeNode);
+				scene->addItem(edge);
+				edge->setWeight(value * 2.0);
+				//edge->setLabel(link->type().name());
+				
 				foreach(MNode* node2, args)
 				{
 					MindSpaceGraphNode *endNode = graphNodes[node2];
-					scene->addItem(new MindSpaceGraphEdge(typeNode, endNode));
+					//scene->addItem(new MindSpaceGraphEdge(typeNode, endNode));
+					
+					MindSpaceGraphEdge *edge = new MindSpaceGraphEdge(typeNode, endNode);
+					scene->addItem(edge);
+					edge->setWeight(value * 2.0);
 				}
 			}
 			else
 			{
+				double value = link->truthValue().value();
+				
 				MindSpaceGraphNode *endNode = graphNodes[link->node2()];
-				scene->addItem(new MindSpaceGraphEdge(typeNode, endNode));
+				
+				MindSpaceGraphEdge *edge = new MindSpaceGraphEdge(startNode, endNode);
+				scene->addItem(edge);
+				edge->setWeight(value * 2.0);
+				edge->setLabel(QString("%1 %2").arg(link->type().name()).arg(value<1.0?QString::number(value):""));
 			}
 			
 			linksProcessed << link;
@@ -216,6 +245,17 @@ MindSpaceGraphWidget::MindSpaceGraphWidget()
 	scale(qreal(0.8), qreal(0.8));
 	setMinimumSize(400, 400);
 	setWindowTitle(tr("Elastic Nodes"));
+}
+
+void MindSpaceGraphWidget::addTestItem()
+{
+	MindSpaceGraphNode *graphNode;
+	graphNode = new MindSpaceGraphNode(this, "** TEST **");
+	graphNode->setPos(rand() % 400 - 200, rand() % 400 - 200);
+	scene()->addItem(graphNode);
+	
+	
+	scene()->addItem(new MindSpaceGraphEdge(graphNode, m_centerNode));
 }
 
 void MindSpaceGraphWidget::itemMoved()

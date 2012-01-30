@@ -28,5 +28,9 @@ BotWindow::BotWindow()
 	
 	MindSpaceGraphWidget *gw = new MindSpaceGraphWidget();
 	vbox->addWidget(gw);
+	
+	QPushButton *testBtn = new QPushButton("Test Button");
+	connect(testBtn, SIGNAL(clicked()), gw, SLOT(addTestItem()));
+	vbox->addWidget(testBtn);
 
 }

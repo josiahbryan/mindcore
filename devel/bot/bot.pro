@@ -15,6 +15,7 @@ UI_DIR = ../.build
 # Input
 HEADERS += \
         BotWindow.h \
+	../MindSpace/QStorableObject.h \
 	../MindSpace/MindSpace.h \
 	MindSpaceGraphWidget.h \
 	MindSpaceGraphEdge.h \
@@ -22,6 +23,7 @@ HEADERS += \
 
 SOURCES += main.cpp \
         BotWindow.cpp \
+        ../MindSpace/QStorableObject.cpp \
 	../MindSpace/MindSpace.cpp \
 	MindSpaceGraphWidget.cpp \
 	MindSpaceGraphEdge.cpp \
