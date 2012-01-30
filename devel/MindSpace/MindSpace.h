@@ -154,6 +154,8 @@ namespace MindSpace
 		
 		static MNode *node(const QString& name, MindSpace::MNodeType type = MNodeType());
 		
+		static QHash<QString,MNode*> nodes() { return s_nodes; }
+		
 	public slots:
 		void setType(MNodeType type);
 		void setContent(const QString& content);
