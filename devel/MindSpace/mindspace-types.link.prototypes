@@ -1,5 +1,61 @@
 /** \file mindspace-types.link.prototypes - Generated from MindSpace.types by mindspace-types.pl **/
 
+/** Shared reference to special link type KLineLink */
+static const MLinkType & KLineLink();
+/** Shared reference to special link type ConceptuallyRelatedTo */
+static const MLinkType & ConceptuallyRelatedTo();
+/** Shared reference to special link type ThematicKLine */
+static const MLinkType & ThematicKLine();
+/** Shared reference to special link type SuperThematicKLine */
+static const MLinkType & SuperThematicKLine();
+/** Shared reference to special link type ThingLink */
+static const MLinkType & ThingLink();
+/** Shared reference to special link type IsA */
+static const MLinkType & IsA();
+/** Shared reference to special link type PartOf */
+static const MLinkType & PartOf();
+/** Shared reference to special link type PropertyOf */
+static const MLinkType & PropertyOf();
+/** Shared reference to special link type DefinedAs */
+static const MLinkType & DefinedAs();
+/** Shared reference to special link type MadeOf */
+static const MLinkType & MadeOf();
+/** Shared reference to special link type SpatialLink */
+static const MLinkType & SpatialLink();
+/** Shared reference to special link type LocationOf */
+static const MLinkType & LocationOf();
+/** Shared reference to special link type EventLink */
+static const MLinkType & EventLink();
+/** Shared reference to special link type SubeventOf */
+static const MLinkType & SubeventOf();
+/** Shared reference to special link type PrerequisiteEventOf */
+static const MLinkType & PrerequisiteEventOf();
+/** Shared reference to special link type FirstSubeventOf */
+static const MLinkType & FirstSubeventOf();
+/** Shared reference to special link type LastSubeventOf */
+static const MLinkType & LastSubeventOf();
+/** Shared reference to special link type CausalLink */
+static const MLinkType & CausalLink();
+/** Shared reference to special link type EffectOf */
+static const MLinkType & EffectOf();
+/** Shared reference to special link type DesirousEffectOf */
+static const MLinkType & DesirousEffectOf();
+/** Shared reference to special link type AffectiveLink */
+static const MLinkType & AffectiveLink();
+/** Shared reference to special link type MotivationOf */
+static const MLinkType & MotivationOf();
+/** Shared reference to special link type DesireOf */
+static const MLinkType & DesireOf();
+/** Shared reference to special link type FunctionalLink */
+static const MLinkType & FunctionalLink();
+/** Shared reference to special link type CapableOfReceivingAction */
+static const MLinkType & CapableOfReceivingAction();
+/** Shared reference to special link type UsedFor */
+static const MLinkType & UsedFor();
+/** Shared reference to special link type AgentLink */
+static const MLinkType & AgentLink();
+/** Shared reference to special link type CapableOf */
+static const MLinkType & CapableOf();
 /** Shared reference to special link type PartOfLink */
 static const MLinkType & PartOfLink();
 /** Shared reference to special link type InheritsFromLink */

@@ -1,5 +1,61 @@
 /** \file mindspace-types.definitions - Generated from MindSpace.types by mindspace-types.pl **/
 
+static MLinkType MLinkType_KLineLink ( "KLineLink", "e706cc14-e9ea-4dd3-9b65-5a3f5bedba96" );
+const MLinkType & MLinkType::KLineLink() { return MLinkType_KLineLink; }
+static MLinkType MLinkType_ConceptuallyRelatedTo ( "ConceptuallyRelatedTo", "c90d3c5e-9fe9-4076-bb47-e718605f4ea6", true, QStringList() << "KLineLink" );
+const MLinkType & MLinkType::ConceptuallyRelatedTo() { return MLinkType_ConceptuallyRelatedTo; }
+static MLinkType MLinkType_ThematicKLine ( "ThematicKLine", "f507a76f-e0d2-4f75-8a5e-7fd4b2a4e872", true, QStringList() << "KLineLink" );
+const MLinkType & MLinkType::ThematicKLine() { return MLinkType_ThematicKLine; }
+static MLinkType MLinkType_SuperThematicKLine ( "SuperThematicKLine", "e1651ad0-e8a0-4fde-ab2a-8ede4290abda", true, QStringList() << "KLineLink" );
+const MLinkType & MLinkType::SuperThematicKLine() { return MLinkType_SuperThematicKLine; }
+static MLinkType MLinkType_ThingLink ( "ThingLink", "0ec1135e-6b65-477f-a243-2e91f8903dff" );
+const MLinkType & MLinkType::ThingLink() { return MLinkType_ThingLink; }
+static MLinkType MLinkType_IsA ( "IsA", "7e927065-ba4e-48d1-b8a3-42f9b9a20f28", true, QStringList() << "ThingLink" );
+const MLinkType & MLinkType::IsA() { return MLinkType_IsA; }
+static MLinkType MLinkType_PartOf ( "PartOf", "d7375960-2c2e-4296-8f68-a3df5c16e73c", true, QStringList() << "ThingLink" );
+const MLinkType & MLinkType::PartOf() { return MLinkType_PartOf; }
+static MLinkType MLinkType_PropertyOf ( "PropertyOf", "274bf674-dd73-4f5c-8c68-caa71a056b6d", true, QStringList() << "ThingLink" );
+const MLinkType & MLinkType::PropertyOf() { return MLinkType_PropertyOf; }
+static MLinkType MLinkType_DefinedAs ( "DefinedAs", "eb0d64cf-a1f9-4c50-8fc4-e2c21ecc05ea", true, QStringList() << "ThingLink" );
+const MLinkType & MLinkType::DefinedAs() { return MLinkType_DefinedAs; }
+static MLinkType MLinkType_MadeOf ( "MadeOf", "791b023d-c33e-4312-814b-6e23ef4177f2", true, QStringList() << "ThingLink" );
+const MLinkType & MLinkType::MadeOf() { return MLinkType_MadeOf; }
+static MLinkType MLinkType_SpatialLink ( "SpatialLink", "5592bd65-bcd1-48da-a02b-034f01186872" );
+const MLinkType & MLinkType::SpatialLink() { return MLinkType_SpatialLink; }
+static MLinkType MLinkType_LocationOf ( "LocationOf", "99b75ca4-3817-43e1-a0b6-0411a65106f2", true, QStringList() << "SpatialLink" );
+const MLinkType & MLinkType::LocationOf() { return MLinkType_LocationOf; }
+static MLinkType MLinkType_EventLink ( "EventLink", "f03dcfb8-6dc8-4cb3-957e-29c89e85c354" );
+const MLinkType & MLinkType::EventLink() { return MLinkType_EventLink; }
+static MLinkType MLinkType_SubeventOf ( "SubeventOf", "76387889-6fe5-490c-a1f3-00d0564c84b1", true, QStringList() << "EventLink" );
+const MLinkType & MLinkType::SubeventOf() { return MLinkType_SubeventOf; }
+static MLinkType MLinkType_PrerequisiteEventOf ( "PrerequisiteEventOf", "1c73e2d3-e990-402d-927f-c2e7c8d7ca1f", true, QStringList() << "EventLink" );
+const MLinkType & MLinkType::PrerequisiteEventOf() { return MLinkType_PrerequisiteEventOf; }
+static MLinkType MLinkType_FirstSubeventOf ( "FirstSubeventOf", "afd89073-9579-4477-bb26-d010b4aec3a5", true, QStringList() << "EventLink" );
+const MLinkType & MLinkType::FirstSubeventOf() { return MLinkType_FirstSubeventOf; }
+static MLinkType MLinkType_LastSubeventOf ( "LastSubeventOf", "81b2f0d6-9d92-453d-a4f9-c6540de8783d", true, QStringList() << "EventLink" );
+const MLinkType & MLinkType::LastSubeventOf() { return MLinkType_LastSubeventOf; }
+static MLinkType MLinkType_CausalLink ( "CausalLink", "ac8567c8-aa99-4270-ba1b-7a6dcfcfb21d" );
+const MLinkType & MLinkType::CausalLink() { return MLinkType_CausalLink; }
+static MLinkType MLinkType_EffectOf ( "EffectOf", "e74783e7-11ef-4079-b8c8-2c3ca7a2e6a2", true, QStringList() << "CausalLink" );
+const MLinkType & MLinkType::EffectOf() { return MLinkType_EffectOf; }
+static MLinkType MLinkType_DesirousEffectOf ( "DesirousEffectOf", "efec47c2-d765-459c-94d7-ba59ccb534bb", true, QStringList() << "CausalLink" );
+const MLinkType & MLinkType::DesirousEffectOf() { return MLinkType_DesirousEffectOf; }
+static MLinkType MLinkType_AffectiveLink ( "AffectiveLink", "6fb9937b-0dd8-42cc-8ca2-dc4fc413d5a7" );
+const MLinkType & MLinkType::AffectiveLink() { return MLinkType_AffectiveLink; }
+static MLinkType MLinkType_MotivationOf ( "MotivationOf", "d6ac27e6-62c9-49e6-8deb-838ea31006d9", true, QStringList() << "AffectiveLink" );
+const MLinkType & MLinkType::MotivationOf() { return MLinkType_MotivationOf; }
+static MLinkType MLinkType_DesireOf ( "DesireOf", "923fffeb-9d23-4cbd-9c63-fa186ae28932", true, QStringList() << "AffectiveLink" );
+const MLinkType & MLinkType::DesireOf() { return MLinkType_DesireOf; }
+static MLinkType MLinkType_FunctionalLink ( "FunctionalLink", "cb4fc894-b056-4919-bead-6bc50d5da21e" );
+const MLinkType & MLinkType::FunctionalLink() { return MLinkType_FunctionalLink; }
+static MLinkType MLinkType_CapableOfReceivingAction ( "CapableOfReceivingAction", "1f57a0e2-e80f-4990-8bd0-588b443a8a8d", true, QStringList() << "FunctionalLink" );
+const MLinkType & MLinkType::CapableOfReceivingAction() { return MLinkType_CapableOfReceivingAction; }
+static MLinkType MLinkType_UsedFor ( "UsedFor", "a0ffa538-b6c2-4888-a965-c91b3493d5dd", true, QStringList() << "FunctionalLink" );
+const MLinkType & MLinkType::UsedFor() { return MLinkType_UsedFor; }
+static MLinkType MLinkType_AgentLink ( "AgentLink", "ba60710a-4921-4c0a-b2c8-3b88fb43b788" );
+const MLinkType & MLinkType::AgentLink() { return MLinkType_AgentLink; }
+static MLinkType MLinkType_CapableOf ( "CapableOf", "1bb843f6-43c0-4558-9269-2dc769046cad", true, QStringList() << "AgentLink" );
+const MLinkType & MLinkType::CapableOf() { return MLinkType_CapableOf; }
 DefineNodeType(ConceptNode,	"fd6cf790-9eea-43a6-8fd7-cc8d564ee868");
 DefineNodeType(SpecificEntityNode,	"55f3b372-ef2d-4e02-8888-c6b0fe3d4405");
 DefineNodeType(PredicateNode,	"45def73a-59ec-4d36-a4dd-641f0ce290c4");
