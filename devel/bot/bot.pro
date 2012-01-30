@@ -15,10 +15,16 @@ UI_DIR = ../.build
 # Input
 HEADERS += \
         BotWindow.h \
-	../MindSpace/MindSpace.h
+	../MindSpace/MindSpace.h \
+	MindSpaceGraphWidget.h \
+	MindSpaceGraphEdge.h \
+	MindSpaceGraphNode.h
 
 SOURCES += main.cpp \
         BotWindow.cpp \
-	../MindSpace/MindSpace.cpp
+	../MindSpace/MindSpace.cpp \
+	MindSpaceGraphWidget.cpp \
+	MindSpaceGraphEdge.cpp \
+	MindSpaceGraphNode.cpp
 
 

@@ -10,6 +10,10 @@ class BotWindow : public QWidget
 public:
 	BotWindow();
 	~BotWindow() {}
+	
+	
+private:
+	
 };
 
 
