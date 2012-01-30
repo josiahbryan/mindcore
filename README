@@ -1,7 +1,28 @@
 MindCore
 
-First off: 
- - This project uses much of the utility functions and database abstraction utilities found in the AppCore project.
- - AppCore lives on google code as 'appcorepl'
- - AppCore is expected to be installed in /var/www/html/appcore (this SHOULD be changed in the future - convenient assumption for now during development.)
+Artificial General Intelligence
 
+Thoughts on the subject:
+
+A "logic" engine - decision engine - cognition engine
+cognition - deriving "meaning"
+How do we encode "meaning"? What is "meaning"?
+Symbolic representation of knowledge
+Meaningful manipulation of stored "knowledge" and how to interact with it
+
+
+Problems:
+- How to store and represent knowledge
+- How to learn new knowledge
+- How to interact with it
+
+http://en.wikipedia.org/wiki/Cognition
+
+"The sort of mental processes described as cognitive are largely influenced by research which has successfully used this paradigm in the past, likely starting with Thomas Aquinas, who divided the study of behavior into two broad categories: cognitive (how we know the world), and affective (how we understand the world via feelings and emotions). Consequently, this description tends to apply to processes such as memory, association, concept formation, pattern recognition, language, attention, perception, action, problem solving and mental imagery.[1][2] Traditionally, emotion was not thought of as a cognitive process. This division is now regarded as largely artificial, and much research is currently being undertaken to examine the cognitive psychology of emotion; research also includes one's awareness of their own strategies and methods of cognition called metacognition and includes metamemory."
+
+
+
+- Need actions
+- Able to interact, abstractly receive responses, encode reactions
+- Adjust future actions based on responses
+- Choose goals to persue, drives actions - persuit of goals based on patterns learned in the past

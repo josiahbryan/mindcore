@@ -57,11 +57,11 @@ package MindCore::Memory::Episode;
 	{
 		my $class = shift;
 		my $mgr = shift;
-		my $self = bless { mgr => $self }, $class;
+		my $self = bless { mgr => $class }, $class;
 		
-		my $memory_node = MindCore::Node->new(MindCore::MemoryNode);
-		MindCore::Link->new($self->context_node, [ $self->agent->node, $memory ], MindCore::MemoryLink);	
-		$self->{node} = $memory_node;
+		#my $memory_node = MindCore::Node->new(MindCore::MemoryNode);
+		#MindCore::Link->new($self->context_node, [ $self->agent->node, $memory_node ], MindCore::MemoryLink);	
+		#$self->{node} = $memory_node;
 		
 		return $self;
 	}
