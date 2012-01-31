@@ -213,16 +213,16 @@ namespace MindSpace
 		/** The UUID of this link */
 		Q_PROPERTY(QString uuid READ uuid);
 		/** The MLinkType of this link */
-		Q_PROPERTY(MindSpace::MLinkType type READ type WRITE setType);
+		Q_PROPERTY(MLinkType type READ type WRITE setType);
 		/** The first MNode in the link */
-		Q_PROPERTY(MindSpace::MNode* node1 READ node1 WRITE setNode1);
+		Q_PROPERTY(MNode* node1 READ node1 WRITE setNode1);
 		/** The second MNode in the link */
-		Q_PROPERTY(MindSpace::MNode* node2 READ node2 WRITE setNode2);
+		Q_PROPERTY(MNode* node2 READ node2 WRITE setNode2);
 		/** A list of outgoing or argument nodes */
 		Q_PROPERTY(QList<MindSpace::MNode*> arguments READ arguments WRITE setArguments);
 		//Q_PROPERTY(MindSpace::MLink::LinkDirection linkDirection READ linkDirection WRITE setLinkDirection);
 		/** The MTruthValue representing the truthfulness assertion of this link */
-		Q_PROPERTY(MindSpace::MTruthValue truthValue READ truthValue WRITE setTruthValue);
+		Q_PROPERTY(MTruthValue truthValue READ truthValue WRITE setTruthValue);
 		
 	public:
 		MLink();

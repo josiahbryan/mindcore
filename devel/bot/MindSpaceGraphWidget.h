@@ -4,7 +4,25 @@
 #include <QtGui/QGraphicsView>
 
 class MindSpaceGraphNode;
+class MindSpaceGraphEdge;
+// namespace MindSpace
+// {
+// class MSpace;
+// class MLink;
+// class MNode;
+// };
+#include "MindSpace.h"
+using namespace MindSpace;
 
+class MindSpaceGraphEdgeData
+{
+public:
+	MindSpaceGraphEdgeData() { node=0; }
+	MindSpaceGraphNode *node;
+	QList<MindSpaceGraphEdge *> edges;
+};
+	
+	
 class MindSpaceGraphWidget : public QGraphicsView
 {
     Q_OBJECT
@@ -12,10 +30,18 @@ class MindSpaceGraphWidget : public QGraphicsView
 public:
 	MindSpaceGraphWidget();
 	
-	void itemMoved();
+	void itemMoved(MindSpaceGraphNode *node=0);
+	
+	void setMindSpace(MSpace*);
+	MSpace *mindSpace() { return m_mindSpace; }
 
-public slots:
-	void addTestItem();
+private slots:
+	void addNode(MNode*);
+	void removeNode(MNode*);
+	
+	void addLink(MLink*);
+	void removeLink(MLink*);
+
 
 protected:
 	void keyPressEvent(QKeyEvent *);
@@ -26,8 +52,13 @@ protected:
 	void scaleView(qreal scaleFactor);
 
 private:
+	
 	int m_timerId;
 	MindSpaceGraphNode *m_centerNode;
+	MSpace *m_mindSpace;
+	QHash<MNode*,MindSpaceGraphNode*> m_graphNodes;
+	QHash<MindSpaceGraphNode*,MNode*> m_graphNodesReverse;
+	QHash<MLink*,MindSpaceGraphEdgeData> m_graphLinks;
 };
 
 #endif

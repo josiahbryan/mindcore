@@ -10,7 +10,8 @@
 #include "MindSpaceGraphWidget.h"
 
 MindSpaceGraphNode::MindSpaceGraphNode(MindSpaceGraphWidget *graphWidget, const QString &label)
-	: QGraphicsItem()
+	: QObject(),
+	  QGraphicsItem()
 	, m_graph(graphWidget)
 	, m_weight(1.)
 	, m_label(label)
@@ -164,7 +165,7 @@ QVariant MindSpaceGraphNode::itemChange(GraphicsItemChange change, const QVarian
 		case ItemPositionHasChanged:
 			foreach (MindSpaceGraphEdge *edge, m_edgeList)
 				edge->adjust();
-			m_graph->itemMoved();
+			m_graph->itemMoved(this);
 			break;
 		default:
 			break;

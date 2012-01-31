@@ -8,8 +8,9 @@ class MindSpaceGraphEdge;
 class MindSpaceGraphWidget;
 class QGraphicsSceneMouseEvent;
 
-class MindSpaceGraphNode : public QGraphicsItem
+class MindSpaceGraphNode : public QObject, public QGraphicsItem
 {
+	Q_OBJECT
 public:
 	MindSpaceGraphNode(MindSpaceGraphWidget *graphWidget, const QString& label="");
 	

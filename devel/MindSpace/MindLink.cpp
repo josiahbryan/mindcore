@@ -77,46 +77,52 @@ MLink::MLink()
 	, m_truthValue()
 {
 	createUuid();
+	if(MSpace *mind = MSpace::activeSpace())
+		mind->addLink(this);
 }
 
 
 /** Creates a new MLink from \a node1 to \a node2 with the givne \a linkType and \a truth value */
 MLink::MLink(MNode* node1, MNode* node2, MLinkType linkType, MTruthValue truth)
 	: QStorableObject()
-	, m_node1(node1)
-	, m_node2(node2)
+	, m_node1(0)
+	, m_node2(0)
 	, m_linkType(linkType)
 	, m_truthValue(truth)
 {
 	createUuid();
-	node1->addLink(this);
-	node2->addLink(this);
+	setNode1(node1);
+	setNode2(node2);
+	
+/*	if(MSpace *mind = MSpace::activeSpace())
+		mind->addLink(this);*/
 }
 
 /** Creates a new MLink from \a node1 to the \a argumentList with the givne \a linkType and \a truth value */
 MLink::MLink(MNode* node1, QList<MNode*> argumentList, MLinkType linkType, MTruthValue truth)
 	: QStorableObject()
-	, m_node1(node1)
+	, m_node1(0)
 	, m_node2(0)
-	, m_args(argumentList)
+	, m_args()
 	, m_linkType(linkType)
 	, m_truthValue(truth)
 {
 	createUuid();
-	node1->addLink(this);
-	//node2->addLink(this);
-	foreach(MNode *node, argumentList)
-		node->addLink(this);
+	setNode1(node1);
+	setArguments(argumentList);
+	
+/*	if(MSpace *mind = MSpace::activeSpace())
+		mind->addLink(this);*/
 }
 
 MLink::~MLink()
 {
-	if(m_node1)
-		m_node1->removeLink(this);
-	if(m_node2)
-		m_node2->removeLink(this);
-	foreach(MNode *node, m_args)
-		node->removeLink(this);
+	setNode1(0);
+	setNode2(0);
+	setArguments(QList<MNode*>());
+	
+/*	if(MSpace *mind = MSpace::activeSpace())
+		mind->removeLink(this);*/
 }
 
 /** \return true if BOTH node1() and node2() are NULL. \sa node1, node2 */
@@ -130,13 +136,43 @@ bool MLink::isNull()
 /** Set the MLinkType of this link to \a type. \sa type */
 void MLink::setType(MindSpace::MLinkType type) { m_linkType = type; }
 /** Set the first MNode of this link to \a node1. \sa node1 */ 
-void MLink::setNode1(MindSpace::MNode* node1) { m_node1 = node1; }
+void MLink::setNode1(MindSpace::MNode* node1)
+{ 
+	if(m_node1)
+		m_node1->removeLink(this);
+	
+	m_node1 = node1;
+	 
+	if(node1)
+		node1->addLink(this);
+}
+
 /** Set the second MNode of this link to \a node2. \sa node2 */
-void MLink::setNode2(MindSpace::MNode* node2) { m_node2 = node2; }
+void MLink::setNode2(MindSpace::MNode* node2)
+{
+	if(m_node2)
+		m_node2->removeLink(this);
+	
+	m_node2 = node2;
+	
+	if(node2)
+		node2->addLink(this);
+}
+
 /** Set the MTruthValue of this link to \a value. \sa truthValue */
 void MLink::setTruthValue(MindSpace::MTruthValue value) { m_truthValue = value; }
+
 /** Set the list of argument nodes to \a arguments. \sa arguments */
-void MLink::setArguments(QList<MNode*> arguments) { m_args = arguments; }
+void MLink::setArguments(QList<MNode*> arguments)
+{
+	foreach(MNode *node, m_args)
+		node->removeLink(this);
+		
+	m_args = arguments;
+	
+	foreach(MNode *node, arguments)
+		node->addLink(this);
+}
 
 /** Creates a new UUId for this link only if no UUId already assigned. \sa uuid */
 void MLink::createUuid()
@@ -153,7 +189,7 @@ QVariant MLink::storableProperty(QString name)
 		return node1()->uuid();
 	else
 	if(name == "node2")
-		return node2()->uuid();
+		return node2() ? node2()->uuid() : QString();
 	else
 	if(name == "arguments")
 	{
@@ -174,8 +210,12 @@ QVariant MLink::storableProperty(QString name)
 
 void MLink::setStoredProperty(QString name, QVariant value)
 {
+	//qDebug() << "MLink::setStoredProperty: "<<name<<value;
 	if(name == "node1")
+	{
+		//qDebug() << "MLink::setStoredProperty: node1: "<<value.toString();
 		setNode1(MSpace::activeSpace()->uuidToNode(value.toString()));
+	}
 	else
 	if(name == "node2")
 		setNode2(MSpace::activeSpace()->uuidToNode(value.toString()));
@@ -194,6 +234,10 @@ void MLink::setStoredProperty(QString name, QVariant value)
 	else
 	if(name == "type")
 		setType(MLinkType::fromVariant(value));
+	else
+	if(name == "uuid")
+		// Our Q_PROPERTY defenition doesn't provide a setter for uuid (rightfully so)
+		m_uuid = value.toString();
 	else
 		setProperty(qPrintable(name), value);
 }

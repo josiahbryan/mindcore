@@ -20,6 +20,9 @@ bool QStorableObject::fromByteArray(QByteArray& array)
 
 bool QStorableObject::fromVariantMap(const QVariantMap& map, bool onlyApplyIfChanged)
 {
+	if(map.isEmpty())
+		return false;
+		
 	// So we dont have to engineer our own method of tracking
 	// properties, just assume all inherited objects delcare the relevant
 	// properties using Q_PROPERTY macro
@@ -73,6 +76,7 @@ QVariantMap QStorableObject::toVariantMap()
 	int count = metaobject->propertyCount();
 	for (int i=0; i<count; ++i)
 	{
+		//qDebug() << "QStorableObject::propsToMap():"<<(QObject*)this<<": i:"<<i<<", class:"<<metaobject->className()<<", count:"<<count;
 		QMetaProperty metaproperty = metaobject->property(i);
 		const char *name = metaproperty.name();
 		

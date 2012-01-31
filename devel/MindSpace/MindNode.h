@@ -89,7 +89,7 @@ namespace MindSpace
 		Q_PROPERTY(QString uuid READ uuid);
 		
 		/** The MNodeType of this node */
-		Q_PROPERTY(MindSpace::MNodeType type READ type WRITE setType);
+		Q_PROPERTY(MNodeType type READ type WRITE setType);
 		
 		/** The Content of this node */ 
 		Q_PROPERTY(QString content READ content WRITE setContent);
@@ -106,7 +106,7 @@ namespace MindSpace
 		
 	public:
 		MNode();
-		MNode( const QString& content="", MindSpace::MNodeType type = MNodeType::ConceptNode() );
+		MNode( const QString& content, MindSpace::MNodeType type = MNodeType::ConceptNode() );
 		virtual ~MNode();
 		
 		QString uuid() const			{ return m_uuid; }			/*!< \return the UUID of this node. 			\sa uuid */

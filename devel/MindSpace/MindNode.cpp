@@ -83,11 +83,16 @@ MNode::MNode()
 	Q_UNUSED(MindSpace::staticMetaObject);
 	
 	createUuid();
+	
+/*	if(MSpace *mind = MSpace::activeSpace())
+		mind->addNode(this);*/
 }
 
 MNode::~MNode()
 {
 	qDeleteAll(m_links);
+/*	if(MSpace *mind = MSpace::activeSpace())
+		mind->removeNode(this);*/
 }
 
 /** Creates a new MNode with the given \a content and \a type (defaults to MindSpace::ConceptNode) */
@@ -101,6 +106,9 @@ MNode::MNode( const QString& content, MindSpace::MNodeType type )
 {
 	createUuid();
 	setContent(content);
+	
+/*	if(MSpace *mind = MSpace::activeSpace())
+		mind->addNode(this);*/
 }
 
 /** \return the MNode* object for the given node name if the node exists. If the node does not exist, and type is NOT a null type (See MNodetype::isNull()), then it creates a new node and returns that node object. Returns 0 (null) in all other cases */
@@ -108,8 +116,17 @@ MNode *MNode::node(const QString& name, MindSpace::MNodeType type)
 {
 	if(s_nodes.contains(name))
 		return s_nodes.value(name);
+		
 	if(!type.isNull())
-		return new MNode(name, type);
+	{
+		MNode *node = new MNode(name, type);
+		
+// 		if(MSpace *mind = MSpace::activeSpace())
+// 			mind->addNode(node);
+		
+		return node;
+	}
+	
 	return 0;
 }
 
@@ -164,7 +181,7 @@ void MNode::createUuid()
 QVariant MNode::storableProperty(QString name)
 {
 	if(name == "links")
-		return QVariant();
+		return QVariant(); // links are handled by MindSpace
 	else
 	if(name == "type")
 		return type().toVariant();
@@ -175,10 +192,14 @@ QVariant MNode::storableProperty(QString name)
 void MNode::setStoredProperty(QString name, QVariant value)
 {
 	if(name == "links")
-		return;
+		return; // links are handled by MindSpace
 	else
 	if(name == "type")
 		setType(MNodeType::fromVariant(value));
+	else
+	if(name == "uuid")
+		// Our Q_PROPERTY defenition doesn't provide a setter for uuid (rightfully so)
+		m_uuid = value.toString();
 	else
 		setProperty(qPrintable(name), value);
 }

@@ -37,15 +37,19 @@ namespace MindSpace
 		
 		static MSpace *activeSpace() { return s_activeSpace; }
 		
-		MNode *uuidToNode(const QString& uuid);
-		MLink *uuidToLink(const QString& uuid);
+		MNode *uuidToNode(const QString& uuid) { return m_uuidToNode[uuid]; }
+		MLink *uuidToLink(const QString& uuid) { return m_uuidToLink[uuid]; }
+		
+		virtual bool fromVariantMap(const QVariantMap&, bool onlyApplyIfChanged = false);
+		virtual QVariantMap toVariantMap();
 	
-// 	public slots:
+ 	public slots:
 		void makeActive();
 		
 		void addNode(MNode*);
 		void removeNode(MNode*);
-		void addNode(MLink*);
+		
+		void addLink(MLink*);
 		void removeLink(MLink*);
 	
 	signals:
@@ -58,6 +62,8 @@ namespace MindSpace
 	private:
 		QList<MNode*> m_nodes;
 		QList<MLink*> m_links;
+		QHash<QString,MNode*> m_uuidToNode;
+		QHash<QString,MLink*> m_uuidToLink;
 		
 		static MSpace *s_activeSpace;
 	

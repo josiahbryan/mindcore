@@ -10,7 +10,13 @@ class BotWindow : public QWidget
 public:
 	BotWindow();
 	~BotWindow() {}
+
+public slots:
+	void addTestItem();
 	
+	
+protected:
+	void closeEvent(QCloseEvent*);
 	
 private:
 	
