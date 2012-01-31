@@ -23,6 +23,7 @@ MindSpaceGraphWidget::MindSpaceGraphWidget()
 	setRenderHint(QPainter::Antialiasing);
 	setTransformationAnchor(AnchorUnderMouse);
 	setResizeAnchor(AnchorViewCenter);
+	setDragMode(QGraphicsView::ScrollHandDrag);
 	
 // 	MindSpaceGraphNode *node1 = new MindSpaceGraphNode(this);
 // 	MindSpaceGraphNode *node2 = new MindSpaceGraphNode(this);
@@ -328,7 +329,7 @@ void MindSpaceGraphWidget::timerEvent(QTimerEvent *event)
 
 void MindSpaceGraphWidget::wheelEvent(QWheelEvent *event)
 {
-	scaleView(pow((double)2, -event->delta() / 240.0));
+	scaleView(pow((double)2, event->delta() / 240.0));
 }
 
 void MindSpaceGraphWidget::drawBackground(QPainter *painter, const QRectF &rect)

@@ -11,20 +11,17 @@ OBJECTS_DIR = ../.build
 RCC_DIR = ../.build
 UI_DIR = ../.build
 
+include(../MindSpace/mindspace.pri)
 
 # Input
 HEADERS += \
         BotWindow.h \
-	../MindSpace/QStorableObject.h \
-	../MindSpace/MindSpace.h \
 	MindSpaceGraphWidget.h \
 	MindSpaceGraphEdge.h \
 	MindSpaceGraphNode.h
 
 SOURCES += main.cpp \
         BotWindow.cpp \
-        ../MindSpace/QStorableObject.cpp \
-	../MindSpace/MindSpace.cpp \
 	MindSpaceGraphWidget.cpp \
 	MindSpaceGraphEdge.cpp \
 	MindSpaceGraphNode.cpp
