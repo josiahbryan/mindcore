@@ -6,6 +6,8 @@
 #include <QGraphicsScene>
 #include <QWheelEvent>
 
+#include <QGLWidget>
+
 #include <math.h>
 
 #include "MindSpace.h"
@@ -13,17 +15,38 @@ using namespace MindSpace;
 
 MindSpaceGraphWidget::MindSpaceGraphWidget()
 	: m_timerId(0)
+	, m_mindSpace(0)
 {
 	QGraphicsScene *scene = new QGraphicsScene(this);
 	scene->setItemIndexMethod(QGraphicsScene::NoIndex);
-	scene->setSceneRect(-1000, -1000, 2000, 2000);
+	//scene->setSceneRect(-1000000, -1000000, 2000000, 2000000);
 	setScene(scene);
+	
 	setCacheMode(CacheBackground);
-	setViewportUpdateMode(BoundingRectViewportUpdate);
-	setRenderHint(QPainter::Antialiasing);
+	//setViewportUpdateMode(BoundingRectViewportUpdate);
+	//setRenderHint(QPainter::Antialiasing);
 	setTransformationAnchor(AnchorUnderMouse);
 	setResizeAnchor(AnchorViewCenter);
 	setDragMode(QGraphicsView::ScrollHandDrag);
+	
+	//setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform );
+	//setCacheMode(QGraphicsView::CacheBackground);
+	//setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
+	setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
+	setOptimizationFlags(QGraphicsView::DontSavePainterState);
+	//setTransformationAnchor(AnchorUnderMouse);
+	//setResizeAnchor(AnchorViewCenter);
+	
+	
+// 	QGLFormat format = QGLFormat(QGL::DirectRendering); // you can play with other rendering formats like DoubleBuffer or SimpleBuffer
+// 	format.setSampleBuffers(false);
+// 	QGLWidget *glWidget = new QGLWidget(format);
+// 	glWidget->setAutoFillBackground(false);
+// 	
+// 	setViewport(glWidget);
+
+	//setViewport(new QGLWidget(QGLFormat(QGL::SampleBuffers)));
+
 	
 // 	MindSpaceGraphNode *node1 = new MindSpaceGraphNode(this);
 // 	MindSpaceGraphNode *node2 = new MindSpaceGraphNode(this);
@@ -234,6 +257,12 @@ void MindSpaceGraphWidget::addLink(MLink *link)
 			MindSpaceGraphNode *endNode = m_graphNodes[node2];
 			//scene->addItem(new MindSpaceGraphEdge(typeNode, endNode));
 			
+			if(!endNode)
+			{
+				qDebug() << "MindSpaceGraphWidget::addLink: Cannot find graph node for ARG node2: "<<link->node2();
+				continue;
+			}
+			
 			MindSpaceGraphEdge *edge = new MindSpaceGraphEdge(typeNode, endNode);
 			scene()->addItem(edge);
 			edge->setWeight(value * 2.0);
@@ -246,13 +275,21 @@ void MindSpaceGraphWidget::addLink(MLink *link)
 		double value = link->truthValue().value();
 		
 		MindSpaceGraphNode *endNode = m_graphNodes[link->node2()];
-		
-		MindSpaceGraphEdge *edge = new MindSpaceGraphEdge(startNode, endNode);
-		scene()->addItem(edge);
-		edge->setWeight(value * 2.0);
-		edge->setLabel(QString("%1 %2").arg(link->type().name()).arg(value<1.0?QString::number(value):""));
-		
-		data.edges << edge;
+		if(!endNode)
+		{
+			qDebug() << "MindSpaceGraphWidget::addLink: Cannot find graph node for node2: "<<link->node2();
+			//return; 
+		}
+		else
+		{
+			
+			MindSpaceGraphEdge *edge = new MindSpaceGraphEdge(startNode, endNode);
+			scene()->addItem(edge);
+			edge->setWeight(value * 2.0);
+			edge->setLabel(QString("%1 %2").arg(link->type().name()).arg(value<1.0?QString::number(value):""));
+			
+			data.edges << edge;
+		}
 	}
 	
 	m_graphLinks[link] = data;	
@@ -277,25 +314,98 @@ void MindSpaceGraphWidget::removeLink(MLink *link)
 	m_graphLinks.remove(link);
 }
 
+void MindSpaceGraphWidget::clearScene()
+{
+	foreach(MLink *link, m_graphLinks.keys())
+		removeLink(link);
+	
+	foreach(MNode *node, m_graphNodes.keys())
+		removeNode(node);
+		
+	m_graphNodes.clear();
+	m_graphNodesReverse.clear();
+	m_graphLinks.clear();
+}
+
 void MindSpaceGraphWidget::setMindSpace(MSpace *space)
 {
+	clearScene();
+	
+	if(m_mindSpace)
+		disconnect(m_mindSpace, 0, this, 0);
+	
 	m_mindSpace = space;
 	
-	const QList<MNode*> & nodes = space->nodes();
-	foreach(MNode *node, nodes)
-		addNode(node);
-		//m_centerNode = graphNode; // for use in addTestItem()
-	
-	connect(space, SIGNAL(nodeAdded(MNode*)), this, SLOT(addNode(MNode*)));
-	connect(space, SIGNAL(nodeRemoved(MNode*)), this, SLOT(removeNode(MNode*)));
-	
-	const QList<MLink*> & links = space->links();
-	foreach(MLink *link, links)
-		addLink(link);
+	if(m_mindSpace)
+	{
 		
-	connect(space, SIGNAL(linkAdded(MLink*)), this, SLOT(addLink(MLink*)));
-	connect(space, SIGNAL(linkRemoved(MLink*)), this, SLOT(removeLink(MLink*)));
+		const QList<MNode*> & nodes = space->nodes();
+		qDebug() << "MindSpaceGraphWidget::setMindSpace: Creating graph nodes for "<<nodes.size()<<" nodes";
+		
+		
+		foreach(MNode *node, nodes)
+			addNode(node);
+			//m_centerNode = graphNode; // for use in addTestItem()
+		
+		connect(space, SIGNAL(nodeAdded(MNode*)), this, SLOT(addNode(MNode*)));
+		connect(space, SIGNAL(nodeRemoved(MNode*)), this, SLOT(removeNode(MNode*)));
+		
+		const QList<MLink*> & links = space->links();
+		qDebug() << "MindSpaceGraphWidget::setMindSpace: Creating graph nodes for "<<links.size()<<" links";
+		
+		foreach(MLink *link, links)
+			addLink(link);
+			
+		connect(space, SIGNAL(linkAdded(MLink*)), this, SLOT(addLink(MLink*)));
+		connect(space, SIGNAL(linkRemoved(MLink*)), this, SLOT(removeLink(MLink*)));
+		
+		qDebug() << "MindSpaceGraphWidget::setMindSpace: Done setting up";
+	}
 }
+
+void MindSpaceGraphWidget::mapNode(MNode *node, int levels, int currentLevel)
+{
+	if(m_mindSpace)
+	{
+		m_linksProcessed.clear();
+		setMindSpace(0);
+	}
+	
+	qDebug() << "MindSpaceGraphWidget::mapNode: level:"<<currentLevel<<"/"<<levels<<": (size: "<<m_graphNodes.keys().size()<<"nodes/"<<m_graphLinks.keys().size()<<"links) node:"<<node;
+	
+	addNode(node);
+	
+	if(currentLevel >= levels)
+	{
+		qDebug() << "MindSpaceGraphWidget::mapNode: Reached end, not mapping links";
+		return;
+	}
+	
+	const QList<MLink*> & links = node->links();
+	foreach(MLink *link, links)
+	{
+		if(link->node1() != node)
+			continue;
+			
+		if(m_linksProcessed.contains(link))
+			continue;
+			
+		m_linksProcessed << link;
+		
+		QList<MNode*> args = link->arguments();
+		if(!args.isEmpty())
+		{
+			foreach(MNode *node2, args)
+				mapNode(node2, levels, currentLevel+1);	
+		}
+		else
+			mapNode(link->node2(), levels, currentLevel+1);
+			
+		// Add link AFTER mapping the node so that the destination node exists
+		addLink(link);
+	}
+}
+
 
 // void MindSpaceGraphWidget::addTestItem()
 // {
@@ -311,7 +421,7 @@ void MindSpaceGraphWidget::setMindSpace(MSpace *space)
 void MindSpaceGraphWidget::itemMoved(MindSpaceGraphNode *node)
 {
 	if (!m_timerId)
-		m_timerId = startTimer(1000 / 60);
+		m_timerId = startTimer(1000 / 10);
 		
 	// Store position
 	if(node)
@@ -371,24 +481,35 @@ void MindSpaceGraphWidget::timerEvent(QTimerEvent *event)
 			nodes << node;
 	}
 	
-	foreach (MindSpaceGraphNode *node, nodes)
-		node->calculateForces();
+	bool itemsMoved = true;
 	
-	bool itemsMoved = false;
+	//qDebug() << "TimerEvent start";
+	
+	//while(itemsMoved)
+	{
+		foreach (MindSpaceGraphNode *node, nodes)
+			node->calculateForces();
+		
+		foreach (MindSpaceGraphNode *node, nodes) 
+		{
+			if (!node->advance())
+			{
+				itemsMoved = false;
+				
+	
+			}
+		}
+	}
+	
 	foreach (MindSpaceGraphNode *node, nodes) 
 	{
-		if (node->advance())
+		// Store position
+		if(MNode *mnode = m_graphNodesReverse[node])
 		{
-			itemsMoved = true;
-			
-			// Store position
-			if(MNode *mnode = m_graphNodesReverse[node])
-			{
-				if(node->property("_type_node").toBool())
-					mnode->setProperty("_type_node_pos", node->pos());
-				else
-					mnode->setProperty("_graph_pos", node->pos());
-			}
+			if(node->property("_type_node").toBool())
+				mnode->setProperty("_type_node_pos", node->pos());
+			else
+				mnode->setProperty("_graph_pos", node->pos());
 		}
 	}
 	
@@ -397,6 +518,8 @@ void MindSpaceGraphWidget::timerEvent(QTimerEvent *event)
 		killTimer(m_timerId);
 		m_timerId = 0;
 	}
+	
+	//qDebug() << "TimerEvent end";
 }
 
 void MindSpaceGraphWidget::wheelEvent(QWheelEvent *event)
@@ -408,19 +531,20 @@ void MindSpaceGraphWidget::drawBackground(QPainter *painter, const QRectF &rect)
 {
 	Q_UNUSED(rect);
 	
-	QRectF sceneRect = this->sceneRect();
-	QLinearGradient gradient(sceneRect.topLeft(), sceneRect.bottomRight());
-	gradient.setColorAt(0, Qt::white);
-	gradient.setColorAt(1, Qt::lightGray);
-	painter->fillRect(rect.intersect(sceneRect), gradient);
-	painter->setBrush(Qt::NoBrush);
-	painter->drawRect(sceneRect);
+// 	QRectF sceneRect = this->sceneRect();
+// 	QLinearGradient gradient(sceneRect.topLeft(), sceneRect.bottomRight());
+// 	gradient.setColorAt(0, Qt::white);
+// 	gradient.setColorAt(1, Qt::lightGray);
+// 	painter->fillRect(rect.intersect(sceneRect), gradient);
+// 	painter->setBrush(Qt::NoBrush);
+// 	painter->drawRect(sceneRect);
 }
 
 void MindSpaceGraphWidget::scaleView(qreal scaleFactor)
 {
 	qreal factor = matrix().scale(scaleFactor, scaleFactor).mapRect(QRectF(0, 0, 1, 1)).width();
-	if (factor < 0.07 || factor > 100)
+	qDebug() << "Scale factor:" <<factor;
+	if (factor < 0.001 || factor > 100)
 		return;
 	
 	scale(scaleFactor, scaleFactor);

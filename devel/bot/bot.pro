@@ -4,7 +4,7 @@ TARGET =
 DEPENDPATH += .
 INCLUDEPATH += . ../MindSpace
 
-QT += network
+QT += network opengl
 
 MOC_DIR = ../.build
 OBJECTS_DIR = ../.build

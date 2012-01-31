@@ -13,6 +13,7 @@ MindSpaceGraphEdge::MindSpaceGraphEdge(MindSpaceGraphNode *sourceNode, MindSpace
 	, m_weight(1.0)
 	, m_color(Qt::black)
 {
+	setZValue(-1);
 	setAcceptedMouseButtons(0);
 	m_source = sourceNode;
 	m_dest = destNode;

@@ -20,7 +20,7 @@ MindSpaceGraphNode::MindSpaceGraphNode(MindSpaceGraphWidget *graphWidget, const 
 	setFlag(ItemIsMovable);
 	setFlag(ItemSendsGeometryChanges);
 	setCacheMode(DeviceCoordinateCache);
-	setZValue(-1);
+	setZValue(99);
 }
 
 void MindSpaceGraphNode::addEdge(MindSpaceGraphEdge *edge)
@@ -51,7 +51,8 @@ void MindSpaceGraphNode::calculateForces()
 		if (!node)
 			continue;
 	
-		QLineF line(mapFromItem(node, 0, 0), QPointF(0, 0));
+		//QLineF line(mapFromItem(node, 0, 0), QPointF(0, 0));
+		QLineF line(node->pos(), pos());
 		qreal dx = line.dx();
 		qreal dy = line.dy();
 		double l = 2.0 * (dx * dx + dy * dy);
@@ -65,29 +66,34 @@ void MindSpaceGraphNode::calculateForces()
 	
 	// Now subtract all forces pulling items together
 	// TODO Why 3.? Magic number...
-	double weight = (double)(m_edgeList.size() + 1) * 5. * m_weight;
+	double weight = (double)(m_edgeList.size() + 1) * 10. * m_weight;
 	//qDebug() << this << "Weight: "<<weight;
 
 	foreach (MindSpaceGraphEdge *edge, m_edgeList) 
 	{
 		QPointF pos;
+// 		if (edge->sourceNode() == this)
+// 			pos = mapFromItem(edge->destNode(), 0, 0);
+// 		else
+// 			pos = mapFromItem(edge->sourceNode(), 0, 0);
+
 		if (edge->sourceNode() == this)
-			pos = mapFromItem(edge->destNode(), 0, 0);
+			pos = edge->destNode()->pos() - this->pos();
 		else
-			pos = mapFromItem(edge->sourceNode(), 0, 0);
+			pos = edge->sourceNode()->pos() - this->pos();
 		
 		xvel += pos.x() / weight;
 		yvel += pos.y() / weight;
 	}
 	
-	if (qAbs(xvel) < 1 && qAbs(yvel) < 1)
+	if (qAbs(xvel) < 2 && qAbs(yvel) < 2)
 		xvel = yvel = 0;
 	
 	// Keep inside the sceneRect()
-	QRectF sceneRect = scene()->sceneRect();
+	//QRectF sceneRect = scene()->sceneRect();
 	m_newPos = pos() + QPointF(xvel, yvel);
-	m_newPos.setX(qMin(qMax(m_newPos.x(), sceneRect.left() + 10), sceneRect.right()  - 10));
-	m_newPos.setY(qMin(qMax(m_newPos.y(), sceneRect.top()  + 10), sceneRect.bottom() - 10));
+// 	m_newPos.setX(qMin(qMax(m_newPos.x(), sceneRect.left() + 10), sceneRect.right()  - 10));
+// 	m_newPos.setY(qMin(qMax(m_newPos.y(), sceneRect.top()  + 10), sceneRect.bottom() - 10));
 }
 
 bool MindSpaceGraphNode::advance()
@@ -123,27 +129,30 @@ QPainterPath MindSpaceGraphNode::shape() const
 
 void MindSpaceGraphNode::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *)
 {
-	painter->setPen(Qt::NoPen);
-	painter->setBrush(QColor(0,0,0,100)); //Qt::darkGray);
-	painter->drawEllipse(-9.5, -9.5, 20, 20);
+// 	painter->setPen(Qt::NoPen);
+// 	painter->setBrush(QColor(0,0,0,100)); //Qt::darkGray);
+// 	painter->drawEllipse(-9.5, -9.5, 20, 20);
 	
-	QRadialGradient gradient(-3, -3, 10);
-	if (option->state & QStyle::State_Sunken) 
-	{
-		gradient.setCenter(3, 3);
-		gradient.setFocalPoint(3, 3);
-		gradient.setColorAt(1, m_color.darker(220));
-		gradient.setColorAt(0, m_color.lighter(420));
-	}
-	else 
-	{
-		gradient.setColorAt(0, m_color.lighter(420));
-		gradient.setColorAt(1, m_color.darker(120));
-	}
+// 	QRadialGradient gradient(-3, -3, 10);
+// 	if (option->state & QStyle::State_Sunken) 
+// 	{
+// 		gradient.setCenter(3, 3);
+// 		gradient.setFocalPoint(3, 3);
+// 		gradient.setColorAt(1, m_color.darker(220));
+// 		gradient.setColorAt(0, m_color.lighter(420));
+// 	}
+// 	else 
+// 	{
+// 		gradient.setColorAt(0, m_color.lighter(420));
+// 		gradient.setColorAt(1, m_color.darker(120));
+// 	}
+// 	
+// 	painter->setBrush(gradient);
 	
-	painter->setBrush(gradient);
+	painter->setBrush(m_color);
 	painter->setPen(QPen(Qt::black, 0));
 	painter->drawEllipse(-10, -10, 20, 20);
+	//painter->fillRect(-10, -10, 20, 20, m_color);
 	
 	if(!m_label.isEmpty())
 	{

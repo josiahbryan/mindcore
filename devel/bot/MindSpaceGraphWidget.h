@@ -34,6 +34,8 @@ public:
 	
 	void setMindSpace(MSpace*);
 	MSpace *mindSpace() { return m_mindSpace; }
+	
+	void mapNode(MNode *node, int levels=5, int currentLevel=0);
 
 private slots:
 	void addNode(MNode*);
@@ -41,6 +43,8 @@ private slots:
 	
 	void addLink(MLink*);
 	void removeLink(MLink*);
+	
+	void clearScene();
 
 
 protected:
@@ -59,6 +63,7 @@ private:
 	QHash<MNode*,MindSpaceGraphNode*> m_graphNodes;
 	QHash<MindSpaceGraphNode*,MNode*> m_graphNodesReverse;
 	QHash<MLink*,MindSpaceGraphEdgeData> m_graphLinks;
+	QList<MLink*> m_linksProcessed;
 };
 
 #endif
