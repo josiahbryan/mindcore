@@ -2,6 +2,7 @@
 
 #include <QUuid>
 #include <QStringList>
+#include <QFile>
 
 namespace MindSpace
 {
@@ -138,5 +139,118 @@ QVariantMap MSpace::toVariantMap()
 }
 
 		
+bool MSpace::importConceptNet2File(const QString& filename, double freqFactor, bool verbose)
+{
+	// my ($linktype, $arg1, $arg2, $freq, $infer) = ($line =~ /^\(([^\s]+)\s+("[^"]*")\s+("[^"]*")\s+"f=(\d+);i=(\d+);"\)/);
+	// \(([^\s]+)\s+("[^"]*")\s+("[^"]*")\s+"f=(\d+);i=(\d+);"\)
+	
+	QRegExp rx("\\(([^\\s]+)\\s+\"([^\"]*)\"\\s+\"([^\"]*)\"\\s+\"f=(\\d+);i=(\\d+);\"\\)");
+	
+	QFile file(filename);
+	if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+	{
+		qDebug() << "MSpace::importConceptNet2File(): Error opening "<<filename<<".";
+		return false;
+	}
+	
+	int maxFreq = 0;
+	int maxInfer = 0;
+	int freqSum = 0;
+	int inferSum = 0;
+	
+	int counter = 0;
+	while (!file.atEnd()) 
+	{
+		QByteArray lineBytes = file.readLine();
+		QString line(lineBytes);
+		
+		int idx = rx.indexIn(line);
+		QStringList values = rx.capturedTexts();
+		
+		QString linkType = values[1];
+		QString arg1	= values[2];
+		QString arg2	= values[3];
+		int freq	= values[4].toInt();
+		int infer	= values[5].toInt(); // not used yet...
+		
+		if(verbose)
+		{
+			if(freq > maxFreq)
+				maxFreq = freq;
+			if(infer > maxInfer)
+				maxInfer = infer;
+			
+			freqSum += freq;
+			inferSum += infer;
+			
+			qDebug() << ++counter << "Loading: "<<arg1<<" -> "<<linkType<<" -> "<<arg2;
+		}
+		
+		if(!_node(arg1))
+			addNode(new MNode(arg1, MNodeType::ConceptNode()));
+			
+		if(!_node(arg2))
+			addNode(new MNode(arg2, MNodeType::ConceptNode()));
+			
+		addLink(new MLink(_node(arg1), _node(arg2), MLinkType::findLinkType(linkType), MTruthValue(((double)freq) / freqFactor)));
+			
+// 			if(counter > 5000)
+// 			{
+// 				// stop after X just for testing
+// 				break;
+// 			}
+			
+				
+// 			(CapableOf "red bicycle" "pump" "f=2;i=1;")
+// 			(IsA "spider" "bug" "f=3;i=0;")
+// 			(EffectOf "have party" "tire" "f=2;i=0;")
+// 			(LocationOf "steer wheel" "in car" "f=2;i=0;")
+// 			(LocationOf "waitress" "in restaurant" "f=2;i=0;")
+
+			
+	}
+	
+	
+	if(verbose)
+	{
+		int avgFreq = freqSum / counter;
+		int avgInfer = inferSum / counter;
+		qDebug() << "Debug: avgFreq:"<<avgFreq<<", maxFreq:"<<maxFreq<<", avgInfer:"<<avgInfer<<", maxInfer:"<<maxInfer;
+	}
+	
+	return true;
+}
+		
+bool MSpace::loadFromFile(const QString& filename)
+{
+	QFile dataFile(filename);
+	if (!dataFile.open(QIODevice::ReadOnly))
+	{
+		qDebug() << "MSpace::loadFromFile(): Error opening "<<filename<<"."; 
+		return false;
+	}
+	
+	QByteArray array = dataFile.readAll();
+	fromByteArray(array);
+	dataFile.close();
+	
+	return true;
+}
+
+bool MSpace::writeToFile(const QString& filename)
+{
+	QFile dataFile(filename);
+	if(!dataFile.open(QIODevice::WriteOnly))
+	{
+		qDebug() << "MSpace::writeToFile(): Error opening "<<filename<<".";
+		return false;
+	}
+		
+	dataFile.write(toByteArray());
+	dataFile.close();
+	
+	return true;
+}
+
 }; /* namespace MindSpace */
 

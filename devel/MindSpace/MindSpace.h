@@ -42,6 +42,11 @@ namespace MindSpace
 		
 		virtual bool fromVariantMap(const QVariantMap&, bool onlyApplyIfChanged = false);
 		virtual QVariantMap toVariantMap();
+		
+		bool loadFromFile(const QString&);
+		bool writeToFile(const QString&);
+		
+		bool importConceptNet2File(const QString& file="/opt/mindcore/data/src/conceptnet2/predicates_concise_nonkline.txt", double freqConversionFactor=5., bool verbose=false);
 	
  	public slots:
 		void makeActive();

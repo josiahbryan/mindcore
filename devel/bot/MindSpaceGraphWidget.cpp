@@ -312,7 +312,7 @@ void MindSpaceGraphWidget::addLink(MLink *link)
 			MindSpaceGraphEdge *edge = new MindSpaceGraphEdge(startNode, endNode);
 			scene()->addItem(edge);
 			edge->setWeight(value * 2.0);
-			edge->setLabel(QString("%1 %2").arg(link->type().name()).arg(value<1.0?QString::number(value):""));
+			edge->setLabel(QString("%1 %2").arg(link->type().name()).arg(value!=1.0?QString::number(value):""));
 			
 			data.edges << edge;
 		}
