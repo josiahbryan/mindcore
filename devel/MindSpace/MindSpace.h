@@ -40,14 +40,16 @@ namespace MindSpace
 		MNode *uuidToNode(const QString& uuid) { return m_uuidToNode[uuid]; }
 		MLink *uuidToLink(const QString& uuid) { return m_uuidToLink[uuid]; }
 		
-		virtual bool fromVariantMap(const QVariantMap&, bool onlyApplyIfChanged = false);
-		virtual QVariantMap toVariantMap();
-		
+		// Store/Load methods
 		bool loadFromFile(const QString&);
 		bool writeToFile(const QString&);
 		
 		bool importConceptNet2File(const QString& file="/opt/mindcore/data/src/conceptnet2/predicates_concise_nonkline.txt", double freqConversionFactor=5., bool verbose=false);
-	
+		
+		// QStorableObject::
+		virtual bool fromVariantMap(const QVariantMap&, bool onlyApplyIfChanged = false);
+		virtual QVariantMap toVariantMap();
+ 	
  	public slots:
 		void makeActive();
 		

@@ -7,143 +7,121 @@ using namespace MindSpace;
 
 #include <QGraphicsPolygonItem>
 
-#define SETTINGS_FILE "nonkline.dat"
-#define GetSettingsObject() QSettings settings(SETTINGS_FILE,QSettings::IniFormat);
+#define SETTINGS_FILE "simplebot.dat"
 
 #include "MindSpace.h"
+#include "MSpaceViewerWidget.h"
 using namespace MindSpace;
+
+#include "SimpleBotAgent.h"
+#include "SimpleBotEnv.h"
+
+TweakedGraphicsView::TweakedGraphicsView()
+	: QGraphicsView()
+{
+	setCacheMode(CacheBackground);
+	setViewportUpdateMode(BoundingRectViewportUpdate);
+	//setRenderHint(QPainter::Antialiasing);
+	setTransformationAnchor(AnchorUnderMouse);
+	setResizeAnchor(AnchorViewCenter);
+	setDragMode(QGraphicsView::ScrollHandDrag);
+	
+	setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform );
+	  // if there are ever graphic glitches to be found, remove this again
+	setOptimizationFlags(QGraphicsView::DontAdjustForAntialiasing | QGraphicsView::DontClipPainter | QGraphicsView::DontSavePainterState);
+
+	//setCacheMode(QGraphicsView::CacheBackground);
+	//setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
+	setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
+	setOptimizationFlags(QGraphicsView::DontSavePainterState);
+}
+
+
+void TweakedGraphicsView::wheelEvent(QWheelEvent *event)
+{
+	scaleView(pow((double)2, event->delta() / 240.0));
+}
+
+void TweakedGraphicsView::drawBackground(QPainter *painter, const QRectF &rect)
+{
+	Q_UNUSED(rect);
+	
+	QRectF sceneRect = this->sceneRect();
+	QLinearGradient gradient(sceneRect.topLeft(), sceneRect.bottomRight());
+	gradient.setColorAt(0, Qt::white);
+	gradient.setColorAt(1, Qt::lightGray);
+	painter->fillRect(rect.intersect(sceneRect), gradient);
+	painter->setBrush(Qt::NoBrush);
+	painter->drawRect(sceneRect);
+}
+
+void TweakedGraphicsView::scaleView(qreal scaleFactor)
+{
+	//qDebug() << "TweakedGraphicsView::scaleView: "<<scaleFactor;
+	
+	qreal factor = matrix().scale(scaleFactor, scaleFactor).mapRect(QRectF(0, 0, 1, 1)).width();
+	//qDebug() << "Scale factor:" <<factor;
+	if (factor < 0.001 || factor > 100)
+		return;
+	
+	scale(scaleFactor, scaleFactor);
+}
 
 
 BotWindow::BotWindow()
 	: QWidget()
 {
-// 	QGraphicsView *gv = new QGraphicsView();
-// 	
-// 	QGraphicsScene *scene = new QGraphicsScene();
-// 	
-// 	QPolygonF polygon = QPolygonF()
-// 		<< QPointF(0., 10.)
-// 		<< QPointF(10.,10.)
-// 		<< QPointF( 5., 0.);
-// 	
-// 	QGraphicsPolygonItem *polyItem = new QGraphicsPolygonItem(polygon);
-// 		
-// 	scene->addItem(polyItem);
-// 	
-// 	gv->setScene(scene);
+	m_mspace = new MindSpace::MSpace();
+	if(!m_mspace->loadFromFile(SETTINGS_FILE))
+		m_mspace->writeToFile(SETTINGS_FILE); // write blank file if didn't load one
+
+	SimpleBotEnv *env = new SimpleBotEnv();
+	
+	SimpleBotAgent *bot = new SimpleBotAgent();
+	bot->setEnv(env);
+	bot->setMindSpace(m_mspace);
+	
+	m_gv = new TweakedGraphicsView();
+	m_gv->setScene(env);
+	m_gv->scaleView(0.707107);
+	
+	env->setItemIndexMethod(QGraphicsScene::NoIndex);
+	env->setSceneRect(0, 0, 400, 400);
+	
+	bot->setPos( env->sceneRect().center() );
+	
 	
 	
 	QVBoxLayout *vbox = new QVBoxLayout(this);
-	//vbox->addWidget(gv);
 	
-	MindSpace::MSpace *mind = new MindSpace::MSpace();
-	//mind->makeActive(); // ctor auto-calls makeActive
+	QSplitter *split = new QSplitter(this);
+	split->setOrientation(Qt::Vertical);
+	//vbox->addWidget(m_gv);
+	vbox->addWidget(split);
 	
-	qDebug() << "Loading "<<SETTINGS_FILE<<" ...";
-	if (!mind->loadFromFile(SETTINGS_FILE)) 
-	{
-		mind->importConceptNet2File();
-		mind->writeToFile(SETTINGS_FILE);
-	}
+	split->addWidget(m_gv);
+	split->setStretchFactor(0, 2);
 	
-	qDebug() << "Done loading.";
-
-	MindSpaceGraphWidget *gw = new MindSpaceGraphWidget();
-	connect(gw, SIGNAL(nodeDoubleClicked(MNode*)), this, SLOT(nodeDoubleClicked(MNode*)));
-	//gw->setMindSpace(mind);
+	m_mspaceViewer = new MSpaceViewerWidget();
+	m_mspaceViewer->layout()->setContentsMargins(0,0,0,0);
+	//vbox->addWidget(m_mspaceViewer);
+	split->addWidget(m_mspaceViewer);
 	
-	m_gw = gw;
-	vbox->addWidget(gw);
+	m_mspaceViewer->setMindSpace(m_mspace);
 	
+	resize(1024,768);
 	
-	QHBoxLayout *hbox = new QHBoxLayout();
-	
-	QPushButton *btn = new QPushButton("< Back");
-	connect(btn, SIGNAL(clicked()), this, SLOT(backBtnClicked()));
-	hbox->addWidget(btn);
-	m_backBtn = btn;
-	m_backBtn->setEnabled(false);
-	
-	m_textBox = new QLineEdit(this);
-	hbox->addWidget(m_textBox);
-	
-	btn = new QPushButton("Search");
-	connect(btn, SIGNAL(clicked()), this, SLOT(searchBtnClicked()));
-	hbox->addWidget(btn);
-	
-	btn = new QPushButton("Stop Layout");
-	connect(btn, SIGNAL(clicked()), m_gw, SLOT(stopLayout()));
-	hbox->addWidget(btn);
-	
-// 	btn->hide();
-// 	
-// 	connect(m_gw, SIGNAL(layoutStarted()), btn, SLOT(show()));
-// 	connect(m_gw, SIGNAL(layoutStopped()), btn, SLOT(hide()));
-	
-	btn = new QPushButton("Auto-Adjust");
-	connect(btn, SIGNAL(clicked()), m_gw, SLOT(stepLayout()));
-	hbox->addWidget(btn);
-	connect(m_gw, SIGNAL(layoutStarted()), btn, SLOT(hide()));
-	connect(m_gw, SIGNAL(layoutStopped()), btn, SLOT(show()));
-	
-	vbox->addLayout(hbox);
-	
-	search("eat");
+	//bot->setGoal("foobar"); 
+	bot->start();
 }
 
 
 void BotWindow::closeEvent(QCloseEvent*)
 {
-	MSpace *mind = MSpace::activeSpace();
-	mind->writeToFile(SETTINGS_FILE);
+ 	MSpace *mind = MSpace::activeSpace();
+ 	mind->writeToFile(SETTINGS_FILE);
 }
 
-void BotWindow::nodeDoubleClicked(MNode* node)
-{
-	search(node->content());
-}
-
-void BotWindow::searchBtnClicked()
-{
-	search(m_textBox->text());
-}
-
-void BotWindow::backBtnClicked()
-{
-	if(m_history.isEmpty())
-		return;
-	QString lastItem = m_history.takeLast();
-	//qDebug() << "BotWindow::backBtnClicked(): lastItem:"<<lastItem;
-	search(lastItem, false); // false = dont add to history
-	
-	//qDebug() << "\t History: "<<m_history<<", m_lastSearch:"<<m_lastSearch;
-	
-}
-
-void BotWindow::search(const QString& text, bool addToHistory)
-{
-	qDebug() << "BotWindow::search(): Searching for "<<text;
-	if(addToHistory)
-	{
-		if(!m_lastSearch.isEmpty())
-		{
-			//qDebug() << "\t Adding to history: "<<m_lastSearch;
-			m_history << m_lastSearch;
-			m_backBtn->setEnabled(true);
-			
-		}
-	}
-	
-	m_lastSearch = text;
-
-	//qDebug() << "\t History: "<<m_history<<", m_lastSearch:"<<m_lastSearch;
-
-	m_gw->clearScene();
-	//m_gw->scaleView(0.5);
-	//m_gw->scale(0.5,0.5);
-	m_gw->mapNode(_node(text), 2);
-	m_textBox->setText(text);
-}
 
 
 	

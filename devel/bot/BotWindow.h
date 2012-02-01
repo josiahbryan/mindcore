@@ -5,7 +5,19 @@
 
 #include "MindSpace.h"
 using namespace MindSpace;
-class MindSpaceGraphWidget;
+class MSpaceViewerWidget;
+
+class TweakedGraphicsView : public QGraphicsView
+{
+	Q_OBJECT
+public:
+	TweakedGraphicsView();
+	void scaleView(qreal scaleFactor);
+	
+protected:
+	void wheelEvent(QWheelEvent *event);
+	void drawBackground(QPainter *painter, const QRectF &rect);
+};
 
 class BotWindow : public QWidget
 {
@@ -15,23 +27,19 @@ public:
 	~BotWindow() {}
 
 public slots:
-	void search(const QString&, bool addToHistory=true);
+	
 	
 private slots:
-	void nodeDoubleClicked(MNode*);
-	void searchBtnClicked();
-	void backBtnClicked();
+	
 	
 protected:
 	void closeEvent(QCloseEvent*);
 	
 private:
-	QLineEdit *m_textBox;
-	MindSpaceGraphWidget *m_gw;
-	QStringList m_history;
-	QPushButton *m_backBtn;
-	QString m_lastSearch;
+	MSpaceViewerWidget *m_mspaceViewer;
+	MSpace *m_mspace;
 	
+	TweakedGraphicsView *m_gv;
 };
 
 

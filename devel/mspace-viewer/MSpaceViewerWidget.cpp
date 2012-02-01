@@ -156,7 +156,9 @@ void MSpaceViewerWidget::loadFile(QString file)
 	MindSpace::MSpace *mind = new MindSpace::MSpace();
 	m_mind = mind;
 	
-	m_mind->loadFromFile(file);
+	if(!m_mind->loadFromFile(file))
+		return;
+	
 	const QList<MNode*> & list = m_mind->nodes();
 	if(!list.isEmpty())
 		search(list.first()->content());
