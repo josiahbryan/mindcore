@@ -15,11 +15,12 @@ public:
 	~BotWindow() {}
 
 public slots:
-	//void addTestItem();
+	void search(const QString&, bool addToHistory=true);
 	
 private slots:
 	void nodeDoubleClicked(MNode*);
 	void searchBtnClicked();
+	void backBtnClicked();
 	
 protected:
 	void closeEvent(QCloseEvent*);
@@ -27,6 +28,9 @@ protected:
 private:
 	QLineEdit *m_textBox;
 	MindSpaceGraphWidget *m_gw;
+	QStringList m_history;
+	QPushButton *m_backBtn;
+	QString m_lastSearch;
 	
 };
 

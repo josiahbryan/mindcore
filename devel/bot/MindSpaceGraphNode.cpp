@@ -66,7 +66,7 @@ void MindSpaceGraphNode::calculateForces()
 	
 	// Now subtract all forces pulling items together
 	// TODO Why 3.? Magic number...
-	double weight = (double)(m_edgeList.size() + 1) * 10. * m_weight;
+	double weight = (double)(m_edgeList.size() + 1) * 5. * m_weight;
 	//qDebug() << this << "Weight: "<<weight;
 
 	foreach (MindSpaceGraphEdge *edge, m_edgeList) 
@@ -86,7 +86,7 @@ void MindSpaceGraphNode::calculateForces()
 		yvel += pos.y() / weight;
 	}
 	
-	if (qAbs(xvel) < 2 && qAbs(yvel) < 2)
+	if (qAbs(xvel) < 1. && qAbs(yvel) < 1.)
 		xvel = yvel = 0;
 	
 	// Keep inside the sceneRect()

@@ -18,6 +18,7 @@ using namespace MindSpace;
 MindSpaceGraphWidget::MindSpaceGraphWidget()
 	: m_timerId(0)
 	, m_mindSpace(0)
+	, m_layoutStopped(false)
 {
 	QGraphicsScene *scene = new QGraphicsScene(this);
 	scene->setItemIndexMethod(QGraphicsScene::NoIndex);
@@ -219,11 +220,12 @@ void MindSpaceGraphWidget::graphNodeDoubleClicked(MindSpaceGraphNode *graphNode)
 	MNode *node = m_graphNodesReverse[graphNode];
 	if(node)
 	{
-		m_linksProcessed.clear();
-		clearScene();
-		
-		qDebug() << "MindSpaceGraphWidget::graphNodeDoubleClicked(): Mapping node:"<<node;
-		mapNode(node, 2);
+// 		m_linksProcessed.clear();
+// 		clearScene();
+// 		m_gw->scaleView(0.05);
+// 		
+// 		qDebug() << "MindSpaceGraphWidget::graphNodeDoubleClicked(): Mapping node:"<<node;
+// 		mapNode(node, 2);
 		emit nodeDoubleClicked(node);
 	}
 }
@@ -341,6 +343,7 @@ void MindSpaceGraphWidget::removeLink(MLink *link)
 
 void MindSpaceGraphWidget::clearScene()
 {
+	m_layoutStopped = false;
 	m_linksProcessed.clear();
 		
 	foreach(MLink *link, m_graphLinks.keys())
@@ -397,17 +400,17 @@ void MindSpaceGraphWidget::mapNode(MNode *node, int levels, int currentLevel)
 	
 	if(!node)
 	{
-		qDebug() << "MindSpaceGraphWidget::mapNode: Null Node, not mapping";
+		//qDebug() << "MindSpaceGraphWidget::mapNode: Null Node, not mapping";
 		return;
 	}
 	
-	qDebug() << "MindSpaceGraphWidget::mapNode: level:"<<currentLevel<<"/"<<levels<<": (size: "<<m_graphNodes.keys().size()<<"nodes/"<<m_graphLinks.keys().size()<<"links) node:"<<node;
+	//qDebug() << "MindSpaceGraphWidget::mapNode: level:"<<currentLevel<<"/"<<levels<<": (size: "<<m_graphNodes.keys().size()<<"nodes/"<<m_graphLinks.keys().size()<<"links) node:"<<node;
 	
 	addNode(node);
 	
 	if(currentLevel >= levels)
 	{
-		qDebug() << "MindSpaceGraphWidget::mapNode: Reached end, not mapping links";
+		//qDebug() << "MindSpaceGraphWidget::mapNode: Reached end, not mapping links";
 		return;
 	}
 	
@@ -451,7 +454,13 @@ void MindSpaceGraphWidget::mapNode(MNode *node, int levels, int currentLevel)
 void MindSpaceGraphWidget::itemMoved(MindSpaceGraphNode *node)
 {
 	if (!m_timerId)
-		m_timerId = startTimer(1000 / 10);
+	{
+		if(m_layoutStopped)
+			return;
+		
+		m_timerId = startTimer(1000 / 25);
+		emit layoutStarted();
+	}
 		
 	// Store position
 	if(node)
@@ -504,6 +513,11 @@ void MindSpaceGraphWidget::timerEvent(QTimerEvent *event)
 {
 	Q_UNUSED(event);
 	
+	stepLayout();
+}
+
+void MindSpaceGraphWidget::stepLayout()
+{
 	QList<MindSpaceGraphNode *> nodes;
 	foreach (QGraphicsItem *item, scene()->items()) 
 	{
@@ -514,26 +528,20 @@ void MindSpaceGraphWidget::timerEvent(QTimerEvent *event)
 	bool itemsMoved = true;
 	
 	static int timeCount =0;
-	qDebug() << "TimerEvent #: " << (++timeCount);
+	//qDebug() << "TimerEvent #: " << (++timeCount);
 	
 	QTime t;
 	t.start();
 	while(itemsMoved && t.elapsed() < 1000)
 	{
-		qDebug() << "\t time "<<t.elapsed()<<"ms";
+		//qDebug() << "\t time "<<t.elapsed()<<"ms";
 		itemsMoved = false;
 		foreach (MindSpaceGraphNode *node, nodes)
 			node->calculateForces();
 		
 		foreach (MindSpaceGraphNode *node, nodes) 
-		{
 			if (node->advance())
-			{
 				itemsMoved = true;
-				
-	
-			}
-		}
 	}
 	
 	foreach (MindSpaceGraphNode *node, nodes) 
@@ -548,14 +556,28 @@ void MindSpaceGraphWidget::timerEvent(QTimerEvent *event)
 		}
 	}
 	
+	emit layoutStep();
+	
 	if (!itemsMoved) 
 	{
 		killTimer(m_timerId);
 		m_timerId = 0;
 		timeCount = 0;
+		emit layoutStopped();	
 	}
 	
+	fitInView(scene()->itemsBoundingRect(), Qt::KeepAspectRatio);
+	
 	//qDebug() << "TimerEvent end";
+}
+
+void MindSpaceGraphWidget::stopLayout()
+{
+	emit layoutStopped();
+	killTimer(m_timerId);
+	m_timerId = 0;
+	fitInView(scene()->itemsBoundingRect(), Qt::KeepAspectRatio);
+	m_layoutStopped = true;
 }
 
 void MindSpaceGraphWidget::wheelEvent(QWheelEvent *event)
@@ -579,7 +601,7 @@ void MindSpaceGraphWidget::drawBackground(QPainter *painter, const QRectF &rect)
 void MindSpaceGraphWidget::scaleView(qreal scaleFactor)
 {
 	qreal factor = matrix().scale(scaleFactor, scaleFactor).mapRect(QRectF(0, 0, 1, 1)).width();
-	qDebug() << "Scale factor:" <<factor;
+	//qDebug() << "Scale factor:" <<factor;
 	if (factor < 0.001 || factor > 100)
 		return;
 	

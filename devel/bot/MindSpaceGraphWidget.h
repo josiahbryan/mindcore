@@ -40,6 +40,10 @@ public:
 signals:
 	void nodeDoubleClicked(MNode*);
 	
+	void layoutStarted();
+	void layoutStep();
+	void layoutStopped();
+	
 public slots:
 	void scaleView(qreal scaleFactor);
 
@@ -50,6 +54,10 @@ public slots:
 	void removeLink(MLink*);
 	
 	void clearScene();
+	
+	void stopLayout();
+	
+	void stepLayout();
 	
 private slots:
 	void graphNodeDoubleClicked(MindSpaceGraphNode *);
@@ -72,6 +80,7 @@ private:
 	QHash<MindSpaceGraphNode*,MNode*> m_graphNodesReverse;
 	QHash<MLink*,MindSpaceGraphEdgeData> m_graphLinks;
 	QList<MLink*> m_linksProcessed;
+	bool m_layoutStopped;
 };
 
 #endif

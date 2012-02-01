@@ -7,7 +7,7 @@ using namespace MindSpace;
 
 #include <QGraphicsPolygonItem>
 
-#define SETTINGS_FILE "nonkline.ini"
+#define SETTINGS_FILE "nonkline.dat"
 #define GetSettingsObject() QSettings settings(SETTINGS_FILE,QSettings::IniFormat);
 
 #include "MindSpace.h"
@@ -39,11 +39,10 @@ BotWindow::BotWindow()
 	MindSpace::MSpace *mind = new MindSpace::MSpace();
 	//mind->makeActive(); // ctor auto-calls makeActive
 	
-	GetSettingsObject();
+	QFile dataFile(SETTINGS_FILE);
 	qDebug() << "Loading "<<SETTINGS_FILE<<" ...";
-	QVariantMap map = settings.value("mind").toMap();
-	if(map.isEmpty())
-	{ 
+	if (!dataFile.open(QIODevice::ReadOnly)) 
+	{
 		
 // 		// MNode ctor auto-adds nodes to the active MSpace
 // 		mind->addNode(new MNode("human",    MNodeType::ConceptNode()));
@@ -79,16 +78,16 @@ BotWindow::BotWindow()
 // 		mind->addLink(new MLink(_node("Josiah"),   QList<MNode*>() << _node("love") << _node("Ashley"),  MLinkType::PredicateLink()));
 		
 		
-		QString dataFile = "/opt/mindcore/data/src/conceptnet2/predicates_concise_nonkline.txt";
+		QString filename = "/opt/mindcore/data/src/conceptnet2/predicates_concise_nonkline.txt";
 		// my ($linktype, $arg1, $arg2, $freq, $infer) = ($line =~ /^\(([^\s]+)\s+("[^"]*")\s+("[^"]*")\s+"f=(\d+);i=(\d+);"\)/);
 		
 		// \(([^\s]+)\s+("[^"]*")\s+("[^"]*")\s+"f=(\d+);i=(\d+);"\)
 		QRegExp rx("\\(([^\\s]+)\\s+\"([^\"]*)\"\\s+\"([^\"]*)\"\\s+\"f=(\\d+);i=(\\d+);\"\\)");
 		
-		QFile file(dataFile);
+		QFile file(filename);
 		if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
 		{
-			qDebug() << "Error opening "<<dataFile<<", exiting.";
+			qDebug() << "Error opening "<<filename<<", exiting.";
 			exit(-1);
 		}
 		
@@ -106,7 +105,7 @@ BotWindow::BotWindow()
 			int freq = values[4].toInt(); // not used yet...
 			int infer = values[5].toInt(); // not used yet...
 			
-			qDebug() << counter << "Loading: "<<arg1<<" -> "<<linkType<<" -> "<<arg2;
+			qDebug() << ++counter << "Loading: "<<arg1<<" -> "<<linkType<<" -> "<<arg2;
 			
 			if(!_node(arg1))
 				mind->addNode(new MNode(arg1, MNodeType::ConceptNode()));
@@ -115,7 +114,7 @@ BotWindow::BotWindow()
 				
 			mind->addLink(new MLink(_node(arg1), _node(arg2), MLinkType::findLinkType(linkType)));
 			
-// 			if(++ counter > 5000)
+// 			if(counter > 5000)
 // 			{
 // 				// stop after X just for testing
 // 				break;
@@ -132,12 +131,15 @@ BotWindow::BotWindow()
 		}
 		
 		
-		settings.setValue("mind", mind->toVariantMap());
+		dataFile.open(QIODevice::WriteOnly);
+		dataFile.write(mind->toByteArray());
+		dataFile.close();
 	}
 	else
 	{
 		//qDebug() << "Loading MindSpace from variant map...";
-		mind->fromVariantMap(map);
+		QByteArray array = dataFile.readAll();
+		mind->fromByteArray(array);
 	}
 	
 	qDebug() << "Done loading.";
@@ -146,7 +148,7 @@ BotWindow::BotWindow()
 	vbox->addWidget(gw);
 	m_gw = gw;
 	
-	gw->mapNode(_node("fun"), 2);
+	//gw->mapNode(_node("fun"), 2);
 	connect(gw, SIGNAL(nodeDoubleClicked(MNode*)), this, SLOT(nodeDoubleClicked(MNode*)));
 	//gw->setMindSpace(mind);
 	
@@ -156,15 +158,41 @@ BotWindow::BotWindow()
 	
 	QHBoxLayout *hbox = new QHBoxLayout();
 	
+	QPushButton *btn = new QPushButton("< Back");
+	connect(btn, SIGNAL(clicked()), this, SLOT(backBtnClicked()));
+	hbox->addWidget(btn);
+	m_backBtn = btn;
+	m_backBtn->setEnabled(false);
+	
 	m_textBox = new QLineEdit(this);
-	m_textBox->setText("fun");
+	//m_textBox->setText("fun");
 	hbox->addWidget(m_textBox);
 	
-	QPushButton *btn = new QPushButton("Search");
+	/*QPushButton **/btn = new QPushButton("Search");
 	connect(btn, SIGNAL(clicked()), this, SLOT(searchBtnClicked()));
 	hbox->addWidget(btn);
 	
+	btn = new QPushButton("Stop Layout");
+	connect(btn, SIGNAL(clicked()), m_gw, SLOT(stopLayout()));
+	hbox->addWidget(btn);
+	
+	btn->hide();
+	
+	connect(m_gw, SIGNAL(layoutStarted()), btn, SLOT(show()));
+	connect(m_gw, SIGNAL(layoutStopped()), btn, SLOT(hide()));
+	
+	btn = new QPushButton("Auto-Adjust");
+	connect(btn, SIGNAL(clicked()), m_gw, SLOT(stepLayout()));
+	hbox->addWidget(btn);
+	
+	//btn->hide();
+	
+	connect(m_gw, SIGNAL(layoutStarted()), btn, SLOT(hide()));
+	connect(m_gw, SIGNAL(layoutStopped()), btn, SLOT(show()));
+	
 	vbox->addLayout(hbox);
+	
+	search("fun");
 }
 
 // void BotWindow::addTestItem()
@@ -189,13 +217,49 @@ void BotWindow::closeEvent(QCloseEvent*)
 
 void BotWindow::nodeDoubleClicked(MNode* node)
 {
-	m_textBox->setText(node->content());
+	search(node->content());
 }
 
 void BotWindow::searchBtnClicked()
 {
-	m_gw->clearScene();
-	m_gw->scaleView(0.025);
-	m_gw->mapNode(_node(m_textBox->text()), 2);
+	search(m_textBox->text());
 }
+
+void BotWindow::backBtnClicked()
+{
+	if(m_history.isEmpty())
+		return;
+	QString lastItem = m_history.takeLast();
+	//qDebug() << "BotWindow::backBtnClicked(): lastItem:"<<lastItem;
+	search(lastItem, false); // false = dont add to history
+	
+	//qDebug() << "\t History: "<<m_history<<", m_lastSearch:"<<m_lastSearch;
+	
+}
+
+void BotWindow::search(const QString& text, bool addToHistory)
+{
+	qDebug() << "BotWindow::search(): Searching for "<<text;
+	if(addToHistory)
+	{
+		if(!m_lastSearch.isEmpty())
+		{
+			//qDebug() << "\t Adding to history: "<<m_lastSearch;
+			m_history << m_lastSearch;
+			m_backBtn->setEnabled(true);
+			
+		}
+	}
+	
+	m_lastSearch = text;
+
+	//qDebug() << "\t History: "<<m_history<<", m_lastSearch:"<<m_lastSearch;
+
+	m_gw->clearScene();
+	//m_gw->scaleView(0.5);
+	//m_gw->scale(0.5,0.5);
+	m_gw->mapNode(_node(text), 2);
+	m_textBox->setText(text);
+}
+
 
