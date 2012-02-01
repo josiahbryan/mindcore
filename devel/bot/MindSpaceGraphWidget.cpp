@@ -8,6 +8,8 @@
 
 #include <QGLWidget>
 
+#include <QTime>
+
 #include <math.h>
 
 #include "MindSpace.h"
@@ -24,12 +26,15 @@ MindSpaceGraphWidget::MindSpaceGraphWidget()
 	
 	setCacheMode(CacheBackground);
 	//setViewportUpdateMode(BoundingRectViewportUpdate);
-	//setRenderHint(QPainter::Antialiasing);
+	setRenderHint(QPainter::Antialiasing);
 	setTransformationAnchor(AnchorUnderMouse);
 	setResizeAnchor(AnchorViewCenter);
 	setDragMode(QGraphicsView::ScrollHandDrag);
 	
 	//setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform );
+	  // if there are ever graphic glitches to be found, remove this again
+	setOptimizationFlags(QGraphicsView::DontAdjustForAntialiasing | QGraphicsView::DontClipPainter | QGraphicsView::DontSavePainterState);
+
 	//setCacheMode(QGraphicsView::CacheBackground);
 	//setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
 	setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
@@ -168,15 +173,19 @@ MindSpaceGraphWidget::MindSpaceGraphWidget()
 	//     node9->setWeight(10);
 	//     node7->setWeight(2);
 	
-	scale(qreal(0.8), qreal(0.8));
+	scale(qreal(0.025), qreal(0.025));
 	setMinimumSize(400, 400);
 	setWindowTitle(tr("Elastic Nodes"));
 }
 
 void MindSpaceGraphWidget::addNode(MNode *node)
 {
+	if(m_graphNodes.contains(node))
+		return;
+		
 	MindSpaceGraphNode *graphNode;
 	graphNode = new MindSpaceGraphNode(this, node->content());
+	connect(graphNode, SIGNAL(doubleClicked(MindSpaceGraphNode*)), this, SLOT(graphNodeDoubleClicked(MindSpaceGraphNode *)));
 	
 	QVariant pos = node->property("_graph_pos");
 	if(pos.isValid())
@@ -202,6 +211,21 @@ void MindSpaceGraphWidget::removeNode(MNode *node)
 	m_graphNodes.remove(node);
 	
 	delete ptr;
+	//ptr->deleteLater();
+}
+
+void MindSpaceGraphWidget::graphNodeDoubleClicked(MindSpaceGraphNode *graphNode)
+{
+	MNode *node = m_graphNodesReverse[graphNode];
+	if(node)
+	{
+		m_linksProcessed.clear();
+		clearScene();
+		
+		qDebug() << "MindSpaceGraphWidget::graphNodeDoubleClicked(): Mapping node:"<<node;
+		mapNode(node, 2);
+		emit nodeDoubleClicked(node);
+	}
 }
 
 void MindSpaceGraphWidget::addLink(MLink *link)
@@ -247,7 +271,7 @@ void MindSpaceGraphWidget::addLink(MLink *link)
 		
 		MindSpaceGraphEdge *edge = new MindSpaceGraphEdge(startNode, typeNode);
 		scene()->addItem(edge);
-		edge->setWeight(value * 2.0);
+		edge->setWeight(value);// * 2.0);
 		//edge->setLabel(link->type().name());
 		
 		data.edges << edge;
@@ -308,6 +332,7 @@ void MindSpaceGraphWidget::removeLink(MLink *link)
 	if(data.node)
 	{
 		scene()->removeItem(data.node);
+		//data.node->deleteLater();
 		delete data.node;
 	}
 	
@@ -316,6 +341,8 @@ void MindSpaceGraphWidget::removeLink(MLink *link)
 
 void MindSpaceGraphWidget::clearScene()
 {
+	m_linksProcessed.clear();
+		
 	foreach(MLink *link, m_graphLinks.keys())
 		removeLink(link);
 	
@@ -366,9 +393,12 @@ void MindSpaceGraphWidget::setMindSpace(MSpace *space)
 void MindSpaceGraphWidget::mapNode(MNode *node, int levels, int currentLevel)
 {
 	if(m_mindSpace)
-	{
-		m_linksProcessed.clear();
 		setMindSpace(0);
+	
+	if(!node)
+	{
+		qDebug() << "MindSpaceGraphWidget::mapNode: Null Node, not mapping";
+		return;
 	}
 	
 	qDebug() << "MindSpaceGraphWidget::mapNode: level:"<<currentLevel<<"/"<<levels<<": (size: "<<m_graphNodes.keys().size()<<"nodes/"<<m_graphLinks.keys().size()<<"links) node:"<<node;
@@ -440,18 +470,18 @@ void MindSpaceGraphWidget::keyPressEvent(QKeyEvent *event)
 {
     	switch (event->key()) 
     	{
-	case Qt::Key_Up:
-		m_centerNode->moveBy(0, -20);
-		break;
-	case Qt::Key_Down:
-		m_centerNode->moveBy(0, 20);
-		break;
-	case Qt::Key_Left:
-		m_centerNode->moveBy(-20, 0);
-		break;
-	case Qt::Key_Right:
-		m_centerNode->moveBy(20, 0);
-		break;
+// 	case Qt::Key_Up:
+// 		m_centerNode->moveBy(0, -20);
+// 		break;
+// 	case Qt::Key_Down:
+// 		m_centerNode->moveBy(0, 20);
+// 		break;
+// 	case Qt::Key_Left:
+// 		m_centerNode->moveBy(-20, 0);
+// 		break;
+// 	case Qt::Key_Right:
+// 		m_centerNode->moveBy(20, 0);
+// 		break;
 	case Qt::Key_Plus:
 		scaleView(qreal(1.2));
 		break;
@@ -483,18 +513,23 @@ void MindSpaceGraphWidget::timerEvent(QTimerEvent *event)
 	
 	bool itemsMoved = true;
 	
-	//qDebug() << "TimerEvent start";
+	static int timeCount =0;
+	qDebug() << "TimerEvent #: " << (++timeCount);
 	
-	//while(itemsMoved)
+	QTime t;
+	t.start();
+	while(itemsMoved && t.elapsed() < 1000)
 	{
+		qDebug() << "\t time "<<t.elapsed()<<"ms";
+		itemsMoved = false;
 		foreach (MindSpaceGraphNode *node, nodes)
 			node->calculateForces();
 		
 		foreach (MindSpaceGraphNode *node, nodes) 
 		{
-			if (!node->advance())
+			if (node->advance())
 			{
-				itemsMoved = false;
+				itemsMoved = true;
 				
 	
 			}
@@ -517,6 +552,7 @@ void MindSpaceGraphWidget::timerEvent(QTimerEvent *event)
 	{
 		killTimer(m_timerId);
 		m_timerId = 0;
+		timeCount = 0;
 	}
 	
 	//qDebug() << "TimerEvent end";

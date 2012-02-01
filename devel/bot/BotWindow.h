@@ -3,6 +3,9 @@
 
 #include <QtGui>
 
+#include "MindSpace.h"
+using namespace MindSpace;
+class MindSpaceGraphWidget;
 
 class BotWindow : public QWidget
 {
@@ -12,13 +15,18 @@ public:
 	~BotWindow() {}
 
 public slots:
-	void addTestItem();
+	//void addTestItem();
 	
+private slots:
+	void nodeDoubleClicked(MNode*);
+	void searchBtnClicked();
 	
 protected:
 	void closeEvent(QCloseEvent*);
 	
 private:
+	QLineEdit *m_textBox;
+	MindSpaceGraphWidget *m_gw;
 	
 };
 

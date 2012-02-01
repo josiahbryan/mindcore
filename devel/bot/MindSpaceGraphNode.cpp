@@ -158,11 +158,10 @@ void MindSpaceGraphNode::paint(QPainter *painter, const QStyleOptionGraphicsItem
 	{
 		QFont font("",5);
 		painter->setFont(font);
-		//painter->setPen(Qt::gray);
-		//painter->drawText(textRect.translated(2, 2), message);
+		
+		painter->setPen(Qt::white);
+		painter->drawText(-7,3,m_label);
 		painter->setPen(Qt::black);
-		//painter->drawText(textRect, message);
-
 		painter->drawText(-8,2,m_label);
 	}
 }
@@ -193,4 +192,10 @@ void MindSpaceGraphNode::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
 	update();
 	QGraphicsItem::mouseReleaseEvent(event);
+}
+
+void MindSpaceGraphNode::mouseDoubleClickEvent ( QGraphicsSceneMouseEvent * event )
+{
+	emit doubleClicked(this);
+	//QGraphicsItem::mouseDoubleClickEvent(event);
 }

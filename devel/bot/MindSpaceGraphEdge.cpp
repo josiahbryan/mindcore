@@ -132,7 +132,10 @@ void MindSpaceGraphEdge::paint(QPainter *painter, const QStyleOptionGraphicsItem
 		painter->save();
 		QFont font("",4);
 		painter->setFont(font);
-		painter->drawText(line.pointAt(.5), m_label); //QString("%1").arg(line.angle()));
+		painter->setPen(Qt::white);
+		painter->drawText(line.pointAt(.5) + QPoint(1,1), m_label);
+		painter->setPen(Qt::black);
+		painter->drawText(line.pointAt(.5), m_label);
 		painter->restore();
 	}
 }

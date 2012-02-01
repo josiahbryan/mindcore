@@ -10,6 +10,9 @@ using namespace MindSpace;
 #define SETTINGS_FILE "nonkline.ini"
 #define GetSettingsObject() QSettings settings(SETTINGS_FILE,QSettings::IniFormat);
 
+#include "MindSpace.h"
+using namespace MindSpace;
+
 
 BotWindow::BotWindow()
 	: QWidget()
@@ -141,27 +144,40 @@ BotWindow::BotWindow()
 
 	MindSpaceGraphWidget *gw = new MindSpaceGraphWidget();
 	vbox->addWidget(gw);
+	m_gw = gw;
 	
-	gw->mapNode(_node("man"), 1);
+	gw->mapNode(_node("fun"), 2);
+	connect(gw, SIGNAL(nodeDoubleClicked(MNode*)), this, SLOT(nodeDoubleClicked(MNode*)));
 	//gw->setMindSpace(mind);
 	
-	QPushButton *testBtn = new QPushButton("Test Button");
-	connect(testBtn, SIGNAL(clicked()), this, SLOT(addTestItem()));
-	vbox->addWidget(testBtn);
-
+// 	QPushButton *testBtn = new QPushButton("Test Button");
+// 	connect(testBtn, SIGNAL(clicked()), this, SLOT(addTestItem()));
+// 	vbox->addWidget(testBtn);
+	
+	QHBoxLayout *hbox = new QHBoxLayout();
+	
+	m_textBox = new QLineEdit(this);
+	m_textBox->setText("fun");
+	hbox->addWidget(m_textBox);
+	
+	QPushButton *btn = new QPushButton("Search");
+	connect(btn, SIGNAL(clicked()), this, SLOT(searchBtnClicked()));
+	hbox->addWidget(btn);
+	
+	vbox->addLayout(hbox);
 }
 
-void BotWindow::addTestItem()
-{
-	MSpace *mind = MSpace::activeSpace();
-	
-	mind->addNode(_node("child",    MNodeType::ConceptNode()));
-	mind->addLink(new MLink(_node("child"),      _node("human"),  MLinkType::InheritsFromLink()));
-	
-	mind->addNode(new MNode("Tanner",    MNodeType::SpecificEntityNode()));
-	mind->addLink(new MLink(_node("Tanner"),      _node("child"),  MLinkType::InheritsFromLink()));
-	
-}
+// void BotWindow::addTestItem()
+// {
+// 	MSpace *mind = MSpace::activeSpace();
+// 	
+// 	mind->addNode(_node("child",    MNodeType::ConceptNode()));
+// 	mind->addLink(new MLink(_node("child"),      _node("human"),  MLinkType::InheritsFromLink()));
+// 	
+// 	mind->addNode(new MNode("Tanner",    MNodeType::SpecificEntityNode()));
+// 	mind->addLink(new MLink(_node("Tanner"),      _node("child"),  MLinkType::InheritsFromLink()));
+// 	
+// }
 
 void BotWindow::closeEvent(QCloseEvent*)
 {
@@ -170,3 +186,16 @@ void BotWindow::closeEvent(QCloseEvent*)
 // 	GetSettingsObject();
 // 	settings.setValue("mind", mind->toVariantMap());
 }
+
+void BotWindow::nodeDoubleClicked(MNode* node)
+{
+	m_textBox->setText(node->content());
+}
+
+void BotWindow::searchBtnClicked()
+{
+	m_gw->clearScene();
+	m_gw->scaleView(0.025);
+	m_gw->mapNode(_node(m_textBox->text()), 2);
+}
+

@@ -37,7 +37,12 @@ public:
 	
 	void mapNode(MNode *node, int levels=5, int currentLevel=0);
 
-private slots:
+signals:
+	void nodeDoubleClicked(MNode*);
+	
+public slots:
+	void scaleView(qreal scaleFactor);
+
 	void addNode(MNode*);
 	void removeNode(MNode*);
 	
@@ -45,6 +50,9 @@ private slots:
 	void removeLink(MLink*);
 	
 	void clearScene();
+	
+private slots:
+	void graphNodeDoubleClicked(MindSpaceGraphNode *);
 
 
 protected:
@@ -53,7 +61,7 @@ protected:
 	void wheelEvent(QWheelEvent *);
 	void drawBackground(QPainter *, const QRectF &);
 	
-	void scaleView(qreal scaleFactor);
+	
 
 private:
 	
