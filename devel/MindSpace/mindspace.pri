@@ -3,6 +3,8 @@ DEPENDPATH += $$PWD
 INCLUDEPATH += $$PWD
 
 #FORMS += 
+
+include(graph/graph.pri)
 	
 SOURCES += \
 	QStorableObject.cpp \

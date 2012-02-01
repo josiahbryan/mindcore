@@ -15,15 +15,9 @@ include(../MindSpace/mindspace.pri)
 
 # Input
 HEADERS += \
-        BotWindow.h \
-	MindSpaceGraphWidget.h \
-	MindSpaceGraphEdge.h \
-	MindSpaceGraphNode.h
+        BotWindow.h 
 
 SOURCES += main.cpp \
-        BotWindow.cpp \
-	MindSpaceGraphWidget.cpp \
-	MindSpaceGraphEdge.cpp \
-	MindSpaceGraphNode.cpp
+        BotWindow.cpp
 
 
