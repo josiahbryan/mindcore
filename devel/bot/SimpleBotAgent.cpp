@@ -1,6 +1,10 @@
 #include "SimpleBotAgent.h"
 #include "SimpleBotEnv.h"
 
+bool operator==(SimpleBotAgent::StateInfo a, SimpleBotAgent::StateInfo b) { return a.id==b.id; } 
+bool operator!=(SimpleBotAgent::StateInfo a, SimpleBotAgent::StateInfo b) { return a.id!=b.id; }
+bool operator!(SimpleBotAgent::StateInfo a) { return a.isNull(); }
+
 SimpleBotAgent::InfoDisplay::InfoDisplay(SimpleBotAgent *agent)
 {
 	m_agent = agent;
@@ -21,7 +25,7 @@ void SimpleBotAgent::InfoDisplay::paint(QPainter *p, const QStyleOptionGraphicsI
 	p->fillRect(rect, QColor(0,0,0,187));
 	p->drawRect(rect);
 	
-	QString stateName = agent->nameForState(agent->m_state);
+	QString stateName = agent->state().name;
 	
 	int fontSize = 10;
 	int margin = fontSize/2;
@@ -67,7 +71,7 @@ SimpleBotAgent::SimpleBotAgent()
 	m_advanceTimer.setInterval( 1000 / 10 );
 	
 	m_timer.start();
-	m_state = S_Unknown;
+	m_state = StateUnknown;
 }
 
 void SimpleBotAgent::setEnv(SimpleBotEnv *env)
@@ -102,57 +106,18 @@ QPainterPath SimpleBotAgent::shape() const
 {
 	QPainterPath path;
 	path.addEllipse(-10, -10, 20, 20);
-// 	QPolygonF polygon = QPolygonF()
-// 		<< QPointF( 0., 10.)
-// 		<< QPointF(10., 10.)
-// 		<< QPointF( 5.,  0.);
-// 	path.addPolygon(polygon);
 	return path;
 }
 
 void SimpleBotAgent::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *)
 {
-// 	painter->setPen(Qt::NoPen);
-// 	painter->setBrush(QColor(0,0,0,100)); //Qt::darkGray);
-// 	painter->drawEllipse(-9.5, -9.5, 20, 20);
-	
-// 	QRadialGradient gradient(-3, -3, 10);
-// 	if (option->state & QStyle::State_Sunken) 
-// 	{
-// 		gradient.setCenter(3, 3);
-// 		gradient.setFocalPoint(3, 3);
-// 		gradient.setColorAt(1, m_color.darker(220));
-// 		gradient.setColorAt(0, m_color.lighter(420));
-// 	}
-// 	else 
-// 	{
-// 		gradient.setColorAt(0, m_color.lighter(420));
-// 		gradient.setColorAt(1, m_color.darker(120));
-// 	}
-// 	
-// 	painter->setBrush(gradient);
-
-// 	QPolygonF polygon = QPolygonF()
-// 		<< QPointF(0., 10.)
-// 		<< QPointF(10.,10.)
-// 		<< QPointF( 5., 0.);
-	
-// 	if (option->state & QStyle::State_Sunken)
-// 		painter->setBrush(m_color.lighter(400)); 
-// 	else
-		painter->setBrush(m_color);
-		
-	//painter->setPen(QPen(Qt::black, 0));
+	painter->setBrush(m_color);
 	painter->drawEllipse(-10, -10, 20, 20);
-	//painter->drawConvexPolygon(polygon);
-	//painter->fillRect(-10, -10, 20, 20, m_color);
 	
-	//painter->setBrush( Qt::red );
 	painter->setPen( QPen(Qt::red, 3.0 ) );
 	
 	QPointF center(0,0);
 	QLineF line(center, m_vec + center);
-	
 	painter->drawLine( line );
 	
 	if(!m_label.isEmpty())
@@ -208,86 +173,51 @@ void SimpleBotAgent::start()
 
 void SimpleBotAgent::advance()
 {
-	// Simple state machine here, perhaps
+	// Set initial state
+	if(m_state == StateUnknown)
+		setState(StateSearching);
 	
-	// States:
-	// Searching, Eating, Resting, Ask For More
-	
-	if(m_state == S_Unknown)
-	{
-		chooseVector();
-		setState(S_Searching);
-	}
-	
-	MNode *currentState = m_mspace->node(nameForState(m_state));
-	
-	int elapsed = m_timer.restart();
-	
-	double rate = (((double)elapsed) / 100.) * 0.1;
-	m_hunger += rate * 0.5;
-	m_energy -= rate * 0.7;
-	
-	// m_hunger and m_energy
+	// Update bio variables
+	updateHungerEnergyState();
 	
 	// m_hunger increases as m_energy decreases
 	// m_energy increases when we eat or when we rest
 	// m_energy decreases as time progresses in any state other than resting or eating
+	
 	//m_label = QString("%1/%2").arg(m_hunger).arg(m_energy);
 	
-	switch(m_state)
+	// Process current state
+	if(m_state == StateResting)
 	{
-		case S_Resting:
-			// What do we do?
-			// When are we done?
-			m_energy += rate;
-			m_hunger -= rate * 0.1;
-			
-			if(m_stateTimer.elapsed() / 1000  > rand() % 10)
-				setState(S_Searching);
-			//else
-				//qDebug() << "SimpleBotAgent::advance: S_Resting: m_energy: "<<m_energy<<", m_hunger: "<<m_hunger;
-			break;
-			
-		case S_Searching:
-			{
-				QRectF sceneRect = scene()->sceneRect();
-				QPointF newPos = pos() + m_vec; //QPointF(xvel, yvel);
-				QPointF expect = newPos;
-				newPos.setX(qMin(qMax(newPos.x(), sceneRect.left() + 10), sceneRect.right()  - 10));
-				newPos.setY(qMin(qMax(newPos.y(), sceneRect.top()  + 10), sceneRect.bottom() - 10));
-				
-				if(newPos != expect)
-				{
-					double angle = chooseVector();
-					
-					qDebug() << "SimpleBotAgent::advance: S_Searching: new m_vec: "<<m_vec<<", new angle: "<<angle;
-				}
-				//else
-					//qDebug() << "SimpleBotAgent::advance: S_Searching: new pos: "<<newPos;
-				
-				setPos(newPos);
-				
- 				if(m_stateTimer.elapsed() / 1000 > rand() % 10) // || m_hunger > 0.9 || m_energy < 0.1)
- 					setState(rand() % 10 > 5 ? S_Eating : S_Resting);
-			}
-			break;
-			
-		case S_Eating:
-			m_hunger -= rate * 1.5;
-			if(m_stateTimer.elapsed() / 1000  > 1.0)
-				setState(S_Searching);
-			//else
-			//	qDebug() << "SimpleBotAgent::advance: S_Eating: m_hunger: "<<m_hunger;
-			break;
-			
-		case S_AskForMore:
-			break;
-			
-		default:
-			break;
-	
+		processResting();
+	}
+	else
+	if(m_state == StateSearching)
+	{
+		processSearching();
+	}
+	else
+	if(m_state == StateEating)
+	{
+		processEating();
+	}
+	else
+	if(m_state == StateAsking)
+	{
+		//
 	}
 	
+	// Check to see if state change required
+	evaulateStateChangeRequired();
+		
+	// Update HUD item if present
+	if(m_hud)
+		m_hud->update();
+	
+}
+
+void SimpleBotAgent::evaulateStateChangeRequired()
+{
 	if(m_hunger < 0)
 		m_hunger = 0;
 	if(m_hunger > 1)
@@ -297,9 +227,62 @@ void SimpleBotAgent::advance()
 	if(m_energy > 1)
 		m_energy = 1;
 		
-	if(m_hud)
-		m_hud->update();
+	if(m_stateTimer.elapsed() / 1000  > rand() % 10)
+			setState(StateSearching);
+	else
+	if(m_stateTimer.elapsed() / 1000 > rand() % 10) // || m_hunger > 0.9 || m_energy < 0.1)
+			setState(rand() % 10 > 5 ? StateEating : StateResting);
+			
+// 	if(m_stateTimer.elapsed() / 1000  > 1.0)
+// 			setState(StateSearching);
+}
+
+void SimpleBotAgent::updateHungerEnergyState()
+{
+	int elapsed = m_timer.restart();
+	double rate = (((double)elapsed) / 100.) * 0.1;
 	
+	m_hunger += rate * 0.5;
+	m_energy -= rate * 0.7;
+	
+	if(m_decayRate != rate)
+		m_decayRate = rate;
+}
+
+void SimpleBotAgent::processResting()
+{
+	// What do we do?
+	// When are we done?
+	m_energy += m_decayRate;
+	m_hunger -= m_decayRate * 0.1;
+}
+
+void SimpleBotAgent::processEating()
+{
+	m_hunger -= m_decayRate * 1.5;
+}
+
+void SimpleBotAgent::processSearching()
+{
+	if(m_vec.isNull())
+		chooseVector();
+		
+	QRectF sceneRect = scene()->sceneRect();
+	QPointF newPos = pos() + m_vec; //QPointF(xvel, yvel);
+	QPointF expect = newPos;
+	newPos.setX(qMin(qMax(newPos.x(), sceneRect.left() + 10), sceneRect.right()  - 10));
+	newPos.setY(qMin(qMax(newPos.y(), sceneRect.top()  + 10), sceneRect.bottom() - 10));
+	
+	if(newPos != expect)
+	{
+		double angle = chooseVector();
+		
+		qDebug() << "SimpleBotAgent::advance: S_Searching: new m_vec: "<<m_vec<<", new angle: "<<angle;
+	}
+	//else
+		//qDebug() << "SimpleBotAgent::advance: S_Searching: new pos: "<<newPos;
+	
+	setPos(newPos);
 }
 
 double SimpleBotAgent::chooseVector()
@@ -317,61 +300,51 @@ double SimpleBotAgent::chooseVector()
 	return line.angle();
 }
 
-void SimpleBotAgent::setState(StateType state)
+void SimpleBotAgent::setState(StateInfo state)
 {
-	MNode *lastState = 0;
-	if(m_state != S_Unknown)
-		lastState = m_mspace->node(nameForState(m_state));
+	MNode *lastStateNode = 0;
+	if(m_state != StateUnknown)
+		lastStateNode = m_mspace->node(m_state.name);
 	
-	QString stateName = nameForState(state);
+	QString stateName = state.name;
 	qDebug() << "SimpleBotAgent::setState: "<<stateName;
 	m_state = state;
 	
-	MNode *currentState = m_mspace->node(stateName, MNodeType::ProceduralNode());
-		
 	m_stateTimer.restart();
 	
-	if(lastState)
+	// Ensure node exists for this state
+	MNode *currentStateNode = m_mspace->node(stateName, MNodeType::ProceduralNode());
+		
+	if(lastStateNode)
 	{
-		const QList<MLink*> & links = lastState->links();
-		MLink *foundLink = 0;
-		foreach(MLink *link, links)
-		{
-			if(link->node1() == lastState && link->node2() == currentState)
-				foundLink = link;
-		}
+		MLink *foundLink = m_mspace->link(lastStateNode, currentStateNode);
 		
 		if(foundLink)
-		{	
 			foundLink->setTruthValue(foundLink->truthValue().value() + 0.05);
-			//qDebug() << "\t Found existing link between last state and this state, updating truth value to: "<<foundLink->truthValue().value();
-		}	
 		else
-		{
-			//qDebug() << "\t Link between states not found, creating ...";
-			m_mspace->addLink( new MLink(lastState, currentState, MLinkType::EventLink(), MTruthValue(0.1)) );
-		}
+			m_mspace->addLink( new MLink(lastStateNode, currentStateNode, MLinkType::EventLink(), MTruthValue(0.1)) );
 	}
 }
 
-QString SimpleBotAgent::nameForState(StateType state)
-{
-	switch(state)
-	{
-		case S_Resting:
-			return "resting";
-		case S_Searching:
-			return "searching";
-		case S_Eating:
-			return "eating";
-		case S_AskForMore:
-			return "asking for more";
-		default:
-			break;
-	};
-	
-	return "?";
-}
-
-
+// QString SimpleBotAgent::nameForState(StateType state)
+// {
+// 	switch(state)
+// 	{
+// 		case S_Resting:
+// 			return "resting";
+// 		case S_Searching:
+// 			return "searching";
+// 		case S_Eating:
+// 			return "eating";
+// 		case S_AskForMore:
+// 			return "asking for more";
+// 		default:
+// 			break;
+// 	};
+// 	
+// 	return "?";
+// }
+// 
+// 
+// 
 
