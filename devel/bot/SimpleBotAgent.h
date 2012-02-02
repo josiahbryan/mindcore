@@ -7,6 +7,7 @@
 using namespace MindSpace;
 
 class SimpleBotEnv;
+class SimpleBotAgent;
 
 class SimpleBotAgent : public QObject, public QGraphicsItem
 {
@@ -25,7 +26,25 @@ public:
 	QRectF boundingRect() const;
 	QPainterPath shape() const;
 	void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-
+	
+	// Aux feature: Info display item
+	class InfoDisplay : public QGraphicsItem
+	{
+	protected:
+		friend class SimpleBotAgent;
+		InfoDisplay(SimpleBotAgent *agent);
+		
+		SimpleBotAgent *m_agent;
+		QRect m_rect; 
+		
+	public:
+		QRectF boundingRect() const { return m_rect; }
+		void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+	};
+	
+	// Retrieve the info display item
+	InfoDisplay *infoItem();
+	
 signals:
 	void doubleClicked(SimpleBotAgent *);
 
@@ -50,16 +69,28 @@ protected:
 
 
 protected:
+	friend class InfoDisplay;
+	
 	SimpleBotEnv *m_env;
 	MSpace *m_mspace;
 	
 	QString m_label;
 	QColor m_color;
 	
-	//QPainterPath m_painterPath;
-	
 	QTimer m_advanceTimer;
 	
+	/* States:
+	   - Ident
+	   - Name
+	   - How to "do" it
+	   - Where to go from here
+	   - What triggers transition
+	*/
+	
+	class StateInfo {
+	public:
+		int x;
+	};
 	
 	
 	typedef enum {
@@ -83,6 +114,8 @@ protected:
 	QTime m_stateTimer;
 	
 	QPointF m_vec;
+	
+	InfoDisplay *m_hud;
 };
 
 #endif

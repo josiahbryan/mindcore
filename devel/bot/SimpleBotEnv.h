@@ -9,7 +9,7 @@ public:
 	SimpleBotEnv();
 
 protected:
-	//
+	void drawForeground(QPainter *painter, const QRectF&);
 };
 
 

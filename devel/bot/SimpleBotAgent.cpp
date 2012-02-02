@@ -1,6 +1,49 @@
 #include "SimpleBotAgent.h"
 #include "SimpleBotEnv.h"
 
+SimpleBotAgent::InfoDisplay::InfoDisplay(SimpleBotAgent *agent)
+{
+	m_agent = agent;
+	m_rect  = QRect(10,10,150,50);
+	setPos(0,0);
+	setZValue(150);
+}
+ 
+void SimpleBotAgent::InfoDisplay::paint(QPainter *p, const QStyleOptionGraphicsItem *option, QWidget *)
+{
+	SimpleBotAgent *agent = m_agent;
+	if(!agent)
+		return;
+	
+	QRect rect = m_rect;
+	
+	p->setPen(Qt::black);
+	p->fillRect(rect, QColor(0,0,0,187));
+	p->drawRect(rect);
+	
+	QString stateName = agent->nameForState(agent->m_state);
+	
+	int fontSize = 10;
+	int margin = fontSize/2;
+	int y = margin;
+	
+	p->save();
+	p->setPen(Qt::white);
+	p->setFont(QFont("Monospace", fontSize, QFont::Bold));
+	p->drawText(rect.topLeft() + QPoint(margin, y += fontSize), QString( "State:  %1" ).arg(stateName));
+	p->drawText(rect.topLeft() + QPoint(margin, y += fontSize), QString( "Hunger: %1" ).arg(agent->m_hunger));
+	p->drawText(rect.topLeft() + QPoint(margin, y += fontSize), QString( "Energy: %1" ).arg(agent->m_energy));
+	p->restore();
+}
+
+SimpleBotAgent::InfoDisplay *SimpleBotAgent::infoItem()
+{
+	if(!m_hud)
+		m_hud = new SimpleBotAgent::InfoDisplay(this);
+	
+	return m_hud;
+}
+
 SimpleBotAgent::SimpleBotAgent()
 	: QObject()
 	, QGraphicsItem()
@@ -8,6 +51,7 @@ SimpleBotAgent::SimpleBotAgent()
 	, m_mspace(0)
 	, m_label("")
 	, m_color(Qt::black)
+	, m_hud(0)
 {
 	m_hunger = 1.0;
 	m_energy = 1.0;
@@ -42,8 +86,8 @@ void SimpleBotAgent::setMindSpace(MSpace *ms)
 QRectF SimpleBotAgent::boundingRect() const
 {
 	qreal adjust = 2;
-	QRectF shapeRect = QRectF( 0 - adjust,  0 - adjust,
-		                  20 + adjust, 20 + adjust);
+	QRectF shapeRect = QRectF(-10 - adjust, -10 - adjust,
+		                   20 + adjust,  20 + adjust);
 
 	QFont font("", 5);
 	QFontMetrics metrics(font);
@@ -57,12 +101,12 @@ QRectF SimpleBotAgent::boundingRect() const
 QPainterPath SimpleBotAgent::shape() const
 {
 	QPainterPath path;
-	//path.addEllipse(-10, -10, 20, 20);
-	QPolygonF polygon = QPolygonF()
-		<< QPointF(0., 20.)
-		<< QPointF(20.,20.)
-		<< QPointF(10., 0.);
-	path.addPolygon(polygon);
+	path.addEllipse(-10, -10, 20, 20);
+// 	QPolygonF polygon = QPolygonF()
+// 		<< QPointF( 0., 10.)
+// 		<< QPointF(10., 10.)
+// 		<< QPointF( 5.,  0.);
+// 	path.addPolygon(polygon);
 	return path;
 }
 
@@ -88,10 +132,10 @@ void SimpleBotAgent::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
 // 	
 // 	painter->setBrush(gradient);
 
-	QPolygonF polygon = QPolygonF()
-		<< QPointF(0., 10.)
-		<< QPointF(10.,10.)
-		<< QPointF( 5., 0.);
+// 	QPolygonF polygon = QPolygonF()
+// 		<< QPointF(0., 10.)
+// 		<< QPointF(10.,10.)
+// 		<< QPointF( 5., 0.);
 	
 // 	if (option->state & QStyle::State_Sunken)
 // 		painter->setBrush(m_color.lighter(400)); 
@@ -99,9 +143,17 @@ void SimpleBotAgent::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
 		painter->setBrush(m_color);
 		
 	//painter->setPen(QPen(Qt::black, 0));
-	//painter->drawEllipse(-10, -10, 20, 20);
-	painter->drawConvexPolygon(polygon);
+	painter->drawEllipse(-10, -10, 20, 20);
+	//painter->drawConvexPolygon(polygon);
 	//painter->fillRect(-10, -10, 20, 20, m_color);
+	
+	//painter->setBrush( Qt::red );
+	painter->setPen( QPen(Qt::red, 3.0 ) );
+	
+	QPointF center(0,0);
+	QLineF line(center, m_vec + center);
+	
+	painter->drawLine( line );
 	
 	if(!m_label.isEmpty())
 	{
@@ -180,7 +232,7 @@ void SimpleBotAgent::advance()
 	// m_hunger increases as m_energy decreases
 	// m_energy increases when we eat or when we rest
 	// m_energy decreases as time progresses in any state other than resting or eating
-	m_label = QString("%1/%2").arg(m_hunger).arg(m_energy);
+	//m_label = QString("%1/%2").arg(m_hunger).arg(m_energy);
 	
 	switch(m_state)
 	{
@@ -192,8 +244,8 @@ void SimpleBotAgent::advance()
 			
 			if(m_stateTimer.elapsed() / 1000  > rand() % 10)
 				setState(S_Searching);
-			else
-				qDebug() << "SimpleBotAgent::advance: S_Resting: m_energy: "<<m_energy<<", m_hunger: "<<m_hunger;
+			//else
+				//qDebug() << "SimpleBotAgent::advance: S_Resting: m_energy: "<<m_energy<<", m_hunger: "<<m_hunger;
 			break;
 			
 		case S_Searching:
@@ -210,13 +262,13 @@ void SimpleBotAgent::advance()
 					
 					qDebug() << "SimpleBotAgent::advance: S_Searching: new m_vec: "<<m_vec<<", new angle: "<<angle;
 				}
-				else
-					qDebug() << "SimpleBotAgent::advance: S_Searching: new pos: "<<newPos;
+				//else
+					//qDebug() << "SimpleBotAgent::advance: S_Searching: new pos: "<<newPos;
 				
 				setPos(newPos);
 				
-				if(m_stateTimer.elapsed() / 1000 > rand() % 10)
-					setState(rand() % 1 == 0 ? S_Eating : S_Resting);
+ 				if(m_stateTimer.elapsed() / 1000 > rand() % 10) // || m_hunger > 0.9 || m_energy < 0.1)
+ 					setState(rand() % 10 > 5 ? S_Eating : S_Resting);
 			}
 			break;
 			
@@ -224,8 +276,8 @@ void SimpleBotAgent::advance()
 			m_hunger -= rate * 1.5;
 			if(m_stateTimer.elapsed() / 1000  > 1.0)
 				setState(S_Searching);
-			else
-				qDebug() << "SimpleBotAgent::advance: S_Eating: m_hunger: "<<m_hunger;
+			//else
+			//	qDebug() << "SimpleBotAgent::advance: S_Eating: m_hunger: "<<m_hunger;
 			break;
 			
 		case S_AskForMore:
@@ -244,6 +296,9 @@ void SimpleBotAgent::advance()
 		m_energy = 0;
 	if(m_energy > 1)
 		m_energy = 1;
+		
+	if(m_hud)
+		m_hud->update();
 	
 }
 
@@ -255,7 +310,9 @@ double SimpleBotAgent::chooseVector()
 	);
 	
 	QLineF line(QPointF(0,0), m_vec);
-	setRotation(line.angle() + 90);
+	//setRotation(line.angle());
+	
+	update();
 	
 	return line.angle();
 }

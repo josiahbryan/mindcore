@@ -81,12 +81,14 @@ BotWindow::BotWindow()
 	bot->setEnv(env);
 	bot->setMindSpace(m_mspace);
 	
+	env->addItem(bot->infoItem());
+	
 	m_gv = new TweakedGraphicsView();
 	m_gv->setScene(env);
 	m_gv->scaleView(0.707107);
 	
 	env->setItemIndexMethod(QGraphicsScene::NoIndex);
-	env->setSceneRect(0, 0, 400, 400);
+	env->setSceneRect(0, 0, 200, 200);
 	
 	bot->setPos( env->sceneRect().center() );
 	
