@@ -55,8 +55,54 @@ void MSpace::addNode(MNode *node)
 	
 	m_nodes << node;
 	m_uuidToNode[node->uuid()] = node;
+	m_contentToNode[node->content()] = node;
+	
+	connect(node, SIGNAL(contentChanged(QString,QString)),  this, SLOT(nodeContentChanged(QString,QString)));
+	
+	connect(node, SIGNAL(contentChanged(QString,QString)),  this, SLOT(nodeUpdated()));
+	connect(node, SIGNAL(importanceChanged(double,double)), this, SLOT(nodeUpdated()));
+	connect(node, SIGNAL(nodeTypeChanged(MNodeType)),       this, SLOT(nodeUpdated()));
+	
 	
 	emit nodeAdded(node);
+}
+
+MNode *MSpace::addNode(const QString& content, MNodeType type)
+{
+	MNode *node = new MNode(content,type);
+	addNode(node);
+	return node;
+}
+
+MNode *MSpace::node(const QString& name, MNodeType type)
+{
+	if(m_contentToNode.contains(name))
+		return m_contentToNode[name];
+	
+	if(!type.isNull())
+		return addNode(name,type);
+		
+	return 0;
+}
+
+void MSpace::nodeContentChanged(QString ov, QString nv)
+{
+	MNode *node = dynamic_cast<MNode*>(sender());
+	if(!node)
+		return;
+	
+	m_contentToNode.remove(ov);
+	m_contentToNode[nv] = node;
+}
+
+
+void MSpace::nodeUpdated()
+{
+	MNode *node = dynamic_cast<MNode*>(sender());
+	if(!node)
+		return;
+	
+	emit nodeUpdated(node);
 }
 
 void MSpace::removeNode(MNode *node)
@@ -66,6 +112,8 @@ void MSpace::removeNode(MNode *node)
 	
 	m_nodes.removeAll(node);
 	m_uuidToNode.remove(node->uuid());
+	
+	disconnect(node, 0, this, 0);
 	
 	emit nodeRemoved(node);
 }
@@ -78,7 +126,41 @@ void MSpace::addLink(MLink *link)
 	m_links << link;
 	m_uuidToLink[link->uuid()] = link;
 	
+	connect(link, SIGNAL(truthValueChanged(MTruthValue)), this, SLOT(linkUpdated()));
+	
 	emit linkAdded(link);
+}
+
+void MSpace::linkUpdated()
+{
+	MLink *link = dynamic_cast<MLink*>(sender());
+	if(!link)
+		return;
+	
+	emit linkUpdated(link);
+}
+
+MLink *MSpace::addLink(MNode *node1, MNode *node2, MLinkType type)
+{
+	MLink *link = new MLink(node1, node2, type);
+	addLink(link);
+	return link;
+}
+
+MLink *MSpace::link(MNode *node1, MNode *node2, MLinkType type)
+{
+	if(!node1 || !node2)
+		return 0;
+		
+	const QList<MLink *> & links = node1->links();
+	foreach(MLink *link, links)
+		if(link->node2() == node2)
+			return link;
+	
+	if(!type.isNull())
+		return addLink(node1, node2, type);
+	
+	return 0;
 }
 
 void MSpace::removeLink(MLink *link)
@@ -88,6 +170,8 @@ void MSpace::removeLink(MLink *link)
 	
 	m_links.removeAll(link);
 	m_uuidToLink.remove(link->uuid());
+	
+	disconnect(link, 0, this, 0);
 	
 	emit linkRemoved(link);
 }
@@ -164,7 +248,7 @@ bool MSpace::importConceptNet2File(const QString& filename, double freqFactor, b
 		QByteArray lineBytes = file.readLine();
 		QString line(lineBytes);
 		
-		int idx = rx.indexIn(line);
+		/*int idx = */rx.indexIn(line);
 		QStringList values = rx.capturedTexts();
 		
 		QString linkType = values[1];
@@ -186,13 +270,10 @@ bool MSpace::importConceptNet2File(const QString& filename, double freqFactor, b
 			qDebug() << ++counter << "Loading: "<<arg1<<" -> "<<linkType<<" -> "<<arg2;
 		}
 		
-		if(!_node(arg1))
-			addNode(new MNode(arg1, MNodeType::ConceptNode()));
+		MNode *node1 = node(arg1, MNodeType::ConceptNode());
+		MNode *node2 = node(arg2, MNodeType::ConceptNode());
 			
-		if(!_node(arg2))
-			addNode(new MNode(arg2, MNodeType::ConceptNode()));
-			
-		addLink(new MLink(_node(arg1), _node(arg2), MLinkType::findLinkType(linkType), MTruthValue(((double)freq) / freqFactor)));
+		addLink(new MLink(node1, node2, MLinkType::findLinkType(linkType), MTruthValue(((double)freq) / freqFactor)));
 			
 // 			if(counter > 5000)
 // 			{

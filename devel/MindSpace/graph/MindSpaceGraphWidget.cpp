@@ -15,6 +15,8 @@
 #include "MindSpace.h"
 using namespace MindSpace;
 
+#define EDGE_WEIGHT_FACTOR 1.0
+
 MindSpaceGraphWidget::MindSpaceGraphWidget()
 	: m_timerId(0)
 	, m_mindSpace(0)
@@ -124,6 +126,8 @@ void MindSpaceGraphWidget::addLink(MLink *link)
 		exit(-1);
 	}
 	
+	connect(link, SIGNAL(truthValueChanged(MTruthValue)), this, SLOT(linkTruthValueChanged(MTruthValue)));
+	
 	MindSpaceGraphEdgeData data;
 	
 	QList<MNode*> args = link->arguments();
@@ -155,7 +159,7 @@ void MindSpaceGraphWidget::addLink(MLink *link)
 		
 		MindSpaceGraphEdge *edge = new MindSpaceGraphEdge(startNode, typeNode);
 		scene()->addItem(edge);
-		edge->setWeight(value);// * 2.0);
+		edge->setWeight(value * EDGE_WEIGHT_FACTOR);
 		//edge->setLabel(link->type().name());
 		
 		data.edges << edge;
@@ -173,7 +177,7 @@ void MindSpaceGraphWidget::addLink(MLink *link)
 			
 			MindSpaceGraphEdge *edge = new MindSpaceGraphEdge(typeNode, endNode);
 			scene()->addItem(edge);
-			edge->setWeight(value * 2.0);
+			edge->setWeight(value * EDGE_WEIGHT_FACTOR);
 			
 			data.edges << edge;
 		}
@@ -193,7 +197,7 @@ void MindSpaceGraphWidget::addLink(MLink *link)
 			
 			MindSpaceGraphEdge *edge = new MindSpaceGraphEdge(startNode, endNode);
 			scene()->addItem(edge);
-			edge->setWeight(value * 2.0);
+			edge->setWeight(value * EDGE_WEIGHT_FACTOR);
 			edge->setLabel(QString("%1 %2").arg(link->type().name()).arg(value!=1.0?QString::number(value):""));
 			
 			data.edges << edge;
@@ -203,10 +207,39 @@ void MindSpaceGraphWidget::addLink(MLink *link)
 	m_graphLinks[link] = data;	
 }
 
+void MindSpaceGraphWidget::linkTruthValueChanged(MTruthValue tv)
+{
+	MLink *link = dynamic_cast<MLink*>(sender());
+	if(!link)
+	{
+		//qDebug() << "MindSpaceGraphWidget::linkTruthValueChanged: sender() does not cast to link";
+		return;
+	}
+		
+	if(!m_graphLinks.contains(link))
+	{
+		//qDebug() << "MindSpaceGraphWidget::linkTruthValueChanged: link "<<link<<" not in graph";
+		return;
+	}
+	
+	double value = tv.value();
+	//qDebug() << "MindSpaceGraphWidget::linkTruthValueChanged: link "<<link<<" tv is now "<<value<<", updating edges";
+	
+	MindSpaceGraphEdgeData data = m_graphLinks[link];
+	
+	foreach(MindSpaceGraphEdge *edge, data.edges)
+	{
+		edge->setWeight(value * EDGE_WEIGHT_FACTOR);
+		edge->setLabel(QString("%1 %2").arg(link->type().name()).arg(value!=1.0?QString::number(value):""));
+	}
+}
+
 void MindSpaceGraphWidget::removeLink(MLink *link)
 {
 	if(!m_graphLinks.contains(link))
 		return;
+	
+	disconnect(link, 0, this, 0);
 		
 	MindSpaceGraphEdgeData data = m_graphLinks[link];
 	foreach(MindSpaceGraphEdge *edge, data.edges)

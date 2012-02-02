@@ -112,7 +112,7 @@ MNode::MNode( const QString& content, MindSpace::MNodeType type )
 }
 
 /** \return the MNode* object for the given node name if the node exists. If the node does not exist, and type is NOT a null type (See MNodetype::isNull()), then it creates a new node and returns that node object. Returns 0 (null) in all other cases */
-MNode *MNode::node(const QString& name, MindSpace::MNodeType type)
+MNode *MNode::node(const QString& name, MindSpace::MNodeType type, MSpace *mspace)
 {
 	if(s_nodes.contains(name))
 		return s_nodes.value(name);
@@ -121,8 +121,8 @@ MNode *MNode::node(const QString& name, MindSpace::MNodeType type)
 	{
 		MNode *node = new MNode(name, type);
 		
-// 		if(MSpace *mind = MSpace::activeSpace())
-// 			mind->addNode(node);
+ 		if(mspace)
+ 			mspace->addNode(node);
 		
 		return node;
 	}
@@ -131,26 +131,45 @@ MNode *MNode::node(const QString& name, MindSpace::MNodeType type)
 }
 
 /** Set the MNodeType of this node to \a type. \sa type */
-void MNode::setType(MNodeType type) { m_type = type; }
+void MNode::setType(MNodeType type)
+{
+	m_type = type;
+	emit nodeTypeChanged(type);
+}
 
 /** Set the content of this node to \a content. \sa content */
 void MNode::setContent(const QString& content)
 {
+	QString oldContent = m_content;
 	if(s_nodes.contains(m_content))
 		s_nodes.remove(m_content);
 	
 	m_content = content; 
 	s_nodes.insert(content, this);
+	
+	emit contentChanged(oldContent, content);
 }
 
 /** Set the long term importance of this node to \a imp. \sa longTermImportance */
-void MNode::setLongTermImportance(double imp) { m_longTermImportance = imp; }
+void MNode::setLongTermImportance(double imp)
+{
+	m_longTermImportance = imp;
+	emit importanceChanged(m_longTermImportance, m_shortTermImportance);
+}
 
 /** Set the short term importance of this node to \a imp. \sa shortTermImportance */
-void MNode::setShortTermImportance(double imp) { m_shortTermImportance = imp; }
+void MNode::setShortTermImportance(double imp)
+{
+	m_shortTermImportance = imp;
+	emit importanceChanged(m_longTermImportance, m_shortTermImportance);
+}
 
 /** Set the list of links for this node to \a links. \sa links */
-void MNode::setLinks(const QList<MLink*>& links) { m_links = links; }
+void MNode::setLinks(const QList<MLink*>& links)
+{
+	m_links = links;
+	emit linksListChanged();
+}
 
 /** Add link \a link to the internal list of links. \a emits linkAdded */ 
 void MNode::addLink(MLink *link)

@@ -22,10 +22,10 @@ public:
 	enum { Type = UserType + 2 };
 	int type() const { return Type; }
 	
-	void setWeight(double w) { m_weight = w; }
+	void setWeight(double w) { m_weight = w; update(); }
 	double weight() const { return m_weight; }
 	
-	void setLabel(const QString& label) { m_label=label; }
+	void setLabel(const QString& label) { m_label=label; update(); }
 	QString label() { return m_label; }
 	
 	void setColor(const QColor& c) { m_color=c; }

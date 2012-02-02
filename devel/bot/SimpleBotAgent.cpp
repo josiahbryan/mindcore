@@ -167,7 +167,7 @@ void SimpleBotAgent::advance()
 		setState(S_Searching);
 	}
 	
-	MNode *currentState = _node(nameForState(m_state));
+	MNode *currentState = m_mspace->node(nameForState(m_state));
 	
 	int elapsed = m_timer.restart();
 	
@@ -264,15 +264,13 @@ void SimpleBotAgent::setState(StateType state)
 {
 	MNode *lastState = 0;
 	if(m_state != S_Unknown)
-		lastState = _node(nameForState(m_state));
+		lastState = m_mspace->node(nameForState(m_state));
 	
 	QString stateName = nameForState(state);
 	qDebug() << "SimpleBotAgent::setState: "<<stateName;
 	m_state = state;
 	
-	MNode *currentState = _node(stateName);
-	if(!currentState && m_mspace)
-		m_mspace->addNode(currentState = new MNode(stateName, MNodeType::ProceduralNode()));
+	MNode *currentState = m_mspace->node(stateName, MNodeType::ProceduralNode());
 		
 	m_stateTimer.restart();
 	

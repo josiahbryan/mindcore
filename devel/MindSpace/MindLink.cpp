@@ -160,7 +160,12 @@ void MLink::setNode2(MindSpace::MNode* node2)
 }
 
 /** Set the MTruthValue of this link to \a value. \sa truthValue */
-void MLink::setTruthValue(MindSpace::MTruthValue value) { m_truthValue = value; }
+void MLink::setTruthValue(MindSpace::MTruthValue value)
+{
+	m_truthValue = value;
+	//qDebug() << "MLink::setTruthValue: "<<this<<": new tv:"<<value.value();
+	emit truthValueChanged(value);
+}
 
 /** Set the list of argument nodes to \a arguments. \sa arguments */
 void MLink::setArguments(QList<MNode*> arguments)

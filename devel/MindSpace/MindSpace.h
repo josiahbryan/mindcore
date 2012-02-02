@@ -11,6 +11,8 @@
 
 #include "MindNode.h"
 #include "MindLink.h"
+#include "MindNodeType.h"
+#include "MindLinkType.h"
 
 /** \brief MindSpace namespace contains the MLink, MNode and other auxiliary classes for MindSpace. 
   */
@@ -35,6 +37,9 @@ namespace MindSpace
 		const QList<MNode*> & nodes() const { return m_nodes; }
 		const QList<MLink*> & links() const { return m_links; }
 		
+		MNode *node(const QString& name, MindSpace::MNodeType type=MindSpace::MNodeType());
+		MLink *link(MNode *fromNode, MNode *toNode, MindSpace::MLinkType type=MindSpace::MLinkType());
+		
 		static MSpace *activeSpace() { return s_activeSpace; }
 		
 		MNode *uuidToNode(const QString& uuid) { return m_uuidToNode[uuid]; }
@@ -58,19 +63,31 @@ namespace MindSpace
 		
 		void addLink(MLink*);
 		void removeLink(MLink*);
-	
+		
+		MNode *addNode(const QString& name, MNodeType type=MNodeType::ConceptNode());
+		MLink *addLink(MNode *node1, MNode *node2, MLinkType type);
+		
 	signals:
 		void linkAdded(MLink*);
 		void linkRemoved(MLink*);
 		
 		void nodeAdded(MNode*);
 		void nodeRemoved(MNode*);
+		
+		void nodeUpdated(MNode*);
+		void linkUpdated(MLink*);
+	
+	private slots:
+		void nodeContentChanged(QString, QString);
+		void linkUpdated();
+		void nodeUpdated();
 	
 	private:
 		QList<MNode*> m_nodes;
 		QList<MLink*> m_links;
 		QHash<QString,MNode*> m_uuidToNode;
 		QHash<QString,MLink*> m_uuidToLink;
+		QHash<QString,MNode*> m_contentToNode;
 		
 		static MSpace *s_activeSpace;
 	

@@ -62,6 +62,7 @@ public slots:
 private slots:
 	void graphNodeDoubleClicked(MindSpaceGraphNode *);
 
+	void linkTruthValueChanged(MTruthValue);
 
 protected:
 	void keyPressEvent(QKeyEvent *);
