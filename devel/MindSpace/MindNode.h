@@ -36,6 +36,9 @@ namespace MindSpace
 		/** The list of links from and to this MNode */
 		Q_PROPERTY(QList<MLink*> links READ links WRITE setLinks);
 		
+		/** The data attribute for this MNode */
+		Q_PROPERTY(QVariant data READ data WRITE setData);
+		
 		
 	public:
 		MNode();
@@ -51,6 +54,8 @@ namespace MindSpace
 		
 		/* const so that they don't modify our list externally - TODO should they be able to? */
 		const QList<MLink*> & links() const 	{ return m_links; }			/*!< \return the links pointing from and to this node.	\sa links */
+		
+		const QVariant & data() const		{ return m_data; }			/*!< \return the 'data' property variant.		\sa data */
 		
 		MSpace *mindSpace() { return m_mspace; }
 		
@@ -70,9 +75,12 @@ namespace MindSpace
 		void setContent(const QString& content);
 		void setLongTermImportance(double imp);
 		void setShortTermImportance(double imp);
+		
 		void setLinks(const QList<MLink*>& links);
 		void addLink(MLink *link);
 		void removeLink(MLink *link);
+		
+		void setData(QVariant);
 	
 	signals:
 		/** Emitted when a link is added to this node */
@@ -93,6 +101,9 @@ namespace MindSpace
 		/// setLinks() was called
 		void linksListChanged();
 		
+		/// The 'data' property was changed
+		void dataChanged();
+		
 	protected:
 		friend class MSpace;
 		void setMindSpace(MSpace *ms) { m_mspace=ms; }
@@ -102,23 +113,31 @@ namespace MindSpace
 		  */
 		void createUuid();
 		
-		/** The UUID of this node */
+		/// The UUID of this node
 		QString m_uuid;
-		/** The MNodeType of this node */
+		
+		/// The MNodeType of this node
 		MNodeType m_type;
-		/** The content of this node */
+		
+		/// The content of this node
 		QString m_content;
-		/** The long term importance of this node */
+		
+		/// The long term importance of this node
 		double m_longTermImportance;
-		/** The short term importance of this node */
+		
+		/// The short term importance of this node
 		double m_shortTermImportance;
-		/** The links from and to this node */ 
+		
+		/// The links from and to this node 
 		QList<MLink*> m_links;
+		
+		/// The data attribute for this node
+		QVariant m_data;
 		
 		/// MSpace object to which this has been added
 		MSpace *m_mspace;
 		
-		/** Static map of Content to MNode objects */
+		/// Static map of Content to MNode objects
 		static QHash<QString,MNode*> s_nodes;
 	
 	};

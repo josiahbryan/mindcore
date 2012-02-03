@@ -1,12 +1,5 @@
-// mindspace-types.pl uses this file to generate:
-//  - mindspace-types.definitions	- included in MindSpace.cpp inside the MindSpace namespace
-//  - mindspace-types.prototypes	- included in MindSpace.h inside MindSpace::MNodeType
-//
 // Format below is:
-// (Parent) (Name) (UUID) (List Flag)
-//
-// List flag may be obselete - we'll see...
-//
+	// (Parent) (Name) (UUID)
 
 ///////////////////////////////////////////
 // From ConceptNet 2.0
@@ -21,99 +14,144 @@
 // Agents: CapableOf
 
 // K-Lines
-Link		KLineLink		e706cc14-e9ea-4dd3-9b65-5a3f5bedba96
-KLineLink	ConceptuallyRelatedTo	c90d3c5e-9fe9-4076-bb47-e718605f4ea6
-KLineLink	ThematicKLine		f507a76f-e0d2-4f75-8a5e-7fd4b2a4e872
-KLineLink	SuperThematicKLine	e1651ad0-e8a0-4fde-ab2a-8ede4290abda
+Link		KLineLink				e706cc14-e9ea-4dd3-9b65-5a3f5bedba96
+KLineLink	ConceptuallyRelatedTo			c90d3c5e-9fe9-4076-bb47-e718605f4ea6
+KLineLink	ThematicKLine				f507a76f-e0d2-4f75-8a5e-7fd4b2a4e872
+KLineLink	SuperThematicKLine			e1651ad0-e8a0-4fde-ab2a-8ede4290abda
 
 // Thing Links
-Link		ThingLink		0ec1135e-6b65-477f-a243-2e91f8903dff
-ThingLink	IsA			7e927065-ba4e-48d1-b8a3-42f9b9a20f28
-ThingLink	PartOf			d7375960-2c2e-4296-8f68-a3df5c16e73c
-ThingLink	PropertyOf		274bf674-dd73-4f5c-8c68-caa71a056b6d
-ThingLink	DefinedAs		eb0d64cf-a1f9-4c50-8fc4-e2c21ecc05ea
-ThingLink	MadeOf			791b023d-c33e-4312-814b-6e23ef4177f2
+Link		ThingLink				0ec1135e-6b65-477f-a243-2e91f8903dff
+ThingLink	IsA					7e927065-ba4e-48d1-b8a3-42f9b9a20f28
+ThingLink	PartOf					d7375960-2c2e-4296-8f68-a3df5c16e73c
+ThingLink	PropertyOf				274bf674-dd73-4f5c-8c68-caa71a056b6d
+ThingLink	DefinedAs				eb0d64cf-a1f9-4c50-8fc4-e2c21ecc05ea
+ThingLink	MadeOf					791b023d-c33e-4312-814b-6e23ef4177f2
 
 // Spatial Links
-Link		SpatialLink		5592bd65-bcd1-48da-a02b-034f01186872	
-SpatialLink	LocationOf		99b75ca4-3817-43e1-a0b6-0411a65106f2
+Link		SpatialLink				5592bd65-bcd1-48da-a02b-034f01186872	
+SpatialLink	LocationOf				99b75ca4-3817-43e1-a0b6-0411a65106f2
 
 // Event Links
-Link		EventLink		f03dcfb8-6dc8-4cb3-957e-29c89e85c354
-EventLink	SubeventOf		76387889-6fe5-490c-a1f3-00d0564c84b1
-EventLink	PrerequisiteEventOf	1c73e2d3-e990-402d-927f-c2e7c8d7ca1f
-EventLink	FirstSubeventOf		afd89073-9579-4477-bb26-d010b4aec3a5
-EventLink	LastSubeventOf		81b2f0d6-9d92-453d-a4f9-c6540de8783d
+Link		EventLink				f03dcfb8-6dc8-4cb3-957e-29c89e85c354
+EventLink	SubeventOf				76387889-6fe5-490c-a1f3-00d0564c84b1
+EventLink	PrerequisiteEventOf			1c73e2d3-e990-402d-927f-c2e7c8d7ca1f
+EventLink	FirstSubeventOf				afd89073-9579-4477-bb26-d010b4aec3a5
+EventLink	LastSubeventOf				81b2f0d6-9d92-453d-a4f9-c6540de8783d
 
 // Causal Links	
-Link		CausalLink		ac8567c8-aa99-4270-ba1b-7a6dcfcfb21d
-CausalLink	EffectOf		e74783e7-11ef-4079-b8c8-2c3ca7a2e6a2
-CausalLink	DesirousEffectOf	efec47c2-d765-459c-94d7-ba59ccb534bb
+Link		CausalLink				ac8567c8-aa99-4270-ba1b-7a6dcfcfb21d
+CausalLink	EffectOf				e74783e7-11ef-4079-b8c8-2c3ca7a2e6a2
+CausalLink	DesirousEffectOf			efec47c2-d765-459c-94d7-ba59ccb534bb
 
 // Affective Links
-Link		AffectiveLink		6fb9937b-0dd8-42cc-8ca2-dc4fc413d5a7
-AffectiveLink	MotivationOf		d6ac27e6-62c9-49e6-8deb-838ea31006d9
-AffectiveLink	DesireOf		923fffeb-9d23-4cbd-9c63-fa186ae28932
+Link		AffectiveLink				6fb9937b-0dd8-42cc-8ca2-dc4fc413d5a7
+AffectiveLink	MotivationOf				d6ac27e6-62c9-49e6-8deb-838ea31006d9
+AffectiveLink	DesireOf				923fffeb-9d23-4cbd-9c63-fa186ae28932
 
 // Functional Links
-Link		FunctionalLink		cb4fc894-b056-4919-bead-6bc50d5da21e
-FunctionalLink	CapableOfReceivingAction	1f57a0e2-e80f-4990-8bd0-588b443a8a8d
-FunctionalLink	UsedFor			a0ffa538-b6c2-4888-a965-c91b3493d5dd
+Link		FunctionalLink				cb4fc894-b056-4919-bead-6bc50d5da21e
+FunctionalLink	CapableOfReceivingAction		1f57a0e2-e80f-4990-8bd0-588b443a8a8d
+FunctionalLink	UsedFor					a0ffa538-b6c2-4888-a965-c91b3493d5dd
 
 // Agent Links
-Link		AgentLink		ba60710a-4921-4c0a-b2c8-3b88fb43b788
-AgentLink	CapableOf		1bb843f6-43c0-4558-9269-2dc769046cad
+Link		AgentLink				ba60710a-4921-4c0a-b2c8-3b88fb43b788
+AgentLink	CapableOf				1bb843f6-43c0-4558-9269-2dc769046cad
 
 // Done with ConceptNet 2.0
 ///////////////////////////////////////////
 
 // Starting stuff...
-Node	ConceptNode		fd6cf790-9eea-43a6-8fd7-cc8d564ee868
-Node	SpecificEntityNode	55f3b372-ef2d-4e02-8888-c6b0fe3d4405
-Node	PredicateNode		45def73a-59ec-4d36-a4dd-641f0ce290c4
-Node	ProceduralNode		50907460-f33a-469a-a1c0-767d2c30572a
+Node			ConceptNode			fd6cf790-9eea-43a6-8fd7-cc8d564ee868
+Node			SpecificEntityNode		55f3b372-ef2d-4e02-8888-c6b0fe3d4405
+Node			PredicateNode			45def73a-59ec-4d36-a4dd-641f0ce290c4
+Node			ProcedureNode			50907460-f33a-469a-a1c0-767d2c30572a
+Node			GoalNode			704e1259-2b1d-4a23-9c84-0a430e79cf09
+Node			MemoryNode			31727497-e327-4292-8a3e-f747ee990bcb
 
-Link	PartOfLink		7a28d331-5a86-4ce9-a124-14bf47c2cc8b
-Link	InheritsFromLink	bb8c31a5-d6d2-4d8e-863e-a3a2867b2a56
-Link	PredicateSubjectLink	99d9bc29-82a2-4fef-bebf-d33f9c1c1334
-Link	PredicateObjectLink	517d9752-4ed0-4e28-bd7d-c35e58c04fa4
-//Link	EvaluationLink		c406e2cf-d6df-4d39-a7ac-c0a52b8bac86	list
-Link	PredicateLink		5b036455-8f19-473b-b259-f6a0dde15dc9	list
+Link			GoalVariableLink		46a46123-be6f-4df3-adc6-2880235a5ff3
+
+Link			MemoryLink			0121469d-4b08-4b77-b625-4fa922429a99
+
+ProcedureNode		GoalQuantifierNode		97b819a7-f66f-4dd5-9835-c87cb757b6b5
+
+Node			ContextNode			42bf8948-06e5-4582-b73c-3e680e16eb50
+SpecificEntityNode	AgentNode			b1bf4efa-2dbd-43f6-97f8-9d7869b8b4f5
+
+Link			PartOfLink			7a28d331-5a86-4ce9-a124-14bf47c2cc8b
+Link			InheritsFromLink		bb8c31a5-d6d2-4d8e-863e-a3a2867b2a56
+Link			PredicateSubjectLink		99d9bc29-82a2-4fef-bebf-d33f9c1c1334
+Link			PredicateObjectLink		517d9752-4ed0-4e28-bd7d-c35e58c04fa4
+//Link			EvaluationLink			c406e2cf-d6df-4d39-a7ac-c0a52b8bac86
+Link			PredicateLink			5b036455-8f19-473b-b259-f6a0dde15dc9
+PredicateLink		ProcedureImplementationLink	a0e91bf3-ccb7-4207-a69e-b5a6ceb44c40
 
 // Basic Links
-Link	UnorderedLink		4fe7dd3f-1f97-4c48-9c78-4b9cc72c9eec
-Link	OrderedLink		c3a4d8e3-0630-4e16-a5f6-5296fdddfeb0
+Link	UnorderedLink					4fe7dd3f-1f97-4c48-9c78-4b9cc72c9eec
+Link	OrderedLink					c3a4d8e3-0630-4e16-a5f6-5296fdddfeb0
 
 // Basic sets
-UnorderedLink	SetLink		d3f3cd08-5213-4c53-ad7a-49a960468db8
-OrderedLink	ListLink	c6993e4c-a991-4800-9ae4-db383c138c81
-OrderedLink	MemberLink	8db43876-9558-42a2-99fc-be8948dfefb6
-OrderedLink	SubsetLink	a50782c4-82d9-48a3-a073-140c4ec4c1ae
+UnorderedLink	SetLink					d3f3cd08-5213-4c53-ad7a-49a960468db8
+OrderedLink	ListLink				c6993e4c-a991-4800-9ae4-db383c138c81
+OrderedLink	MemberLink				8db43876-9558-42a2-99fc-be8948dfefb6
+OrderedLink	SubsetLink				a50782c4-82d9-48a3-a073-140c4ec4c1ae
 
 // Boolean set operations, logical constants
-UnorderedLink	AndLink		9338c148-6afc-44b9-9dbc-35a830f5d3a6
-UnorderedLink	OrLink		c79ac948-69c9-47d5-be1a-08a280407a0b
-UnorderedLink	NotLink		25c7ced9-5b9c-4501-9504-36512aeed3ca
-UnorderedLink	FalseLink	0e488738-d89e-4883-a30a-a59d585a3a72
-UnorderedLink	TrueLink	0ac28eed-db81-4c39-87a6-0b68b13fc41b
+UnorderedLink	AndLink					9338c148-6afc-44b9-9dbc-35a830f5d3a6
+UnorderedLink	OrLink					c79ac948-69c9-47d5-be1a-08a280407a0b
+UnorderedLink	NotLink					25c7ced9-5b9c-4501-9504-36512aeed3ca
+UnorderedLink	FalseLink				0e488738-d89e-4883-a30a-a59d585a3a72
+UnorderedLink	TrueLink				0ac28eed-db81-4c39-87a6-0b68b13fc41b
 
 // Universe of discourse
-OrderedLink	ContextLink	22d49705-d005-4668-9cea-e89bc867388e
+OrderedLink	ContextLink				22d49705-d005-4668-9cea-e89bc867388e
 
 // Basic first-order logic ungrounded terms and term types
-Node		VariableNode		716be015-4e90-425e-88f8-30cad3a3e9ae
-Node		VariableTypeNode	cb74334a-5af3-4991-a5a2-89679f46eb7f
-OrderedLink	TypedVariableLink	7fc3539c-f23c-4440-be62-4aa80341fcc5
+Node		VariableNode				716be015-4e90-425e-88f8-30cad3a3e9ae
+Node		VariableTypeNode			cb74334a-5af3-4991-a5a2-89679f46eb7f
+OrderedLink	TypedVariableLink			7fc3539c-f23c-4440-be62-4aa80341fcc5
 
 // Scoping and Logical quantifiers
-OrderedLink	BindLink	d0585c07-a2c5-46a5-86b5-0ffee1b88e69
-BindLink	ForAllLink	206dd527-09a1-428f-ab62-8e048bdc8a3b
-BindLink	ExistLink	963cca3c-f6a1-4d10-96d2-579b513a181f
-BindLink	AverageLink	1a557244-e54b-4967-b58d-5ae9968e18e1
-OrderedLink	ScholemLink	336cfff5-7146-4a28-9d7f-70f9a51291a7
+OrderedLink	BindLink				d0585c07-a2c5-46a5-86b5-0ffee1b88e69
+BindLink	ForAllLink				206dd527-09a1-428f-ab62-8e048bdc8a3b
+BindLink	ExistLink				963cca3c-f6a1-4d10-96d2-579b513a181f
+BindLink	AverageLink				1a557244-e54b-4967-b58d-5ae9968e18e1
+OrderedLink	ScholemLink				336cfff5-7146-4a28-9d7f-70f9a51291a7
 
 // Basic first-order logic operations
-OrderedLink	ImplicationLink	03b18e28-907c-418f-bde9-8c9651f5a56b
-OrderedLink	EvaluationLink	cf1f8e18-ef5d-497c-8e17-e6286f9e8f8d	list
+OrderedLink	ImplicationLink				03b18e28-907c-418f-bde9-8c9651f5a56b
+OrderedLink	EvaluationLink				cf1f8e18-ef5d-497c-8e17-e6286f9e8f8d	list
 
 
+/////////////////////////////////////////////////////
+// Sensor Types
+Sensor			VisionSensor			d14dc179-24fe-4ff8-bf55-198180b4d558
+Sensor			LocationSensor			ae1c5928-3339-4399-9b77-bc4e09c32a05
+Sensor			TextInputSensor			46990545-834b-4679-a9db-aa076a023771
+
+VisionSensor		ANSITextSensor			7c57df01-a9ff-4243-892c-027ef8f412af
+LocationSensor		SimpleXYLocationSensor		8c4996cf-dfbf-4e96-9932-c734e7f350a8
+
+// SimpleTextVisualContext is output by ANSITextSensor into the context
+Node			VisualContextNode		62da65cf-5c81-4d22-9b32-8f0f1aaafd9b
+VisualContextNode	SimpleTextVisualContext		79c21147-8026-4d1e-aa5a-7b3ef92612d8
+
+// Intermix with their output node and link types;
+
+// LocationNode and subtypes are given as output by LocationSensor and subtypes
+Node			LocationNode			774fec55-37d6-4a61-bf43-594becb06ac0
+LocationNode		SimpleXYLocationNode		c683a399-4522-4ff1-aded-5de767a12554
+
+	
+/////////////////////////////////////////////////////
+// Output Types
+Output			MovementOutput			e9fcb6ce-4990-4fbc-96f9-0dabb9d46506
+Output			TextOutput			e8158b02-99bf-4202-a026-3dfa9efd944a
+
+MovementOutput		SimpleXYOutput			67d2dc17-53e7-4b53-82f5-50c9e14a7b63
+
+TextOutput		ANSITextOutput			376fee65-5b44-4a93-8722-29e94938a0d4
+
+/// SimpleXYOutput takes SimpleXYMovementVectors as input 
+Node			VectorNode			d1008edf-861f-4d6d-9b8f-012703644b25
+VectorNode		MovementVectorNode		3b2cf1ae-016d-4069-afaf-940bdf8c1b69
+MovementVectorNode	SimpleXYMovementVector		cb8fcfea-aaad-4e75-b2d2-97b49648e112

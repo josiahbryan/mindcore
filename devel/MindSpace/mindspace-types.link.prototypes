@@ -1,4 +1,4 @@
-/** \file mindspace-types.link.prototypes - Generated from MindSpace.types by mindspace-types.pl **/
+/** \file mindspace-types.link.prototypes - Generated from MindSpace.types by mindspace-types.pl on Fri Feb  3 17:01:19 EST 2012  **/
 
 /** Shared reference to special link type KLineLink */
 static const MLinkType & KLineLink();
@@ -56,6 +56,10 @@ static const MLinkType & UsedFor();
 static const MLinkType & AgentLink();
 /** Shared reference to special link type CapableOf */
 static const MLinkType & CapableOf();
+/** Shared reference to special link type GoalVariableLink */
+static const MLinkType & GoalVariableLink();
+/** Shared reference to special link type MemoryLink */
+static const MLinkType & MemoryLink();
 /** Shared reference to special link type PartOfLink */
 static const MLinkType & PartOfLink();
 /** Shared reference to special link type InheritsFromLink */
@@ -66,6 +70,8 @@ static const MLinkType & PredicateSubjectLink();
 static const MLinkType & PredicateObjectLink();
 /** Shared reference to special link type PredicateLink */
 static const MLinkType & PredicateLink();
+/** Shared reference to special link type ProcedureImplementationLink */
+static const MLinkType & ProcedureImplementationLink();
 /** Shared reference to special link type UnorderedLink */
 static const MLinkType & UnorderedLink();
 /** Shared reference to special link type OrderedLink */
@@ -106,3 +112,21 @@ static const MLinkType & ScholemLink();
 static const MLinkType & ImplicationLink();
 /** Shared reference to special link type EvaluationLink */
 static const MLinkType & EvaluationLink();
+/** Shared reference to special link type VisionSensor */
+static const MLinkType & VisionSensor();
+/** Shared reference to special link type LocationSensor */
+static const MLinkType & LocationSensor();
+/** Shared reference to special link type TextInputSensor */
+static const MLinkType & TextInputSensor();
+/** Shared reference to special link type ANSITextSensor */
+static const MLinkType & ANSITextSensor();
+/** Shared reference to special link type SimpleXYLocationSensor */
+static const MLinkType & SimpleXYLocationSensor();
+/** Shared reference to special link type MovementOutput */
+static const MLinkType & MovementOutput();
+/** Shared reference to special link type TextOutput */
+static const MLinkType & TextOutput();
+/** Shared reference to special link type SimpleXYOutput */
+static const MLinkType & SimpleXYOutput();
+/** Shared reference to special link type ANSITextOutput */
+static const MLinkType & ANSITextOutput();

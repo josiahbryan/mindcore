@@ -176,6 +176,88 @@ void SimpleBotAgent::advance()
 	// Set initial state
 	if(m_state == StateUnknown)
 		setState(StateSearching);
+		
+	/*
+		Based on the new readme notes/thoughts on goals, etc, then we can express our SimpleBotAgent goals in terms of maximizing energy and minimizing hunger.
+		Somehow, we have to first determine a format to express the goals, then we have to link them to our agent and rank them in some order.
+		 
+	
+	*/
+	
+	//MNode *agentNode = m_mspace->node(
+	//MNode *hungerGoal = m_mspace->node("HungerGoal", MNodeType::GoalNode());
+	//MNode *energyGoal = m_mspace->node("EnergyGoal", MNodeType::GoalNode());
+	
+	MNode *agentGoals = m_mspace->node("AgentGoals", MNodeType::GoalNode());
+	
+	MNode *hungerVar  = m_mspace->node("HungerValue", MNodeType::VariableNode());
+	MNode *hungerGoal = m_mspace->node("HungerGoal");
+	if(!hungerGoal)
+	{
+		MNode *hungerGoal = m_mspace->addNode("HungerGoal", MNodeType::GoalNode());
+		
+		// NOTE Idea: Perhaps the link weight (Tv) could be the way to rank the goals...
+		m_mspace->link(agentGoals, hungerGoal, MLinkType::OrderedLink());
+		
+		QVariantList goalData;
+		{	
+			QVariantList goalRow;
+			goalRow << "MIN" << "HungerValue";
+			
+			goalData << goalRow;
+		}
+		
+		hungerGoal->setData(goalData);
+		
+		hungerVar->setData(1.0);
+		
+		m_mspace->link(hungerGoal, hungerVar, MLinkType::GoalVariableLink());
+	}
+	
+	MNode *energyVar  = m_mspace->node("EnergyValue", MNodeType::VariableNode());
+	MNode *energyGoal = m_mspace->node("EnergyGoal");
+	if(!energyGoal)
+	{
+		MNode *energyGoal = m_mspace->addNode("EnergyGoal", MNodeType::GoalNode());
+		m_mspace->link(agentGoals, energyGoal, MLinkType::OrderedLink());
+		
+		QVariantList goalData;
+		{	
+			QVariantList goalRow;
+			goalRow << "MAX" << "EnergyValue";
+			
+			goalData << goalRow;
+		}
+		
+		energyGoal->setData(goalData);
+		
+		energyVar->setData(1.0);
+		
+		m_mspace->link(energyGoal, energyVar, MLinkType::GoalVariableLink());
+		
+	}
+	
+	
+	/*
+	
+		Okay, now we've got the goals described and linked to the variables they relate to.
+		
+		Now, we've got to have some method of evaulating the goals and seing if they're met.
+		If not, we need to have some way of meeting those goals (deciding what actions to take).
+		Note that any actions we take, we need to evaulate the effect they have on the variable in question
+		and then reward/demote the nodes accordingly, linking them back to the action itself, and ultimatly link the action to the goal for future reference.
+		 
+		The end result will be the goal may have multiple different actions linked to it, each rated differently (or even close to the same).
+		So when the goal needs to be fulfilled again in the future, it can choose actions that gave it best results (maybe even store how quickly the actions affect the goal
+		e.g. store the "time" it took)
+		
+		This conceptually implies that since we expressed the goals as functions of variables, if other goals that are "new" (e.g. dont have actions linked),
+		the agent /could/ search for other goals that link to those same variables and find out what actions were taken....theoretically.
+		
+		Well, I'll have to stop here for now...will continue coding as soon as possible.
+	*/
+	
+	/* Coding stopped here 2/3 */
 	
 	// Update bio variables
 	updateHungerEnergyState();
@@ -313,7 +395,7 @@ void SimpleBotAgent::setState(StateInfo state)
 	m_stateTimer.restart();
 	
 	// Ensure node exists for this state
-	MNode *currentStateNode = m_mspace->node(stateName, MNodeType::ProceduralNode());
+	MNode *currentStateNode = m_mspace->node(stateName, MNodeType::ProcedureNode());
 		
 	if(lastStateNode)
 	{

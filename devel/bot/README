@@ -1,0 +1,44 @@
+bot
+
+Simple 'Bot' Agent for exploration of AIG and related concepts
+
+Notes/Thoughts
+--------------
+
+Goals could be expressed as functions maximizing a particular variable
+Variables could be described as nodes tagged by a variable identifier, e.g.
+	
+	(NODE:	Name: "Health"
+		Type: VariableNode )
+		|
+		|
+		|
+	(LINK:	Type: "VariableValueLink")
+		|
+		|
+		|
+	(NODE:	Name: "1.0"
+		Type: VariableValueNode)
+
+...or does it make more sense to add a 'data' attribute [QVariant?] to the existing MNode class structure...?
+
+
+
+So, an agent could have a set of Goals (expressed as GoalNodes linked to the AgentContext, linked to the SpecificEntity for the Agent...)
+The goals each have a QVariant attribute, which contains some sort of structured formula description:
+	[ and, max, health ] 
+	[ and, min, pain   ]
+With that structure, the agent could evaulate the variables in the (3rd) column according to the function perscribed....
+
+It just ocurred to me...goals may not (are not?) binary boolean values - e.g. a goal evaulate to "yes, you've completely fulfilled the goal" or "no, goal unfulfilled" - likely, the goal
+will evaulate to somewhere between a TRUE and a FALSE state....so the agent will have to try to maximize all goals, while ranking the goals some how....
+
+
+-----
+
+Agent structure:
+
+Subsystems - such as movement, bio (e.g. simulate health, energy), visual, speach, hearing,.....
+
+Each subsystem could have its own "loop" or state machine....it would interface with the "outside world" and process in/out of Nodes/Links
+Subsys's would have their own implicit goals for which they're trying to maintain homeostasis... 

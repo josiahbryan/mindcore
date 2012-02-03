@@ -188,6 +188,13 @@ void MNode::removeLink(MLink *link)
 		emit linkRemoved(link);
 }
 
+/** Set the 'data' property for this link to the value of \a data. emits dataChanged() */
+void MNode::setData(QVariant data)
+{
+	m_data = data;
+	emit dataChanged();
+}
+
 /** Creates a new UUID for this node only if no UUID already assigned. \sa uuid */
 void MNode::createUuid()
 {

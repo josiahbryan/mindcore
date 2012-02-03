@@ -1,4 +1,4 @@
-/** \file mindspace-types.node.prototypes - Generated from MindSpace.types by mindspace-types.pl **/
+/** \file mindspace-types.node.prototypes - Generated from MindSpace.types by mindspace-types.pl on Fri Feb  3 17:01:19 EST 2012 **/
 
 /** Shared reference to special node type ConceptNode */
 static const MNodeType & ConceptNode();
@@ -6,9 +6,33 @@ static const MNodeType & ConceptNode();
 static const MNodeType & SpecificEntityNode();
 /** Shared reference to special node type PredicateNode */
 static const MNodeType & PredicateNode();
-/** Shared reference to special node type ProceduralNode */
-static const MNodeType & ProceduralNode();
+/** Shared reference to special node type ProcedureNode */
+static const MNodeType & ProcedureNode();
+/** Shared reference to special node type GoalNode */
+static const MNodeType & GoalNode();
+/** Shared reference to special node type MemoryNode */
+static const MNodeType & MemoryNode();
+/** Shared reference to special node type GoalQuantifierNode */
+static const MNodeType & GoalQuantifierNode();
+/** Shared reference to special node type ContextNode */
+static const MNodeType & ContextNode();
+/** Shared reference to special node type AgentNode */
+static const MNodeType & AgentNode();
 /** Shared reference to special node type VariableNode */
 static const MNodeType & VariableNode();
 /** Shared reference to special node type VariableTypeNode */
 static const MNodeType & VariableTypeNode();
+/** Shared reference to special node type VisualContextNode */
+static const MNodeType & VisualContextNode();
+/** Shared reference to special node type SimpleTextVisualContext */
+static const MNodeType & SimpleTextVisualContext();
+/** Shared reference to special node type LocationNode */
+static const MNodeType & LocationNode();
+/** Shared reference to special node type SimpleXYLocationNode */
+static const MNodeType & SimpleXYLocationNode();
+/** Shared reference to special node type VectorNode */
+static const MNodeType & VectorNode();
+/** Shared reference to special node type MovementVectorNode */
+static const MNodeType & MovementVectorNode();
+/** Shared reference to special node type SimpleXYMovementVector */
+static const MNodeType & SimpleXYMovementVector();
