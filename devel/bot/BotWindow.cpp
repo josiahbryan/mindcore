@@ -75,9 +75,9 @@ BotWindow::BotWindow()
 	if(!m_mspace->loadFromFile(SETTINGS_FILE))
 		m_mspace->writeToFile(SETTINGS_FILE); // write blank file if didn't load one
 
-	SimpleBotEnv *env = new SimpleBotEnv(m_mspace);
+	SimpleBotEnv *env = new SimpleBotEnv();
 	
-	SimpleBotAgent *bot = new SimpleBotAgent();
+	SimpleBotAgent *bot = new SimpleBotAgent(m_mspace);
 	bot->setEnv(env);
 	//bot->setMindSpace(m_mspace);
 	

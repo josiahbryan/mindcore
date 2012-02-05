@@ -1,6 +1,8 @@
 #include "SimpleBotAgent.h"
 #include "SimpleBotEnv.h"
 
+#include <math.h>
+
 bool operator==(SimpleBotAgent::StateInfo a, SimpleBotAgent::StateInfo b) { return a.id==b.id; } 
 bool operator!=(SimpleBotAgent::StateInfo a, SimpleBotAgent::StateInfo b) { return a.id!=b.id; }
 bool operator!(SimpleBotAgent::StateInfo a) { return a.isNull(); }
@@ -13,7 +15,7 @@ SimpleBotAgent::InfoDisplay::InfoDisplay(SimpleBotAgent *agent)
 	setZValue(150);
 }
  
-void SimpleBotAgent::InfoDisplay::paint(QPainter *p, const QStyleOptionGraphicsItem *option, QWidget *)
+void SimpleBotAgent::InfoDisplay::paint(QPainter *p, const QStyleOptionGraphicsItem */*option*/, QWidget *)
 {
 	SimpleBotAgent *agent = m_agent;
 	if(!agent)
@@ -52,8 +54,7 @@ SimpleBotAgent::SimpleBotAgent(MSpace *ms)
 	: QObject()
 	, QGraphicsItem()
 	, m_env(0)
-	, m_space(ms)
-	, m_mspace(0)
+	, m_mspace(ms)
 	, m_label("")
 	, m_color(Qt::black)
 	, m_hud(0)
@@ -94,19 +95,70 @@ void SimpleBotAgent::setMindSpace(MSpace *ms)
 
 void SimpleBotAgent::setupSubsystems()
 {
-	AgentBioSystem *bio = new AgentBioSystem(this);
-	bio->initMindSpace();
-	m_subsystems << bio;
-	
-	AgentMovementSystem *move = new AgentMovementSystem(this);
-	move->initMindSpace();
-	m_subsystems << move;
-	
-	AgentTouchSystem *touch = new AgentTouchSystem(this);
-	touch->initMindSpace();
-	m_subsystems << touch;
+	addSubsystem(new AgentBioSystem(this));
+	addSubsystem(new AgentMovementSystem(this));
+	addSubsystem(new AgentTouchSystem(this));
 }
 
+void SimpleBotAgent::addSubsystem(AgentSubsystem *sys)
+{
+	sys->initMindSpace();
+	m_subsystems.append(sys);
+}
+
+void SimpleBotAgent::initGoals()
+{
+	MNode *agentGoals = m_mspace->node("AgentGoals", MNodeType::GoalNode());
+	
+	MNode *hungerVar  = m_mspace->node("HungerValue", MNodeType::VariableNode());
+	MNode *hungerGoal = m_mspace->node("HungerGoal");
+	if(!hungerGoal)
+	{
+		MNode *hungerGoal = m_mspace->addNode("HungerGoal", MNodeType::GoalNode());
+		
+		// NOTE Idea: Perhaps the link weight (Tv) could be the way to rank the goals...
+		// NOTE Revision: The lti/sti would be a better ranking...
+		m_mspace->link(agentGoals, hungerGoal, MLinkType::OrderedLink());
+		
+		QVariantList goalData;
+		{	
+			QVariantList goalRow;
+			goalRow << "MIN" << "HungerValue";
+			
+			goalData << goalRow;
+		}
+		
+		hungerGoal->setData(goalData);
+		
+		hungerVar->setData(1.0);
+		
+		m_mspace->link(hungerGoal, hungerVar, MLinkType::GoalVariableLink());
+	}
+	m_goals << hungerGoal;
+	
+	MNode *energyVar  = m_mspace->node("EnergyValue", MNodeType::VariableNode());
+	MNode *energyGoal = m_mspace->node("EnergyGoal");
+	if(!energyGoal)
+	{
+		MNode *energyGoal = m_mspace->addNode("EnergyGoal", MNodeType::GoalNode());
+		m_mspace->link(agentGoals, energyGoal, MLinkType::OrderedLink());
+		
+		QVariantList goalData;
+		{	
+			QVariantList goalRow;
+			goalRow << "MAX" << "EnergyValue";
+			
+			goalData << goalRow;
+		}
+		
+		energyGoal->setData(goalData);
+		
+		energyVar->setData(1.0);
+		
+		m_mspace->link(energyGoal, energyVar, MLinkType::GoalVariableLink());
+	}
+	m_goals << energyGoal;
+}
 
 QRectF SimpleBotAgent::boundingRect() const
 {
@@ -130,7 +182,7 @@ QPainterPath SimpleBotAgent::shape() const
 	return path;
 }
 
-void SimpleBotAgent::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *)
+void SimpleBotAgent::paint(QPainter *painter, const QStyleOptionGraphicsItem */*option*/, QWidget *)
 {
 	painter->setBrush(m_color);
 	painter->drawEllipse(-10, -10, 20, 20);
@@ -209,53 +261,7 @@ void SimpleBotAgent::advance()
 	//MNode *hungerGoal = m_mspace->node("HungerGoal", MNodeType::GoalNode());
 	//MNode *energyGoal = m_mspace->node("EnergyGoal", MNodeType::GoalNode());
 	
-	MNode *agentGoals = m_mspace->node("AgentGoals", MNodeType::GoalNode());
-	
-	MNode *hungerVar  = m_mspace->node("HungerValue", MNodeType::VariableNode());
-	MNode *hungerGoal = m_mspace->node("HungerGoal");
-	if(!hungerGoal)
-	{
-		MNode *hungerGoal = m_mspace->addNode("HungerGoal", MNodeType::GoalNode());
-		
-		// NOTE Idea: Perhaps the link weight (Tv) could be the way to rank the goals...
-		m_mspace->link(agentGoals, hungerGoal, MLinkType::OrderedLink());
-		
-		QVariantList goalData;
-		{	
-			QVariantList goalRow;
-			goalRow << "MIN" << "HungerValue";
-			
-			goalData << goalRow;
-		}
-		
-		hungerGoal->setData(goalData);
-		
-		hungerVar->setData(1.0);
-		
-		m_mspace->link(hungerGoal, hungerVar, MLinkType::GoalVariableLink());
-	}
-	
-	MNode *energyVar  = m_mspace->node("EnergyValue", MNodeType::VariableNode());
-	MNode *energyGoal = m_mspace->node("EnergyGoal");
-	if(!energyGoal)
-	{
-		MNode *energyGoal = m_mspace->addNode("EnergyGoal", MNodeType::GoalNode());
-		m_mspace->link(agentGoals, energyGoal, MLinkType::OrderedLink());
-		
-		QVariantList goalData;
-		{	
-			QVariantList goalRow;
-			goalRow << "MAX" << "EnergyValue";
-			
-			goalData << goalRow;
-		}
-		
-		energyGoal->setData(goalData);
-		
-		energyVar->setData(1.0);
-		
-		m_mspace->link(energyGoal, energyVar, MLinkType::GoalVariableLink());
-	}
+	initGoals();
 	
 	
 	/*
@@ -388,9 +394,9 @@ void SimpleBotAgent::processSearching()
 	
 	if(newPos != expect)
 	{
-		double angle = chooseVector();
-		
-		qDebug() << "SimpleBotAgent::advance: S_Searching: new m_vec: "<<m_vec<<", new angle: "<<angle;
+		chooseVector();
+		//double angle = chooseVector();
+		//qDebug() << "SimpleBotAgent::advance: S_Searching: new m_vec: "<<m_vec<<", new angle: "<<angle;
 	}
 	//else
 		//qDebug() << "SimpleBotAgent::advance: S_Searching: new pos: "<<newPos;
@@ -400,10 +406,21 @@ void SimpleBotAgent::processSearching()
 
 double SimpleBotAgent::chooseVector()
 {
-	m_vec = QPointF(
-		((double)(rand() % 100)) / 10. - 5.,
-		((double)(rand() % 100)) / 10. - 5.
-	);
+// 	m_vec = QPointF(
+// 		((double)(rand() % 100)) / 10. - 5.,
+// 		((double)(rand() % 100)) / 10. - 5.
+// 	);
+
+	double angle = ((double)(rand() % 359));
+	double speed = ((double)(rand() %  19)) + 1;
+	qDebug() << "SimpleBotAgent::chooseVector(): angle:"<<angle<<", speed:"<<speed;
+	
+	// X= R*cos(Theta)
+	// Y= R*sin(Theta)
+	double x = speed * cos(angle);
+	double y = speed * sin(angle);
+	
+	m_vec = QPointF(x,y);
 	
 	QLineF line(QPointF(0,0), m_vec);
 	//setRotation(line.angle());
@@ -439,25 +456,50 @@ void SimpleBotAgent::setState(StateInfo state)
 	}
 }
 
-// QString SimpleBotAgent::nameForState(StateType state)
-// {
-// 	switch(state)
-// 	{
-// 		case S_Resting:
-// 			return "resting";
-// 		case S_Searching:
-// 			return "searching";
-// 		case S_Eating:
-// 			return "eating";
-// 		case S_AskForMore:
-// 			return "asking for more";
-// 		default:
-// 			break;
-// 	};
-// 	
-// 	return "?";
-// }
-// 
-// 
-// 
 
+///
+
+void AgentBioSystem::initMindSpace()
+{
+	m_node = m_mspace->node("BioSystem", MNodeType::ConceptNode());
+	
+	m_hungerVar = m_mspace->node("HungerValue", MNodeType::VariableNode());
+	m_energyVar = m_mspace->node("EnergyValue", MNodeType::VariableNode());
+	
+	m_mspace->link(m_node, m_hungerVar, MLinkType::PartOf());
+	m_mspace->link(m_node, m_energyVar, MLinkType::PartOf());
+}
+
+void AgentBioSystem::advance()
+{
+
+}
+
+bool AgentBioSystem::executeAction(MNode *)
+{
+	return false;
+}
+
+///
+
+void AgentMovementSystem::initMindSpace()
+{
+
+}
+
+bool AgentMovementSystem::executeAction(MNode *)
+{
+	return false;
+}
+
+///
+
+void AgentTouchSystem::initMindSpace()
+{
+
+}
+
+bool AgentTouchSystem::executeAction(MNode *)
+{
+	return false;
+}

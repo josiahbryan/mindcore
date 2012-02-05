@@ -8,6 +8,7 @@ using namespace MindSpace;
 
 class SimpleBotEnv;
 class SimpleBotAgent;
+class AgentSubsystem;
 
 #define StateUnknown   SimpleBotAgent::StateInfo(0x001, "unknown")
 #define StateResting   SimpleBotAgent::StateInfo(0x002, "resting")
@@ -146,9 +147,14 @@ protected:
 	
 	InfoDisplay *m_hud;
 	
-	QList<AgentSusbsystem*> m_subsystems;
+	QList<AgentSubsystem*> m_subsystems;
+	QHash<QString,AgentSubsystem*> m_subsysHash;
 	
 	void setupSubsystems();
+	void addSubsystem(AgentSubsystem*);
+	void initGoals();
+	
+	QList<MNode*> m_goals;
 	
 };
 
@@ -180,6 +186,9 @@ public:
 	// TODO: Shouldn't this be implicitly called by ctor?
 	virtual void initMindSpace() {}
 	
+	// Clock tick
+	virtual void advance() {}
+	
 	// Return the node for this system
 	// TODO: Is this even needed outside the subsystem?
 	virtual MNode *node() { return m_node; }
@@ -193,7 +202,7 @@ public:
 	// The subsystem has access to the agents mindspace outside of executeAction(), e.g. in a slot for updating the mindspace asyncronously
 	
 protected:
-	SImpleBotAgent *m_agent;
+	SimpleBotAgent *m_agent;
 	MNode *m_node;
 	
 };
@@ -202,15 +211,24 @@ class AgentBioSystem : public AgentSubsystem
 {
 	Q_OBJECT
 public:
+	AgentBioSystem(SimpleBotAgent *agent) : AgentSubsystem(agent) {}
+	 
 	QString name() { return "Biological"; }
 	void initMindSpace();
+	void advance();
 	bool executeAction(MNode *);
+	
+protected:
+	MNode *m_hungerVar;
+	MNode *m_energyVar;
 };
 
 class AgentMovementSystem : public AgentSubsystem
 {
 	Q_OBJECT
 public:
+	AgentMovementSystem(SimpleBotAgent *agent) : AgentSubsystem(agent) {}
+	
 	QString name() { return "Movement"; }
 	void initMindSpace();
 	bool executeAction(MNode *);
@@ -220,6 +238,8 @@ class AgentTouchSystem : public AgentSubsystem
 {
 	Q_OBJECT
 public:
+	AgentTouchSystem(SimpleBotAgent *agent) : AgentSubsystem(agent) {}
+	
 	QString name() { return "Touch"; }
 	void initMindSpace();
 	bool executeAction(MNode *);
