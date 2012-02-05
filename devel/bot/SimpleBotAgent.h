@@ -15,14 +15,16 @@ class SimpleBotAgent;
 #define StateEating    SimpleBotAgent::StateInfo(0x004, "eating")
 #define StateAsking    SimpleBotAgent::StateInfo(0x005, "asking")
 
-class SimpleBotAgent : public QObject, public QGraphicsItem
+class SimpleBotAgent : public QObject, 
+		       public QGraphicsItem
 {
 	Q_OBJECT
 public:
-	SimpleBotAgent();
+	SimpleBotAgent(MSpace *mspace=0);
 	
 	void setEnv(SimpleBotEnv *env);
-	void setMindSpace(MSpace *mspace);
+	//void setMindSpace(MSpace *mspace);
+	MSpace *mindSpace() { return m_mspace; }
 
 	// QGraphicsItem::
 	enum { Type = UserType + 1 };
@@ -64,6 +66,7 @@ public:
 	};
 	
 	StateInfo state() { return m_state; }
+	
 	
 	
 signals:
@@ -142,6 +145,11 @@ protected:
 	QPointF m_vec;
 	
 	InfoDisplay *m_hud;
+	
+	QList<AgentSusbsystem*> m_subsystems;
+	
+	void setupSubsystems();
+	
 };
 
 bool operator==(SimpleBotAgent::StateInfo a, SimpleBotAgent::StateInfo b); 
@@ -149,5 +157,95 @@ bool operator!=(SimpleBotAgent::StateInfo a, SimpleBotAgent::StateInfo b);
 bool operator!(SimpleBotAgent::StateInfo a);
 //QDebug operator<<(QDebug dbg, SimpleBotAgent::StateInfo state);
 	
+
+class AgentSubsystem : public QObject 
+{
+	Q_OBJECT
+public:
 	
+	AgentSubsystem(SimpleBotAgent *agent) 
+		: QObject(agent)
+		, m_agent(agent)
+		, m_node(0) 
+		{ }
+		
+	virtual ~AgentSubsystem() {}
+	
+	SimpleBotAgent *agent() { return m_agent; }
+	
+	// Unique name of this subsystem
+	virtual QString name() { return "?"; }
+	
+	// Setup the mindspace of the agent (agent->mindSpace()) with any action nodes and a node represeting this system linked to the agent
+	// TODO: Shouldn't this be implicitly called by ctor?
+	virtual void initMindSpace() {}
+	
+	// Return the node for this system
+	// TODO: Is this even needed outside the subsystem?
+	virtual MNode *node() { return m_node; }
+	
+	// Execute the action described by the MNode given
+	// May return immediately and execute the action over time.
+	// May return false if the subsystem cannot handle the given action
+	// Must never return true and ingore the action
+	virtual bool executeAction(MNode *) { return false; }
+	
+	// The subsystem has access to the agents mindspace outside of executeAction(), e.g. in a slot for updating the mindspace asyncronously
+	
+protected:
+	SImpleBotAgent *m_agent;
+	MNode *m_node;
+	
+};
+
+class AgentBioSystem : public AgentSubsystem
+{
+	Q_OBJECT
+public:
+	QString name() { return "Biological"; }
+	void initMindSpace();
+	bool executeAction(MNode *);
+};
+
+class AgentMovementSystem : public AgentSubsystem
+{
+	Q_OBJECT
+public:
+	QString name() { return "Movement"; }
+	void initMindSpace();
+	bool executeAction(MNode *);
+};
+
+class AgentTouchSystem : public AgentSubsystem
+{
+	Q_OBJECT
+public:
+	QString name() { return "Touch"; }
+	void initMindSpace();
+	bool executeAction(MNode *);
+};
+
+/*
+class AgentHearingSystem : public AgnetSusbsystem
+{
+	Q_OBJECT
+public:
+	QString name() { return "Hearing"; }
+	void initMindSpace();
+	bool executeAction(MNode *);
+};
+*/
+
+/*
+class AgentSpeechSystem : public AgnetSusbsystem
+{
+	Q_OBJECT
+public:
+	QString name() { return "Speech"; }
+	void initMindSpace();
+	bool executeAction(MNode *);
+};
+*/
+
+
 #endif

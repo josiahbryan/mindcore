@@ -48,15 +48,19 @@ SimpleBotAgent::InfoDisplay *SimpleBotAgent::infoItem()
 	return m_hud;
 }
 
-SimpleBotAgent::SimpleBotAgent()
+SimpleBotAgent::SimpleBotAgent(MSpace *ms)
 	: QObject()
 	, QGraphicsItem()
 	, m_env(0)
+	, m_space(ms)
 	, m_mspace(0)
 	, m_label("")
 	, m_color(Qt::black)
 	, m_hud(0)
 {
+	if(!m_mspace)
+		m_mspace = new MSpace();
+		
 	m_hunger = 1.0;
 	m_energy = 1.0;
 
@@ -72,6 +76,8 @@ SimpleBotAgent::SimpleBotAgent()
 	
 	m_timer.start();
 	m_state = StateUnknown;
+	
+	setupSubsystems();
 }
 
 void SimpleBotAgent::setEnv(SimpleBotEnv *env)
@@ -80,10 +86,25 @@ void SimpleBotAgent::setEnv(SimpleBotEnv *env)
 	if(env)
 		env->addItem(this);
 }
-
+/*
 void SimpleBotAgent::setMindSpace(MSpace *ms)
 {
 	m_mspace = ms;
+}*/
+
+void SimpleBotAgent::setupSubsystems()
+{
+	AgentBioSystem *bio = new AgentBioSystem(this);
+	bio->initMindSpace();
+	m_subsystems << bio;
+	
+	AgentMovementSystem *move = new AgentMovementSystem(this);
+	move->initMindSpace();
+	m_subsystems << move;
+	
+	AgentTouchSystem *touch = new AgentTouchSystem(this);
+	touch->initMindSpace();
+	m_subsystems << touch;
 }
 
 
@@ -234,7 +255,6 @@ void SimpleBotAgent::advance()
 		energyVar->setData(1.0);
 		
 		m_mspace->link(energyGoal, energyVar, MLinkType::GoalVariableLink());
-		
 	}
 	
 	
@@ -258,6 +278,17 @@ void SimpleBotAgent::advance()
 	*/
 	
 	/* Coding stopped here 2/3 */
+	
+	///
+	/* More thoughts:
+	
+		Actions---
+			ActionNode
+				
+	
+	*/
+	///
+	
 	
 	// Update bio variables
 	updateHungerEnergyState();
