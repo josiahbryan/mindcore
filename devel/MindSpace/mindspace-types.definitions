@@ -1,4 +1,4 @@
-/** \file mindspace-types.definitions - Generated from MindSpace.types by mindspace-types.pl on Fri Feb  3 17:01:19 EST 2012  **/
+/** \file mindspace-types.definitions - Generated from MindSpace.types by mindspace-types.pl on Sun Feb  5 18:49:53 EST 2012  **/
 
 static MLinkType MLinkType_KLineLink ( "KLineLink", "e706cc14-e9ea-4dd3-9b65-5a3f5bedba96" );
 const MLinkType & MLinkType::KLineLink() { return MLinkType_KLineLink; }
@@ -166,3 +166,5 @@ static MNodeType MNodeType_MovementVectorNode ( "MovementVectorNode", "3b2cf1ae-
 const MNodeType & MNodeType::MovementVectorNode() { return MNodeType_MovementVectorNode; }
 static MNodeType MNodeType_SimpleXYMovementVector ( "SimpleXYMovementVector", "cb8fcfea-aaad-4e75-b2d2-97b49648e112");
 const MNodeType & MNodeType::SimpleXYMovementVector() { return MNodeType_SimpleXYMovementVector; }
+static MNodeType MNodeType_ActionNode ( "ActionNode", "f47c8a7d-7a07-4cb6-ae7e-dccd7c84be2b");
+const MNodeType & MNodeType::ActionNode() { return MNodeType_ActionNode; }

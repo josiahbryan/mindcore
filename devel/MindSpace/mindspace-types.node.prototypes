@@ -1,4 +1,4 @@
-/** \file mindspace-types.node.prototypes - Generated from MindSpace.types by mindspace-types.pl on Fri Feb  3 17:01:19 EST 2012 **/
+/** \file mindspace-types.node.prototypes - Generated from MindSpace.types by mindspace-types.pl on Sun Feb  5 18:49:53 EST 2012 **/
 
 /** Shared reference to special node type ConceptNode */
 static const MNodeType & ConceptNode();
@@ -36,3 +36,5 @@ static const MNodeType & VectorNode();
 static const MNodeType & MovementVectorNode();
 /** Shared reference to special node type SimpleXYMovementVector */
 static const MNodeType & SimpleXYMovementVector();
+/** Shared reference to special node type ActionNode */
+static const MNodeType & ActionNode();

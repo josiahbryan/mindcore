@@ -78,6 +78,7 @@ SimpleBotAgent::SimpleBotAgent(MSpace *ms)
 	m_timer.start();
 	m_state = StateUnknown;
 	
+	m_node = ms->node("Agent", MNodeType::SpecificEntityNode());
 	setupSubsystems();
 }
 
@@ -109,6 +110,7 @@ void SimpleBotAgent::addSubsystem(AgentSubsystem *sys)
 void SimpleBotAgent::initGoals()
 {
 	MNode *agentGoals = m_mspace->node("AgentGoals", MNodeType::GoalNode());
+	m_mspace->link(m_node, agentGoals, MLinkType::PartOf());
 	
 	MNode *hungerVar  = m_mspace->node("HungerValue", MNodeType::VariableNode());
 	MNode *hungerGoal = m_mspace->node("HungerGoal");
@@ -461,13 +463,18 @@ void SimpleBotAgent::setState(StateInfo state)
 
 void AgentBioSystem::initMindSpace()
 {
-	m_node = m_mspace->node("BioSystem", MNodeType::ConceptNode());
+	MSpace *ms = m_agent->mindSpace();
+	m_node = ms->node("BioSystem", MNodeType::ConceptNode());
+	ms->link(m_agent->node(), m_node, MLinkType::PartOf());
 	
-	m_hungerVar = m_mspace->node("HungerValue", MNodeType::VariableNode());
-	m_energyVar = m_mspace->node("EnergyValue", MNodeType::VariableNode());
+	m_hungerVar = ms->node("HungerValue", MNodeType::VariableNode());
+	m_energyVar = ms->node("EnergyValue", MNodeType::VariableNode());
 	
-	m_mspace->link(m_node, m_hungerVar, MLinkType::PartOf());
-	m_mspace->link(m_node, m_energyVar, MLinkType::PartOf());
+	ms->link(m_node, m_hungerVar, MLinkType::PartOf());
+	ms->link(m_node, m_energyVar, MLinkType::PartOf());
+	
+	MNode *act = ms->node("EatAction", MNodeType::ActionNode());
+	ms->link(m_node, act, MLinkType::PartOf());
 }
 
 void AgentBioSystem::advance()
@@ -484,6 +491,27 @@ bool AgentBioSystem::executeAction(MNode *)
 
 void AgentMovementSystem::initMindSpace()
 {
+	MSpace *ms = m_agent->mindSpace();
+	m_node = ms->node("MovementSystem", MNodeType::ConceptNode());
+	ms->link(m_agent->node(), m_node, MLinkType::PartOf());
+	
+	MNode *speed = ms->node("MoveSpeed", MNodeType::VariableNode());
+	MNode *dir   = ms->node("MoveDirection", MNodeType::VariableNode());
+	
+	ms->link(m_node, speed, MLinkType::PartOf());
+	ms->link(m_node, dir, MLinkType::PartOf());
+	
+	MNode *act = ms->node("MoveAction", MNodeType::ActionNode());
+	ms->link(act, speed, MLinkType::PartOf());
+	ms->link(act, dir, MLinkType::PartOf());
+	
+	ms->link(m_node, act, MLinkType::PartOf());
+	
+	act = ms->node("RestAction", MNodeType::ActionNode());
+	ms->link(m_node, act, MLinkType::PartOf());
+	
+	MNode *time = ms->node("RestTime", MNodeType::VariableNode());
+	ms->link(act, time, MLinkType::PartOf());
 
 }
 
@@ -496,7 +524,13 @@ bool AgentMovementSystem::executeAction(MNode *)
 
 void AgentTouchSystem::initMindSpace()
 {
-
+	MSpace *ms = m_agent->mindSpace();
+	m_node = ms->node("Touchsystem", MNodeType::ConceptNode());
+	ms->link(m_agent->node(), m_node, MLinkType::PartOf());
+	
+	MNode *touch = ms->node("TouchSensor", MNodeType::VariableNode());
+	
+	ms->link(m_node, touch, MLinkType::PartOf());
 }
 
 bool AgentTouchSystem::executeAction(MNode *)

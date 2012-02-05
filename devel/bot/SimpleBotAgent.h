@@ -26,6 +26,8 @@ public:
 	void setEnv(SimpleBotEnv *env);
 	//void setMindSpace(MSpace *mspace);
 	MSpace *mindSpace() { return m_mspace; }
+	
+	MNode *node() { return m_node; }
 
 	// QGraphicsItem::
 	enum { Type = UserType + 1 };
@@ -155,6 +157,8 @@ protected:
 	void initGoals();
 	
 	QList<MNode*> m_goals;
+	
+	MNode *m_node;
 	
 };
 
