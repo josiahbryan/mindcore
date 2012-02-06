@@ -57,10 +57,19 @@ namespace MindSpace
 		
 		const QVariant & data() const		{ return m_data; }			/*!< \return the 'data' property variant.		\sa data */
 		
-		MSpace *mindSpace() { return m_mspace; }
+		QList<MNode *> linkedNode(const QString& content,    bool first=false);		/*!< \return all linked nodes matching \a content - return only the first matching node if \a first is true. */
+		QList<MNode *> linkedNode(MindSpace::MNodeType type, bool first=false);		/*!< \return all linked nodes matching \a type - return only the first matching node if \a first is true. */
 		
-		static QString toString(const MNode* node=0, bool renderLinks = true);
-		static QString toSimpleString(const MNode* node=0, bool renderLinks = true);
+		MNode *firstLinkedNode(const QString& content);					/*!< \return the first linked node matching \a content - convenience function, calls linkedNode(content,true) internally */ 
+		MNode *firstLinkedNode(MindSpace::MNodeType type);				/*!< \return the first linked node matching \a type - convenience function, calls linkedNode(content,true) internally */
+		
+		MSpace *mindSpace() { return m_mspace; }					/*!< \return the MSpace this node belongs to */
+		
+		MNode *clone(int levels=1);							/*!< clone this node using toVariantMap()/fromVariantMap(), \return the new node */
+		static MNode* clone(MNode *node, int levels=1);					/*!< \return a cloned copy of the \a node */ 
+		
+		static QString toString(const MNode* node=0, bool renderLinks = true);		/*!< \return a string suitable for textual output for debugging purposes */
+		static QString toSimpleString(const MNode* node=0, bool renderLinks = true);	/*!< \return a short format string suitable for textual output for debugging purposes */
 		
 		static MNode *node(const QString& name, MindSpace::MNodeType type = MNodeType(), MSpace *mspace=0);
 		
@@ -139,6 +148,9 @@ namespace MindSpace
 		
 		/// Static map of Content to MNode objects
 		static QHash<QString,MNode*> s_nodes;
+		
+		
+		MNode *_clone(int curLeve=0, levels=1);
 	
 	};
 	

@@ -72,6 +72,12 @@ public:
 	
 	StateInfo state() { return m_state; }
 	
+	void actionException(MNode *currentAction, const QString& message);
+	
+	MNode *currentAction() { return m_currentAction; }
+	
+	void actionCompleted(MNode *currentAction);
+	
 	
 	
 signals:
@@ -154,9 +160,23 @@ protected:
 	QList<AgentSubsystem*> m_subsystems;
 	QHash<QString,AgentSubsystem*> m_subsysHash;
 	
-	void setupSubsystems();
+	void initSubsystems();
 	void addSubsystem(AgentSubsystem*);
 	void initGoals();
+	
+	// Choose an MNode* to be current goal
+	void chooseCurrentGoal();
+	MNode *m_currentGoal;
+	
+	// called by chooseCurrentGoal(),
+	// based on goal, find set up actions which give the highest probability of achieving current goal
+	void chooseAction();
+	// chooseAction() could also be triggered by actionException() above
+	MNode *m_currentAction;
+	
+	// Calculate the probability that the MNode *action will achieve/help toward  m_currentGoal 
+	double calcGoalActionProb(MNode *action);
+	
 	
 	QList<MNode*> m_goals;
 	
@@ -169,118 +189,4 @@ bool operator!=(SimpleBotAgent::StateInfo a, SimpleBotAgent::StateInfo b);
 bool operator!(SimpleBotAgent::StateInfo a);
 //QDebug operator<<(QDebug dbg, SimpleBotAgent::StateInfo state);
 	
-
-class AgentSubsystem : public QObject 
-{
-	Q_OBJECT
-public:
-	
-	AgentSubsystem(SimpleBotAgent *agent) 
-		: QObject(agent)
-		, m_agent(agent)
-		, m_node(0) 
-		{ }
-		
-	virtual ~AgentSubsystem() {}
-	
-	SimpleBotAgent *agent() { return m_agent; }
-	
-	// Unique name of this subsystem
-	virtual QString name() { return "?"; }
-	
-	QString className() { return metaObject()->className(); }
-	
-	// Setup the mindspace of the agent (agent->mindSpace()) with any action nodes and a node represeting this system linked to the agent
-	// TODO: Shouldn't this be implicitly called by ctor?
-	virtual void initMindSpace() {}
-	
-	// Clock tick
-	virtual void advance() {}
-	
-	// Return the node for this system
-	// TODO: Is this even needed outside the subsystem?
-	virtual MNode *node() { return m_node; }
-	
-	// Execute the action described by the MNode given
-	// May return immediately and execute the action over time.
-	// May return false if the subsystem cannot handle the given action
-	// Must never return true and ingore the action
-	virtual bool executeAction(MNode *) { return false; }
-	
-	// The subsystem has access to the agents mindspace outside of executeAction(), e.g. in a slot for updating the mindspace asyncronously
-	
-protected:
-	SimpleBotAgent *m_agent;
-	MNode *m_node;
-	
-};
-
-class AgentBioSystem : public AgentSubsystem
-{
-	Q_OBJECT
-public:
-	AgentBioSystem(SimpleBotAgent *agent) : AgentSubsystem(agent) {}
-	 
-	static QString className() { return staticMetaObject.className(); }
-	
-	QString name() { return "Biological"; }
-	void initMindSpace();
-	void advance();
-	bool executeAction(MNode *);
-	
-	
-protected:
-	MNode *m_hungerVar;
-	MNode *m_energyVar;
-};
-
-class AgentMovementSystem : public AgentSubsystem
-{
-	Q_OBJECT
-public:
-	AgentMovementSystem(SimpleBotAgent *agent) : AgentSubsystem(agent) {}
-	
-	static QString className() { return staticMetaObject.className(); }
-	
-	QString name() { return "Movement"; }
-	void initMindSpace();
-	bool executeAction(MNode *);
-};
-
-class AgentTouchSystem : public AgentSubsystem
-{
-	Q_OBJECT
-public:
-	AgentTouchSystem(SimpleBotAgent *agent) : AgentSubsystem(agent) {}
-	
-	static QString className() { return staticMetaObject.className(); }
-	
-	QString name() { return "Touch"; }
-	void initMindSpace();
-	bool executeAction(MNode *);
-};
-
-/*
-class AgentHearingSystem : public AgnetSusbsystem
-{
-	Q_OBJECT
-public:
-	QString name() { return "Hearing"; }
-	void initMindSpace();
-	bool executeAction(MNode *);
-};
-*/
-
-/*
-class AgentSpeechSystem : public AgnetSusbsystem
-{
-	Q_OBJECT
-public:
-	QString name() { return "Speech"; }
-	void initMindSpace();
-	bool executeAction(MNode *);
-};
-*/
-
-
 #endif

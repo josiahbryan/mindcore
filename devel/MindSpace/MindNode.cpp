@@ -70,6 +70,36 @@ QString MNode::toString(const MNode* node, bool renderLinks)
 }
 
 
+MNode *MNode::clone(MNode *node, int levels)
+{
+	return node->_clone(0, levels);
+}
+
+MNode *MNode::_clone(int curLevel, int levels)
+{
+	if(curLevel > levels)
+		return 0;
+	 
+	MNode *newNode = new MNode();
+	newNode->fromVariantMap(node->toVariantMap());
+	
+	foreach(MLink *links, m_links)
+	{
+		if(links->node1() == this)
+		{
+			MNode *node2 = links->node2()->clone(curLevel+1, levels);
+			newNode->addLink(node2);
+		}
+	}
+	
+	return newNode;
+}
+
+MNode *MNode::clone()
+{
+	return clone(this);
+}
+
 /** Create an empty MNode with type set to MindSpace::ConceptNode and LTI/STI to 1.0 each */
 MNode::MNode()
 	: QStorableObject()
@@ -230,6 +260,68 @@ void MNode::setStoredProperty(QString name, QVariant value)
 		setProperty(qPrintable(name), value);
 }
 
+
+QList<MNode *> MNode::linkedNode(const QString& content, bool first)
+{
+	QList<MNode *> nodes;
+	foreach(MLink *link, m_links)
+	{
+		MNode *node = 0;
+		if(link->node1() == this &&
+		   link->node2()->content() == content)
+		   node = link->node2();
+		else
+		if(link->node2() == this &&
+		   link->node1()->content() == content)
+		   node = link->node1();
+		
+		if(node)
+		{
+			nodes.append(node);
+			if(first)
+				break;
+		}
+	}
+	
+	return nodes;
+}
+
+QList<MNode *> MNode::linkedNode(MindSpace::MNodeType type, bool first)
+{
+	QList<MNode *> nodes;
+	foreach(MLink *link, m_links)
+	{
+		MNode *node = 0;
+		if(link->node1() == this &&
+		   link->node2()->type() == type)
+		   node = link->node2();
+		else
+		if(link->node2() == this &&
+		   link->node1()->type() == type)
+		   node = link->node1();
+		
+		if(node)
+		{
+			nodes.append(node);
+			if(first)
+				break;
+		}
+	}
+	
+	return nodes;
+}
+
+MNode *MNode::firstLinkedNode(const QString& content)
+{
+	QList<MNode*> list = linkedNode(content, true);
+	return list.isEmpty() ? 0 : list.first();
+}
+
+MNode *MNode::firstLinkedNode(MindSpace::MNodeType type)
+{
+	QList<MNode*> list = linkedNode(type, true);
+	return list.isEmpty() ? 0 : list.first();
+}
 
 
 }; // end namespace

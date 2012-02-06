@@ -1,5 +1,6 @@
 #include "SimpleBotAgent.h"
 #include "SimpleBotEnv.h"
+#include "AgentSubsystems.h"
 
 #include <math.h>
 
@@ -27,7 +28,17 @@ void SimpleBotAgent::InfoDisplay::paint(QPainter *p, const QStyleOptionGraphicsI
 	p->fillRect(rect, QColor(0,0,0,187));
 	p->drawRect(rect);
 	
-	QString stateName = agent->state().name;
+	//QString stateName = agent->state().name;
+	QString stateName = agent->currentAction() ? agent->currentAction()->content() : "(?)";
+	 
+	AgentSubsystem *bioPtr = m_agent->subsystem(AgentBioSystem::className());
+	AgentBioSystem *bio = dynamic_cast<AgentBioSystem*>(bioPtr);
+	if(!bio)
+	{
+		qDebug() << "SimpleBotAgent::InfoDisplay::: Agent doesn't have a bio system, are we dead??";
+		return;
+	}
+	
 	
 	int fontSize = 10;
 	int margin = fontSize/2;
@@ -37,8 +48,8 @@ void SimpleBotAgent::InfoDisplay::paint(QPainter *p, const QStyleOptionGraphicsI
 	p->setPen(Qt::white);
 	p->setFont(QFont("Monospace", fontSize, QFont::Bold));
 	p->drawText(rect.topLeft() + QPoint(margin, y += fontSize), QString( "State:  %1" ).arg(stateName));
-	p->drawText(rect.topLeft() + QPoint(margin, y += fontSize), QString( "Hunger: %1" ).arg(agent->m_hunger));
-	p->drawText(rect.topLeft() + QPoint(margin, y += fontSize), QString( "Energy: %1" ).arg(agent->m_energy));
+	p->drawText(rect.topLeft() + QPoint(margin, y += fontSize), QString( "Hunger: %1" ).arg(bio->hunger()));
+	p->drawText(rect.topLeft() + QPoint(margin, y += fontSize), QString( "Energy: %1" ).arg(bui->energy()));
 	p->restore();
 }
 
@@ -58,6 +69,9 @@ SimpleBotAgent::SimpleBotAgent(MSpace *ms)
 	, m_label("")
 	, m_color(Qt::black)
 	, m_hud(0)
+	, m_currentGoal(0)
+	, m_currentAction(0)
+	, m_node(0)
 {
 	if(!m_mspace)
 		m_mspace = new MSpace();
@@ -79,7 +93,13 @@ SimpleBotAgent::SimpleBotAgent(MSpace *ms)
 	m_state = StateUnknown;
 	
 	m_node = ms->node("Agent", MNodeType::SpecificEntityNode());
-	setupSubsystems();
+	
+	initSubsystems();
+	
+	initGoals();
+	
+	chooseCurrentGoal();
+	
 }
 
 void SimpleBotAgent::setEnv(SimpleBotEnv *env)
@@ -94,11 +114,11 @@ void SimpleBotAgent::setMindSpace(MSpace *ms)
 	m_mspace = ms;
 }*/
 
-void SimpleBotAgent::setupSubsystems()
+void SimpleBotAgent::initSubsystems()
 {
 	addSubsystem(new AgentBioSystem(this));
 	addSubsystem(new AgentMovementSystem(this));
-	addSubsystem(new AgentTouchSystem(this));
+	//addSubsystem(new AgentTouchSystem(this));
 }
 
 void SimpleBotAgent::addSubsystem(AgentSubsystem *sys)
@@ -113,7 +133,6 @@ void SimpleBotAgent::initGoals()
 	MNode *agentGoals = m_mspace->node("AgentGoals", MNodeType::GoalNode());
 	m_mspace->link(m_node, agentGoals, MLinkType::PartOf());
 	
-	MNode *hungerVar  = m_mspace->node("HungerValue", MNodeType::VariableNode());
 	MNode *hungerGoal = m_mspace->node("HungerGoal");
 	if(!hungerGoal)
 	{
@@ -133,13 +152,13 @@ void SimpleBotAgent::initGoals()
 		
 		hungerGoal->setData(goalData);
 		
+		MNode *hungerVar = m_mspace->node("HungerValue", MNodeType::VariableNode());
 		hungerVar->setData(1.0);
 		
 		m_mspace->link(hungerGoal, hungerVar, MLinkType::GoalVariableLink());
 	}
 	m_goals << hungerGoal;
 	
-	MNode *energyVar  = m_mspace->node("EnergyValue", MNodeType::VariableNode());
 	MNode *energyGoal = m_mspace->node("EnergyGoal");
 	if(!energyGoal)
 	{
@@ -156,11 +175,113 @@ void SimpleBotAgent::initGoals()
 		
 		energyGoal->setData(goalData);
 		
+		MNode *energyVar = m_mspace->node("EnergyValue", MNodeType::VariableNode());
 		energyVar->setData(1.0);
 		
 		m_mspace->link(energyGoal, energyVar, MLinkType::GoalVariableLink());
 	}
 	m_goals << energyGoal;
+}
+
+static bool SimpleBotAgent_goalSort(MNode *n1, MNode *n2)
+{
+	return false if !n1 || !n2;
+	return n1->shortTermImportance() < n2->shortTermImportance();
+}
+
+
+void SimpleBotAgent::chooseCurrentGoal()
+{
+	qSort(m_goals.begin(), m_goals.end(), SimpleBotAgent_goalSort);
+	MNode *goal = m_goals.first();
+	
+	if(goal != m_currentGoal)
+	{
+		qDebug() << "SimpleBotAgent::chooseCurrentGoal: Current goal changed, new goal: "<<goal->content();
+		chooseAction();
+	}
+}
+
+double SimpleBotAgent::calcGoalActionProb(MNode *action)
+{
+	/// TODO
+	return ((double)(rand() % 100) / 100.;
+}
+
+void SimpleBotAgent::chooseAction()
+{
+	AgentSubsystem::ActionInfo maxInfo;
+	double maxProb = 0.0;
+	foreach(AgentSubsystem *subsys, m_subsystems)
+	{
+		QList<AgentSubsystem::ActionInfo> actions = subsys->actions();
+		foreach(AgentSubsystem::ActionInfo info, actions)
+		{
+			double p = calcGoalActionProb(info.node);
+			if(p >= maxProb)
+			{
+				maxProb = p;
+				maxInfo = info;
+			}
+		}
+	}
+	
+	if(m_currentAction != maxInfo.node)
+	{
+		// clone clones first level links and nodes by default
+		m_currentAction = maxInfo.node->clone();
+		
+		QList<MNode*> vars = m_currentAction->linkedNode(MNodeType::VariableNode());
+		
+		/// TODO DON'T CHEAT
+		/// FIXME CHEATING
+		
+		foreach(MNode *node, vars)
+		{
+			if(node->content() == "EatTime" ||
+			   node->content() == "RestTime")
+			{
+				node->setData( rand() % 5000 );
+			}
+			else
+			if(node->content() == "MoveSpeed")
+			{
+				node->setData( ((double)(rand() % 100)) / 100.); 
+			}
+			else
+			if(node->content() == "MoveDirection")
+			{
+				node->setData( rand() % 359 );
+			}
+		}
+		
+		foreach(AgentSubsystem *subsys, m_subsystems)
+		{
+			if(!subsys->executeAction(m_currentAction))
+			{
+				qDebug() << "SimpleBotAgent::chooseAction: "<<subsys<<" - subsys didnt want action "<<m_currentAction->content(); 
+			}
+		}
+	}
+	
+	qDebug() << "SimpleBotAgent::chooseAction: Chose new action: "<<m_currentAction;
+}
+
+void SimpleBotAgent::actionCompleted(MNode *currentAction)
+{
+	chooseAction();
+}
+
+//MNode *m_currentGoal;
+
+void SimpleBotAgent::actionException(MNode *currentAction, const QString& message)
+{
+	/// TODO
+	//qDebug() << "SimpleBotAgent::actionException: Unandled: "<<message<<", current action: "<<currentAction;
+	//exit(-1);
+	qDebug() << "SimpleBotAgent::actionException: "<<message<<", current action: "<<currentAction;
+	
+	chooseAction();
 }
 
 QRectF SimpleBotAgent::boundingRect() const
@@ -263,8 +384,6 @@ void SimpleBotAgent::advance()
 	//MNode *agentNode = m_mspace->node(
 	//MNode *hungerGoal = m_mspace->node("HungerGoal", MNodeType::GoalNode());
 	//MNode *energyGoal = m_mspace->node("EnergyGoal", MNodeType::GoalNode());
-	
-	initGoals();
 	
 	
 	/*
@@ -457,91 +576,4 @@ void SimpleBotAgent::setState(StateInfo state)
 		else
 			m_mspace->addLink( new MLink(lastStateNode, currentStateNode, MLinkType::EventLink(), MTruthValue(0.1)) );
 	}
-}
-
-
-///
-
-void AgentBioSystem::initMindSpace()
-{
-	MSpace *ms = m_agent->mindSpace();
-	m_node = ms->node("BioSystem", MNodeType::ConceptNode());
-	ms->link(m_agent->node(), m_node, MLinkType::PartOf());
-	
-	m_hungerVar = ms->node("HungerValue", MNodeType::VariableNode());
-	m_energyVar = ms->node("EnergyValue", MNodeType::VariableNode());
-	
-	ms->link(m_node, m_hungerVar, MLinkType::PartOf());
-	ms->link(m_node, m_energyVar, MLinkType::PartOf());
-	
-	MNode *act = ms->node("EatAction", MNodeType::ActionNode());
-	ms->link(m_node, act, MLinkType::PartOf());
-}
-
-void AgentBioSystem::advance()
-{
-
-}
-
-bool AgentBioSystem::executeAction(MNode *)
-{
-	return false;
-}
-
-///
-
-void AgentMovementSystem::initMindSpace()
-{
-	//qDebug() << "AgentMovementSystem::initMindSpace(): Bio ptr: "<< m_agent->subsystem(AgentBioSystem::className());
-	
-	// Create the system node
-	MSpace *ms = m_agent->mindSpace();
-	m_node = ms->node("MovementSystem", MNodeType::ConceptNode());
-	ms->link(m_agent->node(), m_node, MLinkType::PartOf());
-	
-	// Create the variable nodes
-	MNode *speed = ms->node("MoveSpeed", MNodeType::VariableNode());
-	MNode *dir   = ms->node("MoveDirection", MNodeType::VariableNode());
-	
-	// Link the vars to the node
-	ms->link(m_node, speed, MLinkType::PartOf());
-	ms->link(m_node, dir, MLinkType::PartOf());
-	
-	// Create the action and link the vars to the act, and act to the system node
-	MNode *act = ms->node("MoveAction", MNodeType::ActionNode());
-	ms->link(act,    speed, MLinkType::PartOf());
-	ms->link(act,    dir,   MLinkType::PartOf());
-	ms->link(m_node, act,   MLinkType::PartOf());
-	
-	// Create the resting action
-	act = ms->node("RestAction", MNodeType::ActionNode());
-	ms->link(m_node, act, MLinkType::PartOf());
-	
-	// Variable for the rest action
-	MNode *time = ms->node("RestTime", MNodeType::VariableNode());
-	ms->link(act, time, MLinkType::PartOf());
-
-}
-
-bool AgentMovementSystem::executeAction(MNode *)
-{
-	return false;
-}
-
-///
-
-void AgentTouchSystem::initMindSpace()
-{
-	MSpace *ms = m_agent->mindSpace();
-	m_node = ms->node("Touchsystem", MNodeType::ConceptNode());
-	ms->link(m_agent->node(), m_node, MLinkType::PartOf());
-	
-	MNode *touch = ms->node("TouchSensor", MNodeType::VariableNode());
-	
-	ms->link(m_node, touch, MLinkType::PartOf());
-}
-
-bool AgentTouchSystem::executeAction(MNode *)
-{
-	return false;
 }

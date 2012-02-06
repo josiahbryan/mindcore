@@ -59,6 +59,12 @@ namespace MindSpace
 		{
 			return uuid() == b.uuid();
 		}
+		
+		/** \return true if \a a does not have the same UUID as \a b */
+		inline bool operator!=(const MNodeType &b)
+		{
+			return uuid() != b.uuid();
+		}
 	
 	private:
 		/** UUID of the type */
