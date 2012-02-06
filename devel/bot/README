@@ -41,4 +41,10 @@ Agent structure:
 Subsystems - such as movement, bio (e.g. simulate health, energy), visual, speach, hearing,.....
 
 Each subsystem could have its own "loop" or state machine....it would interface with the "outside world" and process in/out of Nodes/Links
-Subsys's would have their own implicit goals for which they're trying to maintain homeostasis... 
+Subsys's would have their own implicit goals for which they're trying to maintain homeostasis...
+ 
+----------------
+
+Subsys like movement needs to horzintally query bio sys for energy needs and move
+Add interface to subsys for agent to query for actions
+Agent try actions to achieve goal and memorize actions tried (MemoryNode/MemoryLink)

@@ -105,6 +105,7 @@ void SimpleBotAgent::addSubsystem(AgentSubsystem *sys)
 {
 	sys->initMindSpace();
 	m_subsystems.append(sys);
+	m_subsysHash[sys->className()]  = sys;
 }
 
 void SimpleBotAgent::initGoals()
@@ -491,25 +492,32 @@ bool AgentBioSystem::executeAction(MNode *)
 
 void AgentMovementSystem::initMindSpace()
 {
+	//qDebug() << "AgentMovementSystem::initMindSpace(): Bio ptr: "<< m_agent->subsystem(AgentBioSystem::className());
+	
+	// Create the system node
 	MSpace *ms = m_agent->mindSpace();
 	m_node = ms->node("MovementSystem", MNodeType::ConceptNode());
 	ms->link(m_agent->node(), m_node, MLinkType::PartOf());
 	
+	// Create the variable nodes
 	MNode *speed = ms->node("MoveSpeed", MNodeType::VariableNode());
 	MNode *dir   = ms->node("MoveDirection", MNodeType::VariableNode());
 	
+	// Link the vars to the node
 	ms->link(m_node, speed, MLinkType::PartOf());
 	ms->link(m_node, dir, MLinkType::PartOf());
 	
+	// Create the action and link the vars to the act, and act to the system node
 	MNode *act = ms->node("MoveAction", MNodeType::ActionNode());
-	ms->link(act, speed, MLinkType::PartOf());
-	ms->link(act, dir, MLinkType::PartOf());
+	ms->link(act,    speed, MLinkType::PartOf());
+	ms->link(act,    dir,   MLinkType::PartOf());
+	ms->link(m_node, act,   MLinkType::PartOf());
 	
-	ms->link(m_node, act, MLinkType::PartOf());
-	
+	// Create the resting action
 	act = ms->node("RestAction", MNodeType::ActionNode());
 	ms->link(m_node, act, MLinkType::PartOf());
 	
+	// Variable for the rest action
 	MNode *time = ms->node("RestTime", MNodeType::VariableNode());
 	ms->link(act, time, MLinkType::PartOf());
 

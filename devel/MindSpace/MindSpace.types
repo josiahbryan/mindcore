@@ -157,3 +157,5 @@ VectorNode		MovementVectorNode		3b2cf1ae-016d-4069-afaf-940bdf8c1b69
 MovementVectorNode	SimpleXYMovementVector		cb8fcfea-aaad-4e75-b2d2-97b49648e112
 
 Node			ActionNode			f47c8a7d-7a07-4cb6-ae7e-dccd7c84be2b
+Link			ActionLink			47d0ed1e-1f5c-411c-98de-20806a08e21f
+

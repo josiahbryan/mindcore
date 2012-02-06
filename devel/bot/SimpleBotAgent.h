@@ -28,7 +28,9 @@ public:
 	MSpace *mindSpace() { return m_mspace; }
 	
 	MNode *node() { return m_node; }
-
+	
+	AgentSubsystem *subsystem(const QString& name) { return m_subsysHash[name]; }
+	
 	// QGraphicsItem::
 	enum { Type = UserType + 1 };
 	int type() const { return Type; }
@@ -186,6 +188,8 @@ public:
 	// Unique name of this subsystem
 	virtual QString name() { return "?"; }
 	
+	QString className() { return metaObject()->className(); }
+	
 	// Setup the mindspace of the agent (agent->mindSpace()) with any action nodes and a node represeting this system linked to the agent
 	// TODO: Shouldn't this be implicitly called by ctor?
 	virtual void initMindSpace() {}
@@ -217,10 +221,13 @@ class AgentBioSystem : public AgentSubsystem
 public:
 	AgentBioSystem(SimpleBotAgent *agent) : AgentSubsystem(agent) {}
 	 
+	static QString className() { return staticMetaObject.className(); }
+	
 	QString name() { return "Biological"; }
 	void initMindSpace();
 	void advance();
 	bool executeAction(MNode *);
+	
 	
 protected:
 	MNode *m_hungerVar;
@@ -233,6 +240,8 @@ class AgentMovementSystem : public AgentSubsystem
 public:
 	AgentMovementSystem(SimpleBotAgent *agent) : AgentSubsystem(agent) {}
 	
+	static QString className() { return staticMetaObject.className(); }
+	
 	QString name() { return "Movement"; }
 	void initMindSpace();
 	bool executeAction(MNode *);
@@ -243,6 +252,8 @@ class AgentTouchSystem : public AgentSubsystem
 	Q_OBJECT
 public:
 	AgentTouchSystem(SimpleBotAgent *agent) : AgentSubsystem(agent) {}
+	
+	static QString className() { return staticMetaObject.className(); }
 	
 	QString name() { return "Touch"; }
 	void initMindSpace();
