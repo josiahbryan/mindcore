@@ -192,6 +192,8 @@ void AgentMovementSystem::initMindSpace()
 	act = ms->node("RestAction", MNodeType::ActionNode());
 	ms->link(m_node, act, MLinkType::PartOf());
 	
+	//qDebug() << "AgentMovementSystem::initMindSpace(): creating RestAction, act:"<<act<<", type:"<<act->type();
+	
 	// Variable for the rest action
 	MNode *time = ms->node("RestTime", MNodeType::VariableNode());
 	time->setData(100); // ms

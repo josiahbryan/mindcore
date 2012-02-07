@@ -81,23 +81,29 @@ MNode *MNode::_clone(int curLevel, int levels)
 		return 0;
 	 
 	MNode *newNode = new MNode();
-	newNode->fromVariantMap(node->toVariantMap());
+	newNode->fromVariantMap(toVariantMap());
 	
-	foreach(MLink *links, m_links)
+	foreach(MLink *link, m_links)
 	{
-		if(links->node1() == this)
+		if(link->node1() == this)
 		{
-			MNode *node2 = links->node2()->clone(curLevel+1, levels);
-			newNode->addLink(node2);
+			MLink *link2 = new MLink();
+			link2->fromVariantMap(link->toVariantMap());
+			
+			MNode *node2 = link->node2()->_clone(curLevel+1, levels);
+			
+			link2->setNode1(newNode);
+			link2->setNode2(node2);
+			newNode->addLink(link2);
 		}
 	}
 	
 	return newNode;
 }
 
-MNode *MNode::clone()
+MNode *MNode::clone(int levels)
 {
-	return clone(this);
+	return clone(this, levels);
 }
 
 /** Create an empty MNode with type set to MindSpace::ConceptNode and LTI/STI to 1.0 each */
@@ -247,6 +253,7 @@ QVariant MNode::storableProperty(QString name)
 
 void MNode::setStoredProperty(QString name, QVariant value)
 {
+	//qDebug() << "MNode::setStoredProperty: "<<name<<value;
 	if(name == "links")
 		return; // links are handled by MindSpace
 	else

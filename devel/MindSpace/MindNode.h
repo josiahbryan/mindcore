@@ -150,7 +150,7 @@ namespace MindSpace
 		static QHash<QString,MNode*> s_nodes;
 		
 		
-		MNode *_clone(int curLeve=0, levels=1);
+		MNode *_clone(int curLeve=0, int levels=1);
 	
 	};
 	

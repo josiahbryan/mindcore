@@ -49,7 +49,7 @@ void SimpleBotAgent::InfoDisplay::paint(QPainter *p, const QStyleOptionGraphicsI
 	p->setFont(QFont("Monospace", fontSize, QFont::Bold));
 	p->drawText(rect.topLeft() + QPoint(margin, y += fontSize), QString( "State:  %1" ).arg(stateName));
 	p->drawText(rect.topLeft() + QPoint(margin, y += fontSize), QString( "Hunger: %1" ).arg(bio->hunger()));
-	p->drawText(rect.topLeft() + QPoint(margin, y += fontSize), QString( "Energy: %1" ).arg(bui->energy()));
+	p->drawText(rect.topLeft() + QPoint(margin, y += fontSize), QString( "Energy: %1" ).arg(bio->energy()));
 	p->restore();
 }
 
@@ -185,7 +185,8 @@ void SimpleBotAgent::initGoals()
 
 static bool SimpleBotAgent_goalSort(MNode *n1, MNode *n2)
 {
-	return false if !n1 || !n2;
+	if(!n1 || !n2)
+		return false;
 	return n1->shortTermImportance() < n2->shortTermImportance();
 }
 
@@ -205,7 +206,7 @@ void SimpleBotAgent::chooseCurrentGoal()
 double SimpleBotAgent::calcGoalActionProb(MNode *action)
 {
 	/// TODO
-	return ((double)(rand() % 100) / 100.;
+	return ((double)(rand() % 100)) / 100.;
 }
 
 void SimpleBotAgent::chooseAction()
@@ -231,9 +232,12 @@ void SimpleBotAgent::chooseAction()
 		// clone clones first level links and nodes by default
 		m_currentAction = maxInfo.node->clone();
 		
+		//qDebug() << "Action changed, cloned action node. Debug info: orig node:"<<maxInfo.node<<", orig node type: "<<maxInfo.node->type()<<", cloned type:" <<m_currentAction->type();
+		
 		QList<MNode*> vars = m_currentAction->linkedNode(MNodeType::VariableNode());
 		
 		/// TODO DON'T CHEAT
+		// Need to come up with a way for the agent to "choose" its own rest/eat times and speed/direction based on its "personality" and "learned behaviours"
 		/// FIXME CHEATING
 		
 		foreach(MNode *node, vars)
