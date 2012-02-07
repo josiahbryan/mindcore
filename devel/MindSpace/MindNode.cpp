@@ -17,7 +17,7 @@ QDebug operator<<(QDebug dbg, const MNodeType& type)
 
 QDebug operator<<(QDebug dbg, const MNode* node) 
 {
-	dbg.nospace() << qPrintable(MNode::toSimpleString(node));
+	dbg.nospace() << qPrintable(MNode::toSimpleString(node, false));
 	return dbg.space();
 }
 
@@ -30,7 +30,7 @@ QString MNode::toSimpleString(const MNode* node, bool renderLinks)
 	else
 	{
 		QStringList out;
-		out << QString("#%1(%2)").arg(node->content()).arg(node->type().name());
+		out << QString("#%1(%2,%3)").arg(node->content()).arg(node->type().name()).arg(node->uuid());
 		if(renderLinks)
 		{
 			const QList<MLink*> & links = node->links();
@@ -77,26 +77,45 @@ MNode *MNode::clone(MNode *node, int levels)
 
 MNode *MNode::_clone(int curLevel, int levels)
 {
+	//qDebug() << "MNode::_clone("<<curLevel<<"/"<<levels<<"): orig node:"<<qPrintable(MNode::toString(this, true));
 	if(curLevel > levels)
 		return 0;
 	 
 	MNode *newNode = new MNode();
 	newNode->fromVariantMap(toVariantMap());
 	
-	foreach(MLink *link, m_links)
+	// Clear uuid because createUuid() won't overwrite an existing uuid
+	newNode->m_uuid = "";
+	newNode->createUuid();
+	
+	if(curLevel < levels)
 	{
-		if(link->node1() == this)
+		//qDebug() << "MNode::_clone("<<curLevel<<"/"<<levels<<"): new node: "<<newNode<<", starting to clone "<<m_links.size()<<" links";
+		
+		foreach(MLink *link, m_links)
 		{
-			MLink *link2 = new MLink();
-			link2->fromVariantMap(link->toVariantMap());
+			if(link->node1() == this)
+			{
+				//qDebug() << "MNode::_clone("<<curLevel<<"/"<<levels<<"): ** cloning link: "<<link;
 			
-			MNode *node2 = link->node2()->_clone(curLevel+1, levels);
-			
-			link2->setNode1(newNode);
-			link2->setNode2(node2);
-			newNode->addLink(link2);
+				// Create and clone the link (type, truthvalue, etc)
+				MLink *link2 = new MLink();
+				link2->fromVariantMap(link->toVariantMap());
+				
+				// Clone the second node of the link
+				MNode *node2 = link->node2()->_clone(curLevel+1, levels);
+				
+				// Set the node 1 & 2 on the link
+				link2->setNode1(newNode);
+				link2->setNode2(node2);
+				
+				// Add the new link to the new node
+				newNode->addLink(link2);
+			}
 		}
 	}
+	
+	//qDebug() << "MNode::_clone("<<curLevel<<"/"<<levels<<"): newNode:"<<qPrintable(MNode::toString(newNode, true));
 	
 	return newNode;
 }

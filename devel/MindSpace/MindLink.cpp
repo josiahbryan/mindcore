@@ -40,9 +40,22 @@ QString MLink::toString(const MLink *link, const MNode *from)
 			else
 				out << " <-- " << MNode::toSimpleString(link->node1(), false) << " = [ ";
 			QStringList sublist;
-			foreach(MNode *node, link->arguments())
-			 	sublist << MNode ::toSimpleString(node, false);
-			 out << sublist.join(" , ") << " ]";
+			if(link->arguments().isEmpty())
+			{
+				if(link->node1() == from &&
+				   link->node2())
+					sublist << MNode ::toSimpleString(link->node2(), false);
+				else
+				if(link->node2() == from &&
+				   link->node1())
+					sublist << MNode ::toSimpleString(link->node1(), false);
+			}
+			else
+			{
+				foreach(MNode *node, link->arguments())
+					sublist << MNode ::toSimpleString(node, false);
+			}
+			out << sublist.join(" , ") << " ]";
 		}
 		else
 		{
@@ -62,7 +75,7 @@ QString MLink::toString(const MLink *link, const MNode *from)
 	}
 	else
 	{
-		QStringList out = QStringList() << "type:\"" << link->type().name() <<"\", node1:" << MNode::toString(link->node1()) <<", node2:" << MNode::toString(link->node2()) << ", uuid:" << link->uuid();
+		QStringList out = QStringList() << "type:\"" << link->type().name() <<"\", node1:" << MNode::toString(link->node1(), false) <<", node2:" << MNode::toString(link->node2(), false) << ", uuid:" << link->uuid();
 		return "MLink(" + out.join("") + ")";
 	}
 }
@@ -77,8 +90,8 @@ MLink::MLink()
 	, m_truthValue()
 {
 	createUuid();
-	if(MSpace *mind = MSpace::activeSpace())
-		mind->addLink(this);
+	//if(MSpace *mind = MSpace::activeSpace())
+	//	mind->addLink(this);
 }
 
 

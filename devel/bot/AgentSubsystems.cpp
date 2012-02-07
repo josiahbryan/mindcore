@@ -78,7 +78,13 @@ void AgentBioSystem::advance()
 		int time = m_eatFrameTimer.restart();
 		
 		// 5 seconds to 100% full
-		m_hungerVar->setData( qMin(0., m_hungerVar->data().toDouble() - 0.1 * (((double)time) / 500.)) );
+		m_hungerVar->setData( qMax(0., m_hungerVar->data().toDouble() - 0.1 * (((double)time) / 500.)) );
+		
+		if(m_hungerVar->data().toDouble() <= 0.0)
+		{
+			m_isEating = false;
+			actionCompleted();
+		}
 	}
 	
 }
@@ -136,8 +142,8 @@ void AgentBioSystem::setupEatingState(MNode *timeNode)
 
 bool AgentBioSystem::useEnergy(double speed) // 0-1
 {
-	// at 100% speed, deplete energy by 10%
-	double amt = 0.1 * speed;
+	// at 100% speed, deplete energy by 2.5%
+	double amt = 0.025 * speed;
 	double energy = m_energyVar->data().toDouble();
 	if(energy < amt)
 		return false;
@@ -147,7 +153,10 @@ bool AgentBioSystem::useEnergy(double speed) // 0-1
 	// at 100% speed, hunger increased by 5%
 	double hungerAmt = 0.05 * speed;
 	double hunger = m_hungerVar->data().toDouble();
-	m_hungerVar->setData( qMax(1., hunger + hungerAmt) );
+	m_hungerVar->setData( qMin(1., hunger + hungerAmt) );
+	
+	if(m_hungerVar->data().toDouble() >= 1.0)
+		return false; // can't use more energy if too hungry
 	
 	return true; 
 }
@@ -155,7 +164,10 @@ bool AgentBioSystem::useEnergy(double speed) // 0-1
 void AgentBioSystem::notifyResting(int ms) // milliseconds
 {
 	// 5 seconds to 100% energy
-	m_energyVar->setData( qMax(1., m_energyVar->data().toDouble() + 0.1 * (((double)ms) / 500.)) );
+	m_energyVar->setData( qMin(1., m_energyVar->data().toDouble() + 0.1 * (((double)ms) / 500.)) );
+	
+	//if(m_energyVar->data().toDouble() >= 1.0)
+	//	actionCompleted();
 }
 
 ///
@@ -226,7 +238,7 @@ bool AgentMovementSystem::executeAction(MNode *node)
 		// Error checking
 		if(!speed || !dir)
 		{
-			qDebug() << "AgentMovementSystem::executeAction: Problem execting 'MoveAction': One of the variables was missing: "<< node;
+			qDebug() << "AgentMovementSystem::executeAction: Problem execting 'MoveAction': One of the variables was missing: "<< qPrintable(MNode::toString(node, true));
 			return false;
 		}
 		
@@ -244,7 +256,7 @@ bool AgentMovementSystem::executeAction(MNode *node)
 		// Error checking
 		if(!time)
 		{
-			qDebug() << "AgentMovementSystem::executeAction: Problem execting 'RestAction': Missing 'RestTime' variable: "<< node;
+			qDebug() << "AgentMovementSystem::executeAction: Problem execting 'RestAction': Missing 'RestTime' variable: "<< qPrintable(MNode::toString(node, true));
 			return false;
 		}
 		
@@ -341,10 +353,11 @@ void AgentMovementSystem::setupMovementVector(MNode *speedNode, MNode *angleNode
 	
 	// X= R*cos(Theta)
 	// Y= R*sin(Theta)
-	const double SpeedRange = 10.0;
+	const double SpeedRange = 9.0;
+	double speedValue = m_speed * SpeedRange + 1.0;
 	
-	double x = m_speed * SpeedRange * cos(m_angle);
-	double y = m_speed * SpeedRange * sin(m_angle);
+	double x = speedValue * cos(m_angle);
+	double y = speedValue * sin(m_angle);
 	
 	m_vec = QPointF(x,y);
 }

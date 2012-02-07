@@ -11,7 +11,7 @@ bool operator!(SimpleBotAgent::StateInfo a) { return a.isNull(); }
 SimpleBotAgent::InfoDisplay::InfoDisplay(SimpleBotAgent *agent)
 {
 	m_agent = agent;
-	m_rect  = QRect(10,10,150,50);
+	m_rect  = QRect(10,10,160,70);
 	setPos(0,0);
 	setZValue(150);
 }
@@ -39,6 +39,14 @@ void SimpleBotAgent::InfoDisplay::paint(QPainter *p, const QStyleOptionGraphicsI
 		return;
 	}
 	
+	AgentSubsystem *movePtr = m_agent->subsystem(AgentMovementSystem::className());
+	AgentMovementSystem *move = dynamic_cast<AgentMovementSystem*>(movePtr);
+	if(!move)
+	{
+		qDebug() << "SimpleBotAgent::InfoDisplay::: Agent doesn't have a movement system, are we dead??";
+		return;
+	}
+	
 	
 	int fontSize = 10;
 	int margin = fontSize/2;
@@ -50,6 +58,9 @@ void SimpleBotAgent::InfoDisplay::paint(QPainter *p, const QStyleOptionGraphicsI
 	p->drawText(rect.topLeft() + QPoint(margin, y += fontSize), QString( "State:  %1" ).arg(stateName));
 	p->drawText(rect.topLeft() + QPoint(margin, y += fontSize), QString( "Hunger: %1" ).arg(bio->hunger()));
 	p->drawText(rect.topLeft() + QPoint(margin, y += fontSize), QString( "Energy: %1" ).arg(bio->energy()));
+	p->drawText(rect.topLeft() + QPoint(margin, y += fontSize), QString( "Speed:  %1" ).arg(move->speed()));
+	p->drawText(rect.topLeft() + QPoint(margin, y += fontSize), QString( "Angle:  %1" ).arg(move->angle()));
+	p->drawText(rect.topLeft() + QPoint(margin, y += fontSize), QString( "Rest/Eat: %1/%2" ).arg(move->restTime()).arg(bio->eatTime()));
 	p->restore();
 }
 
@@ -227,11 +238,16 @@ void SimpleBotAgent::chooseAction()
 		}
 	}
 	
+	//qDebug() << "SimpleBotAgent::chooseAction: [NoOp] maxInfo.node: "<<maxInfo.node;
+	//return;
+	
 	if(m_currentAction != maxInfo.node)
 	{
 		// clone clones first level links and nodes by default
 		m_currentAction = maxInfo.node->clone();
 		
+		qDebug() << "SimpleBotAgent::chooseAction: Chose new action: "<<m_currentAction;
+	
 		//qDebug() << "Action changed, cloned action node. Debug info: orig node:"<<maxInfo.node<<", orig node type: "<<maxInfo.node->type()<<", cloned type:" <<m_currentAction->type();
 		
 		QList<MNode*> vars = m_currentAction->linkedNode(MNodeType::VariableNode());
@@ -263,16 +279,24 @@ void SimpleBotAgent::chooseAction()
 		{
 			if(!subsys->executeAction(m_currentAction))
 			{
-				qDebug() << "SimpleBotAgent::chooseAction: "<<subsys<<" - subsys didnt want action "<<m_currentAction->content(); 
+				//qDebug() << "SimpleBotAgent::chooseAction: "<<subsys<<" - subsys didnt want action "<<m_currentAction->content(); 
+			}
+			else
+			{
+				qDebug() << "SimpleBotAgent::chooseAction: "<<subsys<<" subsystem accepted "<<m_currentAction->content();
 			}
 		}
 	}
 	
-	qDebug() << "SimpleBotAgent::chooseAction: Chose new action: "<<m_currentAction;
+// 	qDebug() << "Stopping sim, exiting.";
+// 	exit(-1);
+
+	update();
 }
 
 void SimpleBotAgent::actionCompleted(MNode *currentAction)
 {
+	qDebug() << "SimpleBotAgent::actionCompleted: "<<currentAction;
 	chooseAction();
 }
 
@@ -317,8 +341,11 @@ void SimpleBotAgent::paint(QPainter *painter, const QStyleOptionGraphicsItem */*
 	
 	painter->setPen( QPen(Qt::red, 3.0 ) );
 	
+	AgentSubsystem *movePtr = subsystem(AgentMovementSystem::className());
+	AgentMovementSystem *move = dynamic_cast<AgentMovementSystem*>(movePtr);
+	
 	QPointF center(0,0);
-	QLineF line(center, m_vec + center);
+	QLineF line(center, move->vec() + center);
 	painter->drawLine( line );
 	
 	if(!m_label.isEmpty())
@@ -422,38 +449,41 @@ void SimpleBotAgent::advance()
 	///
 	
 	
-	// Update bio variables
-	updateHungerEnergyState();
+	foreach(AgentSubsystem *subsys, m_subsystems)
+		subsys->advance();
 	
-	// m_hunger increases as m_energy decreases
-	// m_energy increases when we eat or when we rest
-	// m_energy decreases as time progresses in any state other than resting or eating
-	
-	//m_label = QString("%1/%2").arg(m_hunger).arg(m_energy);
-	
-	// Process current state
-	if(m_state == StateResting)
-	{
-		processResting();
-	}
-	else
-	if(m_state == StateSearching)
-	{
-		processSearching();
-	}
-	else
-	if(m_state == StateEating)
-	{
-		processEating();
-	}
-	else
-	if(m_state == StateAsking)
-	{
-		//
-	}
-	
-	// Check to see if state change required
-	evaulateStateChangeRequired();
+// 	// Update bio variables
+// 	updateHungerEnergyState();
+// 	
+// 	// m_hunger increases as m_energy decreases
+// 	// m_energy increases when we eat or when we rest
+// 	// m_energy decreases as time progresses in any state other than resting or eating
+// 	
+// 	//m_label = QString("%1/%2").arg(m_hunger).arg(m_energy);
+// 	
+// 	// Process current state
+// 	if(m_state == StateResting)
+// 	{
+// 		processResting();
+// 	}
+// 	else
+// 	if(m_state == StateSearching)
+// 	{
+// 		processSearching();
+// 	}
+// 	else
+// 	if(m_state == StateEating)
+// 	{
+// 		processEating();
+// 	}
+// 	else
+// 	if(m_state == StateAsking)
+// 	{
+// 		//
+// 	}
+// 	
+// 	// Check to see if state change required
+// 	evaulateStateChangeRequired();
 		
 	// Update HUD item if present
 	if(m_hud)

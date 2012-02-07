@@ -97,6 +97,7 @@ public:
 	
 	double hunger() { return m_hungerVar->data().toDouble(); }
 	double energy() { return m_energyVar->data().toDouble(); }
+	double eatTime() { return m_eatLength; }
 	
 protected:
 	MNode *m_hungerVar;
@@ -124,6 +125,11 @@ public:
 	
 	// Actually move the agent
 	void advance();
+	
+	double speed() { return m_speed; }
+	double angle() { return m_angle; }
+	double restTime() { return m_restLength; }
+	QPointF vec() { return m_vec; }
 	
 protected:
 	void setupMovementVector(MNode *speed, MNode *dir);
