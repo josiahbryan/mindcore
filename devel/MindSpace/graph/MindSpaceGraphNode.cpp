@@ -81,10 +81,10 @@ void MindSpaceGraphNode::calculateForces()
 		yvel += pos.y() / weight;
 	}
 	
-	// Add an invisible edge pulling toward the center of the scene
-	QPointF centerVec = scene()->sceneRect().center() - pos();
-	xvel += centerVec.x() / weight;
-	yvel += centerVec.y() / weight;
+// 	// Add an invisible edge pulling toward the center of the scene
+// 	QPointF centerVec = scene()->sceneRect().center() - pos();
+// 	xvel += centerVec.x() / weight;
+// 	yvel += centerVec.y() / weight;
 	
 	if (qAbs(xvel) < 1. && qAbs(yvel) < 1.)
 		xvel = yvel = 0;

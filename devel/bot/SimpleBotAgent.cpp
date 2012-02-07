@@ -55,11 +55,11 @@ void SimpleBotAgent::InfoDisplay::paint(QPainter *p, const QStyleOptionGraphicsI
 	p->save();
 	p->setPen(Qt::white);
 	p->setFont(QFont("Monospace", fontSize, QFont::Bold));
-	p->drawText(rect.topLeft() + QPoint(margin, y += fontSize), QString( "State:  %1" ).arg(stateName));
-	p->drawText(rect.topLeft() + QPoint(margin, y += fontSize), QString( "Hunger: %1" ).arg(bio->hunger()));
-	p->drawText(rect.topLeft() + QPoint(margin, y += fontSize), QString( "Energy: %1" ).arg(bio->energy()));
-	p->drawText(rect.topLeft() + QPoint(margin, y += fontSize), QString( "Speed:  %1" ).arg(move->speed()));
-	p->drawText(rect.topLeft() + QPoint(margin, y += fontSize), QString( "Angle:  %1" ).arg(move->angle()));
+	p->drawText(rect.topLeft() + QPoint(margin, y += fontSize), QString( "State:  %1"  ).arg(stateName));
+	p->drawText(rect.topLeft() + QPoint(margin, y += fontSize), QString( "Hunger: %1%" ).arg(((int)(bio->hunger() * 100.))));
+	p->drawText(rect.topLeft() + QPoint(margin, y += fontSize), QString( "Energy: %1%" ).arg(((int)(bio->energy() * 100.))));
+	p->drawText(rect.topLeft() + QPoint(margin, y += fontSize), QString( "Speed:  %1%" ).arg(((int)(move->speed() * 100.))));
+	p->drawText(rect.topLeft() + QPoint(margin, y += fontSize), QString( "Angle:  %1"  ).arg(move->angle()));
 	p->drawText(rect.topLeft() + QPoint(margin, y += fontSize), QString( "Rest/Eat: %1/%2" ).arg(move->restTime()).arg(bio->eatTime()));
 	p->restore();
 }
@@ -211,13 +211,25 @@ void SimpleBotAgent::chooseCurrentGoal()
 	{
 		qDebug() << "SimpleBotAgent::chooseCurrentGoal: Current goal changed, new goal: "<<goal->content();
 		chooseAction();
+		
+		m_currentGoal = goal;
 	}
 }
 
 double SimpleBotAgent::calcGoalActionProb(MNode *action)
 {
 	/// TODO
-	return ((double)(rand() % 100)) / 100.;
+	//return ((double)(rand() % 100)) / 100.;
+	double lti = action->longTermImportance();
+// 	if(lti == 1.0)
+// 	{
+// 		lti *= ((double)(rand() % 100)) / 100.;
+// 	}
+	
+	double rv = ((double)(rand() % 10)) / 10. / 10.;
+	lti *= rv;
+	
+	return lti;
 }
 
 void SimpleBotAgent::chooseAction()
@@ -230,6 +242,7 @@ void SimpleBotAgent::chooseAction()
 		foreach(AgentSubsystem::ActionInfo info, actions)
 		{
 			double p = calcGoalActionProb(info.node);
+			qDebug() << "SimpleBotAgent::chooseAction: p:"<<p<<", info.node:" << info.node;
 			if(p >= maxProb)
 			{
 				maxProb = p;
@@ -241,10 +254,78 @@ void SimpleBotAgent::chooseAction()
 	//qDebug() << "SimpleBotAgent::chooseAction: [NoOp] maxInfo.node: "<<maxInfo.node;
 	//return;
 	
-	if(m_currentAction != maxInfo.node)
+	if(!m_currentAction || m_currentAction->content() != maxInfo.node->content())
 	{
+		AgentSubsystem *bioPtr = subsystem(AgentBioSystem::className());
+		AgentBioSystem *bio = dynamic_cast<AgentBioSystem*>(bioPtr);
+
 		// clone clones first level links and nodes by default
-		m_currentAction = maxInfo.node->clone();
+		//m_currentAction = maxInfo.node->clone();
+		if(m_currentAction)
+		{
+			// eval goal value change and reward STI/LTI of action accordingly
+			
+			double hungerChange = bio->hunger() - m_lastHunger;
+			double energyChange = bio->energy() - m_lastEnergy;
+			
+			qDebug() << "SimpleBotAgent::chooseAction: hungerChange: "<<hungerChange<<", energyChange: "<<energyChange;
+			
+			/// TODO: In future, we need to actually evaulate the data() of the goal to see what the 'goal' of the goal is.
+			// Here, we cheat by hardcoding the goal function based on the name
+			if(m_currentGoal->content() == "HungerGoal")
+			{
+				// goal is min hunger
+				if(hungerChange < 0)
+				{
+					// change is good, increase lti of this action
+					m_currentAction->setLongTermImportance( m_currentAction->longTermImportance() + 0.1 ); 
+				}
+				else
+				{
+					// change is bad, decrease lti of this action
+					m_currentAction->setLongTermImportance( m_currentAction->longTermImportance() - 0.1 );
+				}
+				
+				
+				qDebug() << "SimpleBotAgent::chooseAction: HUNGER goal, new STI: "<< m_currentAction->longTermImportance()<<", action was: "<<m_currentAction;
+				
+				// Since hunger is 0-1, STI of the goal is direct reflection of how hungry it is
+				m_currentGoal->setLongTermImportance( bio->hunger() );
+			}
+			else
+			if(m_currentGoal->content() == "EnergyGoal")
+			{
+				// goal is max energy
+				if(energyChange > 0)
+				{
+					// change is good, increase lti of this action
+					m_currentAction->setLongTermImportance( m_currentAction->longTermImportance() + 0.1 ); 
+				}
+				else
+				{
+					// change is bad, decrease lti of this action
+					m_currentAction->setLongTermImportance( m_currentAction->longTermImportance() - 0.1 );
+				}
+				
+				
+				qDebug() << "SimpleBotAgent::chooseAction: ENERGY goal, new STI: "<< m_currentAction->longTermImportance()<<", action was: "<<m_currentAction;
+				
+				// Since hunger is 0-1, STI of the goal is direct reflection of how hungry it is
+				m_currentGoal->setLongTermImportance( bio->hunger() );
+			}
+			else
+			{
+				qDebug() << "SimpleBotAgent::chooseAction: Unknown goal:" <<m_currentGoal;
+			}
+			
+			
+		}
+		
+		m_lastHunger = bio->hunger();
+		m_lastEnergy = bio->energy();
+		
+		// Why clone... ?
+		m_currentAction = maxInfo.node;//->clone();
 		
 		qDebug() << "SimpleBotAgent::chooseAction: Chose new action: "<<m_currentAction;
 	
@@ -402,8 +483,9 @@ void SimpleBotAgent::start()
 void SimpleBotAgent::advance()
 {
 	// Set initial state
-	if(m_state == StateUnknown)
-		setState(StateSearching);
+// 	if(m_state == StateUnknown)
+// 		setState(StateSearching);
+
 		
 	/*
 		Based on the new readme notes/thoughts on goals, etc, then we can express our SimpleBotAgent goals in terms of maximizing energy and minimizing hunger.

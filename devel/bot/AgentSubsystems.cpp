@@ -190,8 +190,8 @@ void AgentMovementSystem::initMindSpace()
 	
 	
 	// Link the vars to the node
-	ms->link(m_node, speed, MLinkType::PartOf());
-	ms->link(m_node, dir, MLinkType::PartOf());
+//	ms->link(m_node, speed, MLinkType::PartOf());
+//	ms->link(m_node, dir, MLinkType::PartOf());
 	
 	// Create the action and link the vars to the act, and act to the system node
 	MNode *act = ms->node("MoveAction", MNodeType::ActionNode());

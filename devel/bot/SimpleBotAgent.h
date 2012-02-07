@@ -177,6 +177,8 @@ protected:
 	// Calculate the probability that the MNode *action will achieve/help toward  m_currentGoal 
 	double calcGoalActionProb(MNode *action);
 	
+	double m_lastHunger;
+	double m_lastEnergy;
 	
 	QList<MNode*> m_goals;
 	

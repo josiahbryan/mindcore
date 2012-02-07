@@ -18,7 +18,8 @@ public:
 	AgentSubsystem(SimpleBotAgent *agent) 
 		: QObject()
 		, m_agent(agent)
-		, m_node(0) 
+		, m_node(0)
+		, m_currentAction(0)
 		{ }
 		
 	virtual ~AgentSubsystem() {}

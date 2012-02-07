@@ -27,13 +27,17 @@ TweakedGraphicsView::TweakedGraphicsView()
 	setDragMode(QGraphicsView::ScrollHandDrag);
 	
 	setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform );
-	  // if there are ever graphic glitches to be found, remove this again
+	// if there are ever graphic glitches to be found, remove this again
 	setOptimizationFlags(QGraphicsView::DontAdjustForAntialiasing | QGraphicsView::DontClipPainter | QGraphicsView::DontSavePainterState);
 
 	//setCacheMode(QGraphicsView::CacheBackground);
 	//setViewportUpdateMode(QGraphicsView::BoundingRectViewportUpdate);
 	setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
 	setOptimizationFlags(QGraphicsView::DontSavePainterState);
+	
+// 	// Magic numbers - just fitting approx to view
+	scaleView(1.41421);
+	scaleView(1.41421);
 }
 
 
@@ -112,6 +116,7 @@ BotWindow::BotWindow()
 	m_mspaceViewer->setMindSpace(m_mspace);
 	
 	resize(1024,768);
+	//m_gv->fitInView(env->itemsBoundingRect(), Qt::KeepAspectRatio);
 	
 	//bot->setGoal("foobar"); 
 	bot->start();
