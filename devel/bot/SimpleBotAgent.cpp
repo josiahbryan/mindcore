@@ -235,7 +235,7 @@ double SimpleBotAgent::calcGoalActionProb(MNode *action)
 void SimpleBotAgent::chooseAction()
 {
 	AgentSubsystem::ActionInfo maxInfo;
-	double maxProb = 0.0;
+	double maxProb = -65536.0;
 	foreach(AgentSubsystem *subsys, m_subsystems)
 	{
 		QList<AgentSubsystem::ActionInfo> actions = subsys->actions();
@@ -371,6 +371,7 @@ void SimpleBotAgent::chooseAction()
 	
 // 	qDebug() << "Stopping sim, exiting.";
 // 	exit(-1);
+	qDebug("\n\n");
 
 	update();
 }
