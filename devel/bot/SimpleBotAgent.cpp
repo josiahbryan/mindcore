@@ -147,7 +147,7 @@ void SimpleBotAgent::initGoals()
 	MNode *hungerGoal = m_mspace->node("HungerGoal");
 	if(!hungerGoal)
 	{
-		MNode *hungerGoal = m_mspace->addNode("HungerGoal", MNodeType::GoalNode());
+		hungerGoal = m_mspace->addNode("HungerGoal", MNodeType::GoalNode());
 		
 		// NOTE Idea: Perhaps the link weight (Tv) could be the way to rank the goals...
 		// NOTE Revision: The lti/sti would be a better ranking...
@@ -156,12 +156,14 @@ void SimpleBotAgent::initGoals()
 		QVariantList goalData;
 		{	
 			QVariantList goalRow;
-			goalRow << "MIN" << "HungerValue";
+			goalRow << "MIN" << "HungerValue" << 0.0;
 			
-			goalData << goalRow;
+			goalData.append(QVariant(goalRow));
 		}
 		
 		hungerGoal->setData(goalData);
+		
+		//qDebug() << "SimpleBotAgent::initGoals: Debug: HUNGER goal goalData: "<<goalData;
 		
 		MNode *hungerVar = m_mspace->node("HungerValue", MNodeType::VariableNode());
 		hungerVar->setData(1.0);
@@ -173,15 +175,15 @@ void SimpleBotAgent::initGoals()
 	MNode *energyGoal = m_mspace->node("EnergyGoal");
 	if(!energyGoal)
 	{
-		MNode *energyGoal = m_mspace->addNode("EnergyGoal", MNodeType::GoalNode());
+		energyGoal = m_mspace->addNode("EnergyGoal", MNodeType::GoalNode());
 		m_mspace->link(agentGoals, energyGoal, MLinkType::OrderedLink());
 		
 		QVariantList goalData;
 		{	
 			QVariantList goalRow;
-			goalRow << "MAX" << "EnergyValue";
+			goalRow << "MAX" << "EnergyValue" << 1.0;
 			
-			goalData << goalRow;
+			goalData.append(QVariant(goalRow));
 		}
 		
 		energyGoal->setData(goalData);
@@ -198,7 +200,12 @@ static bool SimpleBotAgent_goalSort(MNode *n1, MNode *n2)
 {
 	if(!n1 || !n2)
 		return false;
-	return n1->shortTermImportance() < n2->shortTermImportance();
+		
+	double delta = n1->shortTermImportance() - n2->shortTermImportance();
+	double rv = ((double)(rand() % 10) - 5.) / 100.;
+	delta += rv;
+	
+	return delta > 0;
 }
 
 
@@ -207,12 +214,15 @@ void SimpleBotAgent::chooseCurrentGoal()
 	qSort(m_goals.begin(), m_goals.end(), SimpleBotAgent_goalSort);
 	MNode *goal = m_goals.first();
 	
+	//qDebug() << "SimpleBotAgent::chooseCurrentGoal: first goal after sort: "<<goal->content();
+	
 	if(goal != m_currentGoal)
 	{
+		m_currentGoal = goal;
+		
 		qDebug() << "SimpleBotAgent::chooseCurrentGoal: Current goal changed, new goal: "<<goal->content();
 		chooseAction();
 		
-		m_currentGoal = goal;
 	}
 }
 
@@ -226,7 +236,7 @@ double SimpleBotAgent::calcGoalActionProb(MNode *action)
 // 		lti *= ((double)(rand() % 100)) / 100.;
 // 	}
 	
-	double rv = ((double)(rand() % 10) - 5.) / 10. / 10.;
+	double rv = ((double)(rand() % 10) - 5.) / 100.;
 	lti += rv;
 	
 	return lti;
@@ -236,11 +246,17 @@ void SimpleBotAgent::chooseAction()
 {
 	AgentSubsystem::ActionInfo maxInfo;
 	double maxProb = -65536.0;
+	static bool isSetup = false;
 	foreach(AgentSubsystem *subsys, m_subsystems)
 	{
 		QList<AgentSubsystem::ActionInfo> actions = subsys->actions();
 		foreach(AgentSubsystem::ActionInfo info, actions)
 		{
+			if(!isSetup)
+			{
+				//info.node->setLongTermImportance(1.0);
+			}
+			
 			double p = calcGoalActionProb(info.node);
 			qDebug() << "SimpleBotAgent::chooseAction: p:"<<p<<", info.node:" << info.node;
 			if(p >= maxProb)
@@ -250,6 +266,8 @@ void SimpleBotAgent::chooseAction()
 			}
 		}
 	}
+	
+	isSetup = true;
 	
 	//qDebug() << "SimpleBotAgent::chooseAction: [NoOp] maxInfo.node: "<<maxInfo.node;
 	//return;
@@ -265,64 +283,154 @@ void SimpleBotAgent::chooseAction()
 		{
 			// eval goal value change and reward STI/LTI of action accordingly
 			
-			double hungerChange = bio->hunger() - m_lastHunger;
-			double energyChange = bio->energy() - m_lastEnergy;
+// 			double hungerChange = bio->hunger() - m_lastHunger;
+// 			double energyChange = bio->energy() - m_lastEnergy;
+// 			
+// 			qDebug() << "SimpleBotAgent::chooseAction: hungerChange: "<<hungerChange<<" ("<<bio->hunger()<<"-"<<m_lastHunger<<"), energyChange: "<<energyChange<<" ("<<bio->energy()<<"-"<<m_lastEnergy<<")";
 			
-			qDebug() << "SimpleBotAgent::chooseAction: hungerChange: "<<hungerChange<<" ("<<bio->hunger()<<"-"<<m_lastHunger<<"), energyChange: "<<energyChange<<" ("<<bio->energy()<<"-"<<m_lastEnergy<<")";
 			
-			/// TODO: In future, we need to actually evaulate the data() of the goal to see what the 'goal' of the goal is.
-			// Here, we cheat by hardcoding the goal function based on the name
-			if(m_currentGoal->content() == "HungerGoal")
-			{
-				// goal is min hunger
-				if(hungerChange < 0)
+			// NOTE We need to store parameters of action in memory and reward LTI/STI for *that* combo, not just the aciton in general
+			
+			
+			// Loop thru the evaulation information contained in the goal's data() function, find the variables
+			// and compare them to the values the variables had at the start of the action (stored in another block below in m_goalVarSnapshot)
+			// and adjust the longTermImportance of the m_currentAction based on whether the change in the goal variable data was 'good' (matched the goal) or 'bad' (against the goal) 
+			double goalDeltaSum = 0.0;
+			
+			QVariantList goalData = m_currentGoal->data().toList();
+			int rowCount = 0;
+			foreach(QVariant rowData, goalData)
+			{	
+				rowCount ++ ;
+				
+				QVariantList goalRow = rowData.toList();
+				if(goalRow.size() < 2)
 				{
-					// change is good, increase lti of this action
-					m_currentAction->setLongTermImportance( m_currentAction->longTermImportance() + 0.1 ); 
+					qDebug() << "SimpleBotAgent::chooseAction: Error evaulating current goal "<<m_currentGoal->content()<<": row "<<rowCount<<" has less than 2 data elements: "<<goalRow;
+					qDebug() << "Exiting app.";
+					exit(-1);
+				}
+				
+				QString evalFunc = goalRow[0].toString();
+				QString varId    = goalRow[1].toString(); // can be name or UUID
+				QVariant goalVal = goalRow.size() >= 3 ? goalRow[2] : QVariant();
+				
+				// Find the node referenced as the variable
+				MNode *goalVar = m_currentGoal->linkedNodeUuid(varId); // check by uuid first
+				if(!goalVar)
+					goalVar = m_currentGoal->firstLinkedNode(varId); // check by content if uuid not matched
+				
+				if(!goalVar)
+				{
+					qDebug() << "SimpleBotAgent::chooseAction: Error evaulating current goal "<<m_currentGoal->content()<<": Unable to find linked var:" << varId;
+					qDebug() << "Exiting app.";
+					exit(-1);
+				}
+				
+				// Grab the data value from the when we chose this action and where it is now
+				QVariant lastValue = m_goalVarSnapshot[goalVar];
+				QVariant thisValue = goalVar->data();
+				QVariant::Type dataType = thisValue.type();
+				
+				// Figure out the evaulation function
+				double expectedChangeSign = evalFunc.toUpper() == "MIN" ? -1 : 
+							    evalFunc.toUpper() == "MAX" ? +1 :
+							    0;
+					
+				if(expectedChangeSign == 0)
+				{
+					qDebug() << "SimpleBotAgent::chooseAction: Error evaulating current goal "<<m_currentGoal->content()<<": Linked var:" << varId<<": unknown eval function: "<<evalFunc;
+					qDebug() << "Exiting app.";
+					exit(-1); 
+				}
+				
+				// Eval the change in the variable
+				if(dataType == QVariant::Double ||
+				   dataType == QVariant::Int    ||
+				   dataType == QVariant::Bool   ||
+				   dataType == QVariant::Int    ||
+				   dataType == QVariant::LongLong)
+				{
+					double valueDelta = thisValue.toDouble() - lastValue.toDouble();
+					//double changeSign = valueDelta < 0 ? -1 : +1;
+					
+					// Make sure ZERO change is marked as BAD
+					if(valueDelta == 0.0)
+						valueDelta = -0.1 * expectedChangeSign;
+						
+					/// TODO 0.1 = magic number, should it be configurable ?
+					double propLtiChange = 0.1 * valueDelta * expectedChangeSign; // Basically, for things that should be minimized 
+												      // (MIN eval func, -1 change sign), invert the Lti 
+												      // change because the "good" delta will be going negative
+					
+					m_currentAction->setLongTermImportance( m_currentAction->longTermImportance() + propLtiChange );
+					
+					qDebug() << "SimpleBotAgent::chooseAction: " << m_currentGoal->content().toUpper()<<", new STI: "<< m_currentAction->longTermImportance()<<", action was: "<<m_currentAction->content()<<" (prop lti change: "<<propLtiChange<<", thisValue:" <<thisValue.toDouble()<<", lastValue:"<<lastValue.toDouble()<<", change:"<<valueDelta<<")";
+					
+					// Use the goalVal to compare the change so we can have something to use to update the STI of the goal
+					if(goalVal.isValid())
+					{
+						// convert to abs 0-1 range (see note below on view of goalDeltaSum)
+						double goalNum = goalVal.toDouble();
+						double goalDelta = fabs(goalNum - thisValue.toDouble()) / (goalNum == 0.0 ? 1.0 : goalNum);
+						goalDeltaSum += goalDelta;
+					}
+					
 				}
 				else
 				{
-					// change is bad, decrease lti of this action
-					m_currentAction->setLongTermImportance( m_currentAction->longTermImportance() - 0.1 );
+					qDebug() << "SimpleBotAgent::chooseAction: Error evaulating current goal "<<m_currentGoal->content()<<": Linked var:" << varId<<": don't know how to process dataType: "<<dataType;
+					qDebug() << "Exiting app.";
+					exit(-1);
 				}
-				
-				
-				qDebug() << "SimpleBotAgent::chooseAction: HUNGER goal, new STI: "<< m_currentAction->longTermImportance()<<", action was: "<<m_currentAction;
-				
-				// Since hunger is 0-1, STI of the goal is direct reflection of how hungry it is
-				m_currentGoal->setLongTermImportance( bio->hunger() );
 			}
-			else
-			if(m_currentGoal->content() == "EnergyGoal")
-			{
-				// goal is max energy
-				if(energyChange > 0)
-				{
-					// change is good, increase lti of this action
-					m_currentAction->setLongTermImportance( m_currentAction->longTermImportance() + 0.1 ); 
-				}
-				else
-				{
-					// change is bad, decrease lti of this action
-					m_currentAction->setLongTermImportance( m_currentAction->longTermImportance() - 0.1 );
-				}
-				
-				
-				qDebug() << "SimpleBotAgent::chooseAction: ENERGY goal, new STI: "<< m_currentAction->longTermImportance()<<", action was: "<<m_currentAction;
-				
-				// Since hunger is 0-1, STI of the goal is direct reflection of how hungry it is
-				m_currentGoal->setLongTermImportance( bio->hunger() );
-			}
-			else
-			{
-				qDebug() << "SimpleBotAgent::chooseAction: Unknown goal:" <<m_currentGoal;
-			}
+			
+			// If we view the goalDeltaSum as the distance from the goal, then we can convert the goalDeltaSum to an abs 0-1 value and store as the sti of the goal
+			//double propAbsSti = qAbs(goalDeltaSum) / goalVal.toDouble(); // convert to abs 0-1 value
+			double avgGoalDelta = goalDeltaSum / ((double)rowCount);
+			m_currentGoal->setShortTermImportance(avgGoalDelta);
+			qDebug() << "SimpleBotAgent::chooseAction: " << m_currentGoal->content().toUpper()<<": goalDeltaSum: "<<goalDeltaSum<<", avgGoalDelta: "<<avgGoalDelta;
 			
 			
 		}
+
+
+		// Store a snapshot of the goal variable's data at the start of this action assignment
+		QVariantList goalData = m_currentGoal->data().toList();
+		//qDebug() << "SimpleBotAgent::chooseAction: Debug: Starting to store data for goal "<<m_currentGoal->content()<<", goalData: "<<goalData;
 		
-		m_lastHunger = bio->hunger();
-		m_lastEnergy = bio->energy();
+		int rowCount = 0;
+		foreach(QVariant rowData, goalData)
+		{	
+			rowCount ++;
+			
+			QVariantList goalRow = rowData.toList();
+			if(goalRow.size() < 2)
+			{
+				qDebug() << "SimpleBotAgent::chooseAction: Error storing data for goal "<<m_currentGoal->content()<<": row "<<rowCount<<" has less than 2 data elements: "<<goalRow;
+				qDebug() << "Exiting app.";
+				exit(-1);
+			}
+			
+			QString evalFunc = goalRow[0].toString();
+			QString varId    = goalRow[1].toString(); // can be name or UUID
+			
+			MNode *goalVar = m_currentGoal->linkedNodeUuid(varId); // check by uuid first
+			if(!goalVar)
+				goalVar = m_currentGoal->firstLinkedNode(varId); // check by content if uuid not matched
+			
+			if(!goalVar)
+			{
+				qDebug() << "SimpleBotAgent::chooseAction: Error storing data for goal "<<m_currentGoal->content()<<": Unable to find linked var:" << varId;
+				qDebug() << "Exiting app.";
+				exit(-1);
+			}
+			
+			m_goalVarSnapshot[goalVar] = goalVar->data();
+		}
+		
+		
+		
 		
 		// Why clone... ?
 		m_currentAction = maxInfo.node;//->clone();
@@ -342,7 +450,7 @@ void SimpleBotAgent::chooseAction()
 			if(node->content() == "EatTime" ||
 			   node->content() == "RestTime")
 			{
-				node->setData( rand() % 5000 );
+				node->setData( rand() % 500 );
 			}
 			else
 			if(node->content() == "MoveSpeed")
@@ -354,6 +462,7 @@ void SimpleBotAgent::chooseAction()
 			{
 				node->setData( rand() % 359 );
 			}
+			qDebug() << " \t Variable: "<<node->content()<<", Data: "<<node->data();
 		}
 		
 		foreach(AgentSubsystem *subsys, m_subsystems)
@@ -483,6 +592,15 @@ void SimpleBotAgent::start()
 
 void SimpleBotAgent::advance()
 {
+	// If this goal is no longer important, request a new goal
+	if(m_currentGoal->shortTermImportance() <= 0.0)
+	{
+		qDebug() << "SimpleBotAgent::advance(): STI of current goal is <= 0.0, requesting new goal";
+		chooseCurrentGoal();
+	}
+	
+	
+	
 	// Set initial state
 // 	if(m_state == StateUnknown)
 // 		setState(StateSearching);

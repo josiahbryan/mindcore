@@ -63,6 +63,8 @@ namespace MindSpace
 		MNode *firstLinkedNode(const QString& content);					/*!< \return the first linked node matching \a content - convenience function, calls linkedNode(content,true) internally */ 
 		MNode *firstLinkedNode(MindSpace::MNodeType type);				/*!< \return the first linked node matching \a type - convenience function, calls linkedNode(content,true) internally */
 		
+		MNode *linkedNodeUuid(const QString& uuid);					/*!< \return the node linked to this node matching \a uuid - returns NULL if not found */
+		
 		MSpace *mindSpace() { return m_mspace; }					/*!< \return the MSpace this node belongs to */
 		
 		MNode *clone(int levels=1);							/*!< clone this node using toVariantMap()/fromVariantMap(), \return the new node */

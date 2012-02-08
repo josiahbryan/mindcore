@@ -312,6 +312,22 @@ QList<MNode *> MNode::linkedNode(const QString& content, bool first)
 	return nodes;
 }
 
+MNode * MNode::linkedNodeUuid(const QString& uuid)
+{
+	foreach(MLink *link, m_links)
+	{
+		if(link->node1() == this &&
+		   link->node2()->uuid() == uuid)
+		   return link->node2();
+		else
+		if(link->node2() == this &&
+		   link->node1()->uuid() == uuid)
+		   return link->node1();
+	}
+	
+	return 0;
+}
+
 QList<MNode *> MNode::linkedNode(MindSpace::MNodeType type, bool first)
 {
 	QList<MNode *> nodes;

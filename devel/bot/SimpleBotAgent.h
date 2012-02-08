@@ -182,6 +182,8 @@ protected:
 	
 	QList<MNode*> m_goals;
 	
+	QHash<MNode*,QVariant> m_goalVarSnapshot;
+	
 	MNode *m_node;
 	
 };
