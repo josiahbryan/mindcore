@@ -91,6 +91,8 @@ void AgentBioSystem::advance()
 
 bool AgentBioSystem::executeAction(MNode *node)
 {
+	m_isEating = false;
+	
 	if(node->type() != MNodeType::ActionNode())
 	{
 		qDebug() << "AgentBioSystem::executeAction: Node given is not an ActionNode: "<<node;
@@ -217,10 +219,14 @@ void AgentMovementSystem::initMindSpace()
 	m_vec = QPointF(1.,1.);
 	m_isResting = false;
 	m_restLength = -1;
+
+	m_isMoving = false;
 }
 
 bool AgentMovementSystem::executeAction(MNode *node)
 {
+	m_isMoving = false;
+	
 	if(node->type() != MNodeType::ActionNode())
 	{
 		qDebug() << "AgentMovementSystem::executeAction: Node given is not an ActionNode: "<<node;
@@ -244,6 +250,8 @@ bool AgentMovementSystem::executeAction(MNode *node)
 		
 		// Convert to a x/y movement vector
 		setupMovementVector(speed, dir);
+		
+		m_isMoving = true;
 		
 		return true;
 	}
@@ -298,6 +306,7 @@ void AgentMovementSystem::advance()
 		bio->notifyResting(m_restFrameTimer.restart());
 	}
 	else
+	if(m_isMoving)
 	{
 		if(!bio->isEating())
 		{

@@ -226,8 +226,8 @@ double SimpleBotAgent::calcGoalActionProb(MNode *action)
 // 		lti *= ((double)(rand() % 100)) / 100.;
 // 	}
 	
-	double rv = ((double)(rand() % 10)) / 10. / 10.;
-	lti *= rv;
+	double rv = ((double)(rand() % 10) - 5.) / 10. / 10.;
+	lti += rv;
 	
 	return lti;
 }
@@ -254,7 +254,7 @@ void SimpleBotAgent::chooseAction()
 	//qDebug() << "SimpleBotAgent::chooseAction: [NoOp] maxInfo.node: "<<maxInfo.node;
 	//return;
 	
-	if(!m_currentAction || m_currentAction->content() != maxInfo.node->content())
+	//if(!m_currentAction || m_currentAction->content() != maxInfo.node->content())
 	{
 		AgentSubsystem *bioPtr = subsystem(AgentBioSystem::className());
 		AgentBioSystem *bio = dynamic_cast<AgentBioSystem*>(bioPtr);
@@ -268,7 +268,7 @@ void SimpleBotAgent::chooseAction()
 			double hungerChange = bio->hunger() - m_lastHunger;
 			double energyChange = bio->energy() - m_lastEnergy;
 			
-			qDebug() << "SimpleBotAgent::chooseAction: hungerChange: "<<hungerChange<<", energyChange: "<<energyChange;
+			qDebug() << "SimpleBotAgent::chooseAction: hungerChange: "<<hungerChange<<" ("<<bio->hunger()<<"-"<<m_lastHunger<<"), energyChange: "<<energyChange<<" ("<<bio->energy()<<"-"<<m_lastEnergy<<")";
 			
 			/// TODO: In future, we need to actually evaulate the data() of the goal to see what the 'goal' of the goal is.
 			// Here, we cheat by hardcoding the goal function based on the name

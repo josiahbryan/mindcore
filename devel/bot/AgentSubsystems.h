@@ -145,6 +145,8 @@ protected:
 	QTime m_restFrameTimer;
 	bool m_isResting;
 	int m_restLength;
+	
+	bool m_isMoving;
 };
 
 // class AgentTouchSystem : public AgentSubsystem
