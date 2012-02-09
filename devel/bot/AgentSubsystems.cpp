@@ -15,33 +15,40 @@ void AgentSubsystem::actionCompleted()
 
 void AgentBioSystem::initMindSpace()
 {
+	/*
+		{ name: 'BioSystem', type: 'ConceptNode', 
+			uplink: 'PartOf',
+			kids: 
+			[
+				{ name: "HungerValue",	type: 'VariableNode', data: 1.0, uplink: "PartOf" },
+				{ name: "EnergyValue",	type: 'VariableNode', data: 1.0, uplink: "PartOf" },
+				
+				{ name: "EatAction",	type: 'ActionNode', uplink: "PartOf",
+					kids:
+					[
+						{ name: "EatTime", type: 'VariableNode', data: 100, uplink: "PartOf" },
+					]
+				}
+			]
+		}
+	
+	*/
+	
 	// Create the system node
-	MSpace *ms = m_agent->mindSpace();
-	m_node = ms->node("BioSystem", MNodeType::ConceptNode());
-	ms->link(m_agent->node(), m_node, MLinkType::PartOf());
+	m_node = m_agent->node()->linkedNode("BioSystem", MNodeType::ConceptNode());
+	{
+		// find/create the hunger/energy variables with initial data values of 1.0
+		m_hungerVar = m_node->linkedNode("HungerValue", MNodeType::VariableNode(), MLinkType::PartOf(), 1.0);
+		m_energyVar = m_node->linkedNode("EnergyValue", MNodeType::VariableNode(), MLinkType::PartOf(), 1.0);
 	
-	// Create the hunger/energy variables
-	m_hungerVar = ms->node("HungerValue", MNodeType::VariableNode());
-	m_energyVar = ms->node("EnergyValue", MNodeType::VariableNode());
-	
-	// Setup intial values
-	m_hungerVar->setData(1.0);
-	m_energyVar->setData(1.0);
-	
-	// Link the variables to the system node
-	ms->link(m_node, m_hungerVar, MLinkType::PartOf());
-	ms->link(m_node, m_energyVar, MLinkType::PartOf());
-	
-	// Add an action to the system node
-	MNode *act = ms->node("EatAction", MNodeType::ActionNode());
-	ms->link(m_node, act, MLinkType::PartOf());
-	
-	// Variable for the eat action
-	MNode *time = ms->node("EatTime", MNodeType::VariableNode());
-	time->setData(100); // milliseconds
-	ms->link(act, time, MLinkType::PartOf());
-	
-	m_actions << act;
+		// Add an action to the system node
+		MNode *act  = m_node->linkedNode("EatAction",   MNodeType::ActionNode());
+		{
+			// Find/create variable for the eat action with initial value of 100 (ms)
+			act->linkedNode("EatTime", MNodeType::VariableNode(), MLinkType::PartOf(), 100);
+		}
+		m_actions << act;
+	}
 	
 	// Setup internal variables
 	m_isEating = false;
@@ -179,41 +186,29 @@ void AgentMovementSystem::initMindSpace()
 	//qDebug() << "AgentMovementSystem::initMindSpace(): Bio ptr: "<< m_agent->subsystem(AgentBioSystem::className());
 	
 	// Create the system node
-	MSpace *ms = m_agent->mindSpace();
-	m_node = ms->node("MovementSystem", MNodeType::ConceptNode());
-	ms->link(m_agent->node(), m_node, MLinkType::PartOf());
-	
-	// Create the variable nodes
-	MNode *speed = ms->node("MoveSpeed", MNodeType::VariableNode());
-	MNode *dir   = ms->node("MoveDirection", MNodeType::VariableNode());
-	
-	speed->setData(1.0); // 0-1
-	dir->setData(90); // 0-359
-	
-	
-	// Link the vars to the node
-//	ms->link(m_node, speed, MLinkType::PartOf());
-//	ms->link(m_node, dir, MLinkType::PartOf());
-	
-	// Create the action and link the vars to the act, and act to the system node
-	MNode *act = ms->node("MoveAction", MNodeType::ActionNode());
-	ms->link(act,    speed, MLinkType::PartOf());
-	ms->link(act,    dir,   MLinkType::PartOf());
-	ms->link(m_node, act,   MLinkType::PartOf());
-	m_actions << act;
-	
-	// Create the resting action
-	act = ms->node("RestAction", MNodeType::ActionNode());
-	ms->link(m_node, act, MLinkType::PartOf());
-	
-	//qDebug() << "AgentMovementSystem::initMindSpace(): creating RestAction, act:"<<act<<", type:"<<act->type();
-	
-	// Variable for the rest action
-	MNode *time = ms->node("RestTime", MNodeType::VariableNode());
-	time->setData(100); // ms
-	ms->link(act, time, MLinkType::PartOf());
-	
-	m_actions << act;
+	m_node = m_agent->node()->linkedNode("MovementSystem", MNodeType::ConceptNode());
+	{
+		// Find/create the action and link the vars to the act, and act to the system node
+		MNode *act = m_node->linkedNode("MoveAction", MNodeType::ActionNode());
+		{
+			// Create the variable nodes
+			MNode *speed = act->linkedNode("MoveSpeed",     MNodeType::VariableNode(), MLinkType::PartOf(), 1.0);
+			MNode *dir   = act->linkedNode("MoveDirection", MNodeType::VariableNode(), MLinkType::PartOf(), 90);
+			
+// 			speed->setData(1.0); // 0-1
+// 			dir->setData(90); // 0-359
+			
+		}
+		m_actions << act;
+		
+		// Find/create the resting action
+		act = m_node->linkedNode("RestAction", MNodeType::ActionNode());
+		{
+			// Variable for the rest action with initial time of 100ms
+			act->linkedNode("RestTime", MNodeType::VariableNode(), MLinkType::PartOf(), 100);
+		}
+		m_actions << act;
+	}
 	
 	// Setup our internal state
 	m_vec = QPointF(1.,1.);

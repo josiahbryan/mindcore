@@ -53,6 +53,8 @@ void MSpace::addNode(MNode *node)
 	if(m_nodes.contains(node))
 		return;
 	
+	node->setMindSpace(this);
+	
 	m_nodes << node;
 	m_uuidToNode[node->uuid()] = node;
 	m_contentToNode[node->content()] = node;
@@ -109,6 +111,8 @@ void MSpace::removeNode(MNode *node)
 {
 	if(!m_nodes.contains(node))
 		return;
+	
+	node->setMindSpace(0);
 	
 	m_nodes.removeAll(node);
 	m_uuidToNode.remove(node->uuid());

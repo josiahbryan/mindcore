@@ -141,59 +141,72 @@ void SimpleBotAgent::addSubsystem(AgentSubsystem *sys)
 
 void SimpleBotAgent::initGoals()
 {
-	MNode *agentGoals = m_mspace->node("AgentGoals", MNodeType::GoalNode());
-	m_mspace->link(m_node, agentGoals, MLinkType::PartOf());
+	AgentSubsystem *bioPtr = subsystem(AgentBioSystem::className());
 	
-	MNode *hungerGoal = m_mspace->node("HungerGoal");
-	if(!hungerGoal)
-	{
-		hungerGoal = m_mspace->addNode("HungerGoal", MNodeType::GoalNode());
-		
-		// NOTE Idea: Perhaps the link weight (Tv) could be the way to rank the goals...
-		// NOTE Revision: The lti/sti would be a better ranking...
-		m_mspace->link(agentGoals, hungerGoal, MLinkType::OrderedLink());
-		
-		QVariantList goalData;
-		{	
-			QVariantList goalRow;
-			goalRow << "MIN" << "HungerValue" << 0.0;
-			
-			goalData.append(QVariant(goalRow));
-		}
-		
-		hungerGoal->setData(goalData);
-		
-		//qDebug() << "SimpleBotAgent::initGoals: Debug: HUNGER goal goalData: "<<goalData;
-		
-		MNode *hungerVar = m_mspace->node("HungerValue", MNodeType::VariableNode());
-		hungerVar->setData(1.0);
-		
-		m_mspace->link(hungerGoal, hungerVar, MLinkType::GoalVariableLink());
-	}
-	m_goals << hungerGoal;
 	
-	MNode *energyGoal = m_mspace->node("EnergyGoal");
-	if(!energyGoal)
+	MNode *agentGoals = m_node->linkedNode("AgentGoals", MNodeType::GoalNode());
 	{
-		energyGoal = m_mspace->addNode("EnergyGoal", MNodeType::GoalNode());
-		m_mspace->link(agentGoals, energyGoal, MLinkType::OrderedLink());
-		
-		QVariantList goalData;
-		{	
-			QVariantList goalRow;
-			goalRow << "MAX" << "EnergyValue" << 1.0;
+		MNode *hungerGoal = agentGoals->firstLinkedNode("HungerGoal");
+		if(!hungerGoal)
+		{
+			hungerGoal = agentGoals->linkedNode("HungerGoal", MNodeType::GoalNode(), MLinkType::OrderedLink());
 			
-			goalData.append(QVariant(goalRow));
+			// NOTE Idea: Perhaps the link weight (Tv) could be the way to rank the goals...
+			// NOTE Revision: The lti/sti would be a better ranking...
+			
+			QVariantList goalData;
+			{	
+				QVariantList goalRow;
+				goalRow << "MIN" << "HungerValue" << 0.0;
+				
+				goalData.append(QVariant(goalRow));
+			}
+			
+			hungerGoal->setData(goalData);
+			
+			//qDebug() << "SimpleBotAgent::initGoals: Debug: HUNGER goal goalData: "<<goalData;
+			
+			// Link this goal with it's associated variable node in the Bio system
+			MNode *hungerVar = bioPtr->node()->firstLinkedNode("HungerValue");
+			if(hungerVar)
+			{
+				m_mspace->link(hungerGoal, hungerVar, MLinkType::GoalVariableLink());
+			}
+			else
+			{
+				qDebug() << "SimpleBotAgent::initGoals: Bio system didn't have a linked 'HungerValue' - we're probably going to mess up and crash later.";
+			}
 		}
+		m_goals << hungerGoal;
 		
-		energyGoal->setData(goalData);
-		
-		MNode *energyVar = m_mspace->node("EnergyValue", MNodeType::VariableNode());
-		energyVar->setData(1.0);
-		
-		m_mspace->link(energyGoal, energyVar, MLinkType::GoalVariableLink());
+		MNode *energyGoal = agentGoals->firstLinkedNode("EnergyGoal");
+		if(!energyGoal)
+		{
+			energyGoal = agentGoals->linkedNode("EnergyGoal", MNodeType::GoalNode(), MLinkType::OrderedLink());
+			
+			QVariantList goalData;
+			{	
+				QVariantList goalRow;
+				goalRow << "MAX" << "EnergyValue" << 1.0;
+				
+				goalData.append(QVariant(goalRow));
+			}
+			
+			energyGoal->setData(goalData);
+			
+			// Link this goal with it's associated variable node in the Bio system
+			MNode *energyVar = bioPtr->node()->firstLinkedNode("EnergyValue");
+			if(energyVar)
+			{
+				m_mspace->link(energyGoal, energyVar, MLinkType::GoalVariableLink());
+			}
+			else
+			{
+				qDebug() << "SimpleBotAgent::initGoals: Bio system didn't have a linked 'EnergyValue' - we're probably going to mess up and crash later.";
+			}
+		}
+		m_goals << energyGoal;
 	}
-	m_goals << energyGoal;
 }
 
 static bool SimpleBotAgent_goalSort(MNode *n1, MNode *n2)
@@ -279,7 +292,7 @@ void SimpleBotAgent::chooseAction()
 	if(m_currentAction)
 	{
 		/// Create/locate a memory snapshot of goal/action/variable combo
-		/*
+		
 		// Find/create agent's memory node
 		MNode *memory = m_node->firstLinkedNode("AgentMemory");
 		if(!memory)
@@ -305,8 +318,8 @@ void SimpleBotAgent::chooseAction()
 			actMemory = m_mspace->addNode(actMemoryKey, MNodeType::MemoryNode());
 			m_mspace->link(goalMemory, actMemory, MLinkType::MemoryLink());
 		}
-		*/
-		MNode *actMemory = m_node;
+		
+		//MNode *actMemory = m_node;
 		
 		// Find/create variable snapshot memory node for this action
 		QList<MNode*> vars = m_currentAction->linkedNode(MNodeType::VariableNode());
@@ -322,18 +335,31 @@ void SimpleBotAgent::chooseAction()
 			
 			foreach(MNode *node, vars)
 			{
-				MNode *nodeClone = new MNode(); //node->clone(0); // 0 = dont clone any links to this node
+				MNode *nodeClone = node->clone(0); // 0 = dont clone any links to this node
+				//MNode *nodeClone = new MNode(); //node->clone(0); // 0 = dont clone any links to this node
 				//QVariantMap map = node->toVariantMap();
 				//map.remove("uuid");
 				//nodeClone->fromVariantMap(map);
-				nodeClone->setContent(node->content());
-				nodeClone->setType(node->type());
-				nodeClone->setData(node->data());
+				//nodeClone->setContent(node->content() + "-clone");
+// 				nodeClone->setContent(node->content());
+// 				nodeClone->setType(node->type());
+// 				nodeClone->setData(node->data());
 				
 				m_mspace->addNode(nodeClone);
-				//m_mspace->addLink(varMemory, nodeClone, MLinkType::MemoryLink());
+				
+// 				QString oldUuid = node->uuid();
+// 				QString newUuid = nodeClone->uuid();
+// 				if(oldUuid == newUuid)
+// 				{
+// 					qDebug() << "oops";
+// 					exit(-1);
+// 				}
+// 				
+				
+				m_mspace->addLink(varMemory, nodeClone, MLinkType::MemoryLink());
 			}
 		}
+		
 		
 		// TODO: Update LTI of actMemory and varMemory, ...and goalMemory?
 		
@@ -491,6 +517,10 @@ void SimpleBotAgent::chooseAction()
 	qDebug() << "SimpleBotAgent::chooseAction: Chose new action: "<<m_currentAction;
 
 	//qDebug() << "Action changed, cloned action node. Debug info: orig node:"<<maxInfo.node<<", orig node type: "<<maxInfo.node->type()<<", cloned type:" <<m_currentAction->type();
+//	const QList<MLink*> & links = m_currentAction->links();
+// 	qDebug() << "Debug: links on current action: ";
+// 	foreach(MLink *link, links)
+// 		qDebug() << "\t" << link << "\n\n";
 	
 	QList<MNode*> vars = m_currentAction->linkedNode(MNodeType::VariableNode());
 	
@@ -592,10 +622,12 @@ void SimpleBotAgent::paint(QPainter *painter, const QStyleOptionGraphicsItem */*
 	
 	AgentSubsystem *movePtr = subsystem(AgentMovementSystem::className());
 	AgentMovementSystem *move = dynamic_cast<AgentMovementSystem*>(movePtr);
-	
-	QPointF center(0,0);
-	QLineF line(center, move->vec() + center);
-	painter->drawLine( line );
+	if(move)
+	{
+		QPointF center(0,0);
+		QLineF line(center, move->vec() + center);
+		painter->drawLine( line );
+	}
 	
 	if(!m_label.isEmpty())
 	{
@@ -847,26 +879,26 @@ double SimpleBotAgent::chooseVector()
 
 void SimpleBotAgent::setState(StateInfo state)
 {
-	MNode *lastStateNode = 0;
-	if(m_state != StateUnknown)
-		lastStateNode = m_mspace->node(m_state.name);
-	
-	QString stateName = state.name;
-	qDebug() << "SimpleBotAgent::setState: "<<stateName;
-	m_state = state;
-	
-	m_stateTimer.restart();
-	
-	// Ensure node exists for this state
-	MNode *currentStateNode = m_mspace->node(stateName, MNodeType::ProcedureNode());
-		
-	if(lastStateNode)
-	{
-		MLink *foundLink = m_mspace->link(lastStateNode, currentStateNode);
-		
-		if(foundLink)
-			foundLink->setTruthValue(foundLink->truthValue().value() + 0.05);
-		else
-			m_mspace->addLink( new MLink(lastStateNode, currentStateNode, MLinkType::EventLink(), MTruthValue(0.1)) );
-	}
+// 	MNode *lastStateNode = 0;
+// 	if(m_state != StateUnknown)
+// 		lastStateNode = m_mspace->node(m_state.name);
+// 	
+// 	QString stateName = state.name;
+// 	qDebug() << "SimpleBotAgent::setState: "<<stateName;
+// 	m_state = state;
+// 	
+// 	m_stateTimer.restart();
+// 	
+// 	// Ensure node exists for this state
+// 	MNode *currentStateNode = m_mspace->node(stateName, MNodeType::ProcedureNode());
+// 		
+// 	if(lastStateNode)
+// 	{
+// 		MLink *foundLink = m_mspace->link(lastStateNode, currentStateNode);
+// 		
+// 		if(foundLink)
+// 			foundLink->setTruthValue(foundLink->truthValue().value() + 0.05);
+// 		else
+// 			m_mspace->addLink( new MLink(lastStateNode, currentStateNode, MLinkType::EventLink(), MTruthValue(0.1)) );
+// 	}
 }

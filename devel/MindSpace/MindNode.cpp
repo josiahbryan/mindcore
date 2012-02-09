@@ -133,6 +133,7 @@ MNode::MNode()
 	, m_longTermImportance(1.0)
 	, m_shortTermImportance(1.0)
 	, m_links()
+	, m_mspace(0)
 {
 	/* just to thwart gcc's warnings about MindSpace::staticMetaObject being unused */
 	Q_UNUSED(MindSpace::staticMetaObject);
@@ -158,6 +159,7 @@ MNode::MNode( const QString& content, MindSpace::MNodeType type )
 	, m_longTermImportance(1.0)
 	, m_shortTermImportance(1.0)
 	, m_links()
+	, m_mspace(0)
 {
 	createUuid();
 	setContent(content);
@@ -363,6 +365,39 @@ MNode *MNode::firstLinkedNode(MindSpace::MNodeType type)
 {
 	QList<MNode*> list = linkedNode(type, true);
 	return list.isEmpty() ? 0 : list.first();
+}
+
+void MNode::setMindSpace(MSpace *ms)
+{
+	m_mspace = ms;
+	//qDebug() << "MNode::setMindSpace: "<<this<<" using ptr: "<<ms;
+}
+
+
+MNode *MNode::linkedNode(const QString& content, MindSpace::MNodeType type, MindSpace::MLinkType linkType, QVariant initialData)
+{
+	MNode *node = firstLinkedNode(content);
+	if(!node)
+	{
+		//qDebug() << "MNode::linkedNode: "<<this<<" -> "<<content<<": creating node and link";
+		node = new MNode(content, type);
+		
+		if(initialData.isValid())
+			node->setData(initialData);
+			
+		MLink *link = new MLink(this, node, linkType);
+		if(m_mspace)
+		{
+			m_mspace->addNode(node);
+			m_mspace->addLink(link);
+		}
+		else
+		{
+			qDebug() << "MNode::linkedNode: "<<this<<" -> "<<content<<": No m_mspace setup yet!";
+		}
+	}
+	
+	return node;
 }
 
 

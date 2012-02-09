@@ -3,6 +3,7 @@
 
 #include "MindSpace.h"
 #include "MindNodeType.h"
+#include "MindLinkType.h"
 
 namespace MindSpace 
 {
@@ -59,6 +60,8 @@ namespace MindSpace
 		
 		QList<MNode *> linkedNode(const QString& content,    bool first=false);		/*!< \return all linked nodes matching \a content - return only the first matching node if \a first is true. */
 		QList<MNode *> linkedNode(MindSpace::MNodeType type, bool first=false);		/*!< \return all linked nodes matching \a type - return only the first matching node if \a first is true. */
+		
+		MNode *linkedNode(const QString& content, MindSpace::MNodeType type, MindSpace::MLinkType linkType=MLinkType::PartOf(), QVariant initialData=QVariant()); /*!< \return a linked MNode matching content/type - it finds or creates the node if it doesn't exist */
 		
 		MNode *firstLinkedNode(const QString& content);					/*!< \return the first linked node matching \a content - convenience function, calls linkedNode(content,true) internally */ 
 		MNode *firstLinkedNode(MindSpace::MNodeType type);				/*!< \return the first linked node matching \a type - convenience function, calls linkedNode(content,true) internally */
@@ -117,7 +120,7 @@ namespace MindSpace
 		
 	protected:
 		friend class MSpace;
-		void setMindSpace(MSpace *ms) { m_mspace=ms; }
+		void setMindSpace(MSpace *ms);// { m_mspace=ms; }
 		
 	protected:
 		/** \brief Creates a new UUID for this node

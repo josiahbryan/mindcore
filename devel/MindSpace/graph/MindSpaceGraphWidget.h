@@ -70,7 +70,7 @@ protected:
 	void wheelEvent(QWheelEvent *);
 	void drawBackground(QPainter *, const QRectF &);
 	
-	
+	QColor colorForType(MindSpace::MNodeType type);
 
 private:
 	

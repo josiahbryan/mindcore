@@ -17,6 +17,9 @@ using namespace MindSpace;
 
 #define EDGE_WEIGHT_FACTOR 1.0
 
+#include <QSettings>
+static QSettings MindSpaceGraphWidget_ColorSettings("graphcolors.ini", QSettings::IniFormat);
+
 MindSpaceGraphWidget::MindSpaceGraphWidget()
 	: m_timerId(0)
 	, m_mindSpace(0)
@@ -63,6 +66,30 @@ MindSpaceGraphWidget::MindSpaceGraphWidget()
 	setWindowTitle(tr("Elastic Nodes"));
 }
 
+QColor MindSpaceGraphWidget::colorForType(MindSpace::MNodeType type)
+{
+	QVariant var = MindSpaceGraphWidget_ColorSettings.value(type.uuid());
+	if(var.isNull())
+	{
+		QColor color;
+		
+		const int hueSeparation = 5; // ensure the randomly-picked hues are separated by at least 5 values
+		color.setHsv( rand() % (360/hueSeparation) * hueSeparation, rand() % 55 + 200, rand() % 55 + 200 );
+		var = color;
+		
+		MindSpaceGraphWidget_ColorSettings.setValue(type.uuid(), var);
+	}
+	
+	if(var.type() == QVariant::String)
+	{
+		QStringList parts = var.toString().split(",");
+		QColor color(parts[0].toInt(),parts[1].toInt(),parts[2].toInt());
+		var = color;
+	}
+	
+	return var.value<QColor>();
+}
+
 void MindSpaceGraphWidget::addNode(MNode *node)
 {
 	if(m_graphNodes.contains(node))
@@ -71,6 +98,8 @@ void MindSpaceGraphWidget::addNode(MNode *node)
 	MindSpaceGraphNode *graphNode;
 	graphNode = new MindSpaceGraphNode(this, node->content());
 	connect(graphNode, SIGNAL(doubleClicked(MindSpaceGraphNode*)), this, SLOT(graphNodeDoubleClicked(MindSpaceGraphNode *)));
+	
+	graphNode->setColor(colorForType(node->type()));
 	
 	QVariant pos = node->property("_graph_pos");
 	if(pos.isValid())
@@ -152,7 +181,8 @@ void MindSpaceGraphWidget::addLink(MLink *link)
 		
 		
 		
-		typeNode->setColor(QColor(255,150,50)); // orange
+		//typeNode->setColor(QColor(255,150,50)); // orange
+		typeNode->setColor(Qt::white); // orange
 		scene()->addItem(typeNode);
 		
 		data.node = typeNode;
