@@ -22,7 +22,7 @@ public slots:
 	void loadFile(QString);
 	void loadConceptNetDemo();
 	
-	void setMindSpace(MSpace *);
+	void setMindSpace(MSpace *, QList<MNodeType> typeFilter = QList<MNodeType>());
 	void mapNode(MNode *node, int levels=2);
 	
 private slots:
@@ -42,6 +42,7 @@ private:
 	QPushButton *m_backBtn;
 	QString m_lastSearch;
 	MSpace *m_mind;
+	QString m_lastFileLoaded;
 	
 };
 

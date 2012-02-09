@@ -117,7 +117,13 @@ QColor MindSpaceGraphWidget::colorForType(MindSpace::MNodeType type)
 
 void MindSpaceGraphWidget::addNode(MNode *node)
 {
+	if(!node)
+		return;
+		
 	if(m_graphNodes.contains(node))
+		return;
+		
+	if(m_typeFilter.contains(node->type()))
 		return;
 		
 	MindSpaceGraphNode *graphNode;
@@ -176,6 +182,9 @@ void MindSpaceGraphWidget::addLink(MLink *link)
 	MindSpaceGraphNode *startNode = m_graphNodes[link->node1()];
 	if(!startNode)
 	{
+		if(m_typeFilter.contains(link->node1()->type()))
+			return;
+		
 		qDebug() << "MindSpaceGraphWidget::addLink: Fatal Error: node1 ("<<link->node1()<<") of link "<<link<<" not found in existing graph nodes, exiting.";
 		exit(-1);
 	}
@@ -325,10 +334,13 @@ void MindSpaceGraphWidget::clearScene()
 	m_graphNodes.clear();
 	m_graphNodesReverse.clear();
 	m_graphLinks.clear();
+	m_filteredNodes.clear();
 }
 
-void MindSpaceGraphWidget::setMindSpace(MSpace *space)
+void MindSpaceGraphWidget::setMindSpace(MSpace *space, QList<MNodeType> typeFilter)
 {
+	m_typeFilter = typeFilter;
+	
 	clearScene();
 	
 	if(m_mindSpace)
@@ -344,8 +356,15 @@ void MindSpaceGraphWidget::setMindSpace(MSpace *space)
 		
 		
 		foreach(MNode *node, nodes)
+		{
+			if(m_typeFilter.contains(node->type()))
+			{
+				m_filteredNodes.append(node);
+				continue;
+			}
+			
 			addNode(node);
-			//m_centerNode = graphNode; // for use in addTestItem()
+		}
 		
 		connect(space, SIGNAL(nodeAdded(MNode*)), this, SLOT(addNode(MNode*)));
 		connect(space, SIGNAL(nodeRemoved(MNode*)), this, SLOT(removeNode(MNode*)));

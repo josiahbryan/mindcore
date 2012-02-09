@@ -113,7 +113,12 @@ BotWindow::BotWindow()
 	//vbox->addWidget(m_mspaceViewer);
 	split->addWidget(m_mspaceViewer);
 	
-	m_mspaceViewer->setMindSpace(m_mspace);
+	m_mspaceViewer->setMindSpace(m_mspace, 
+		// Create node type filter list
+		QList<MNodeType>() 
+		<< MNodeType::ActionMemoryNode()
+		<< MNodeType::VariableSnapshotNode()
+	);
 	
 	resize(1024,768);
 	//m_gv->fitInView(env->itemsBoundingRect(), Qt::KeepAspectRatio);

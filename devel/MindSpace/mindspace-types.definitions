@@ -1,4 +1,4 @@
-/** \file mindspace-types.definitions - Generated from MindSpace.types by mindspace-types.pl on Thu Feb  9 16:08:36 EST 2012  **/
+/** \file mindspace-types.definitions - Generated from MindSpace.types by mindspace-types.pl on Thu Feb  9 16:54:00 EST 2012  **/
 
 static MLinkType MLinkType_KLineLink ( "KLineLink", "e706cc14-e9ea-4dd3-9b65-5a3f5bedba96" );
 const MLinkType & MLinkType::KLineLink() { return MLinkType_KLineLink; }
@@ -70,6 +70,12 @@ static MNodeType MNodeType_MemoryNode ( "MemoryNode", "31727497-e327-4292-8a3e-f
 const MNodeType & MNodeType::MemoryNode() { return MNodeType_MemoryNode; }
 static MNodeType MNodeType_VariableSnapshotNode ( "VariableSnapshotNode", "d48a339e-d435-475f-9192-f0e06e055daf");
 const MNodeType & MNodeType::VariableSnapshotNode() { return MNodeType_VariableSnapshotNode; }
+static MNodeType MNodeType_GoalMemoryNode ( "GoalMemoryNode", "bfd413fb-cd40-499b-88bb-e3ccb2f77c4e");
+const MNodeType & MNodeType::GoalMemoryNode() { return MNodeType_GoalMemoryNode; }
+static MNodeType MNodeType_GoalTryNode ( "GoalTryNode", "caf1f840-7a53-4776-a03c-bdd8bea1fb88");
+const MNodeType & MNodeType::GoalTryNode() { return MNodeType_GoalTryNode; }
+static MNodeType MNodeType_ActionMemoryNode ( "ActionMemoryNode", "7e91563d-f1ad-4541-9555-0a5f529bbf84");
+const MNodeType & MNodeType::ActionMemoryNode() { return MNodeType_ActionMemoryNode; }
 static MLinkType MLinkType_GoalVariableLink ( "GoalVariableLink", "46a46123-be6f-4df3-adc6-2880235a5ff3" );
 const MLinkType & MLinkType::GoalVariableLink() { return MLinkType_GoalVariableLink; }
 static MLinkType MLinkType_MemoryLink ( "MemoryLink", "0121469d-4b08-4b77-b625-4fa922429a99" );

@@ -65,6 +65,8 @@ void MSpaceViewerWidget::closeEvent(QCloseEvent*)
 {
 	//MSpace *mind = MSpace::activeSpace();
 	//mind->writeToFile(SETTINGS_FILE);
+	
+	m_mind->writeToFile(m_lastFileLoaded);
 }
 
 void MSpaceViewerWidget::nodeDoubleClicked(MNode* node)
@@ -135,6 +137,7 @@ void MSpaceViewerWidget::loadConceptNetDemo()
 	
 	QString dataFile = "nonkline.dat";
 	QString conceptNetFile = "/opt/mindcore/data/src/conceptnet2/predicates_concise_nonkline.txt";
+	m_lastFileLoaded = dataFile;
 	
 	qDebug() << "Loading "<<dataFile<<" ...";
 	if(!mind->loadFromFile(dataFile)) 
@@ -169,18 +172,22 @@ void MSpaceViewerWidget::loadFile(QString file)
 	*/
 	setMindSpace(mind);
 	m_mind = mind;
+	
+	m_lastFileLoaded = file;
 	 
 }
 
-void MSpaceViewerWidget::setMindSpace(MSpace *mspace)
+void MSpaceViewerWidget::setMindSpace(MSpace *mspace, QList<MNodeType> typeFilter)
 {
+	m_lastFileLoaded = "";
+	
 	if(m_mind)
 		delete m_mind;
 	
 	// NOTE: DON'T set m_mind=mspace because it will get deleted if one of the above methods is called
 	
 	// This will graph the entire mspace
-	m_gw->setMindSpace(mspace);
+	m_gw->setMindSpace(mspace, typeFilter);
 }
 
 void MSpaceViewerWidget::mapNode(MNode *node, int levels)

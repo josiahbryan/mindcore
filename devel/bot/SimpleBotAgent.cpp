@@ -238,14 +238,10 @@ void SimpleBotAgent::chooseCurrentGoal()
 			MNode *memory = m_node->linkedNode("AgentMemory", MNodeType::MemoryNode());
 			{
 				// Find/create memory node for this goal
-// 				QString goalMemoryKey = m_currentGoal->content();
-// 				MNode *goalMemory = memory->linkedNode(goalMemoryKey, MNodeType::MemoryNode());
-				
-				QString goalMemoryKey2 = goal->content();
-				MNode *goalMemory2 = memory->linkedNode(goalMemoryKey2, MNodeType::MemoryNode());
-				
+ 				QString goalMemoryKey = goal->content();
+ 				MNode *goalMemory = memory->linkedNode(goalMemoryKey, MNodeType::GoalMemoryNode());
 				{
-					m_mspace->addLink( m_currentGoalMemory, goalMemory2, MLinkType::NextItemLink() );
+					m_mspace->addLink( m_currentGoalMemory, goalMemory, MLinkType::NextItemLink() );
 				}
 			}
 		}
@@ -317,8 +313,13 @@ void SimpleBotAgent::chooseAction()
 		{
 			// Find/create memory node for this goal
 			QString goalMemoryKey = m_currentGoal->content();
-			MNode *goalMemory = memory->linkedNode(goalMemoryKey, MNodeType::MemoryNode());
+			MNode *goalMemory = memory->linkedNode(goalMemoryKey, MNodeType::GoalMemoryNode());
 			{
+				qDebug() << "*** GoalMemory node: "<<goalMemory<<", type: "<<goalMemory->type();
+				
+				if(!goalMemory->data().isValid())
+					goalMemory->setData(m_currentGoal->uuid());
+				
 				if(!m_currentGoalMemory)
 				{
 					// Store the "try counter" on the goal itself so it automatically gets preserved across program runs
@@ -330,60 +331,32 @@ void SimpleBotAgent::chooseAction()
 					
 					// Create the node
 					QString memKey = tr("GoalTry%1").arg(curGoalMemoryCounter);
-					m_currentGoalMemory = goalMemory->linkedNode(memKey, MNodeType::MemoryNode());
+					m_currentGoalMemory = goalMemory->linkedNode(memKey, MNodeType::GoalTryNode());
 				}
 				
 				// Create memory node for this action
 				QString actMemoryKey = m_currentAction->content();
-				MNode *actMemory = m_currentGoalMemory->linkedNode(actMemoryKey, MNodeType::MemoryNode(), MLinkType::NextItemLink());
+				MNode *actMemory = m_currentGoalMemory->mindSpace()->addNode(actMemoryKey, MNodeType::ActionMemoryNode());
 				actMemory->setData(m_currentAction->uuid());
+				{
+					// Find/create variable snapshot memory node for this action
+					QList<MNode*> vars = m_currentAction->linkedNode(MNodeType::VariableNode());
+						
+					foreach(MNode *node, vars)
+					{
+						MNode *nodeClone = node->clone(0); // 0 = dont clone any links to this node
+						nodeClone->setType(MNodeType::VariableSnapshotNode());
+						m_mspace->addNode(nodeClone);
+						m_mspace->addLink(actMemory, nodeClone, MLinkType::MemoryLink());
+					}
+				}
 				
+				MLink *link = m_currentGoalMemory->mindSpace()->addLink(m_currentGoalMemory, actMemory, MLinkType::NextItemLink());
+				//qDebug() << "Link type: "<<link->type()<<", link:"<<link;
 				m_currentGoalMemory = actMemory;
 				// NextItemLink
 			}
 		}
-		
-		//MNode *actMemory = m_node;
-		/*
-		// Find/create variable snapshot memory node for this action
-		QList<MNode*> vars = m_currentAction->linkedNode(MNodeType::VariableNode());
-		QStringList keyList;
-		foreach(MNode *node, vars)
-			keyList << node->data().toString();
-		QString varMemoryKey = keyList.join("|");
-		MNode *varMemory = actMemory->firstLinkedNode(varMemoryKey);
-		if(!varMemory)
-		{
-			varMemory = m_mspace->addNode(varMemoryKey, MNodeType::VariableSnapshotNode());
-			m_mspace->link(actMemory, varMemory, MLinkType::MemoryLink());
-			
-			foreach(MNode *node, vars)
-			{
-				MNode *nodeClone = node->clone(0); // 0 = dont clone any links to this node
-				//MNode *nodeClone = new MNode(); //node->clone(0); // 0 = dont clone any links to this node
-				//QVariantMap map = node->toVariantMap();
-				//map.remove("uuid");
-				//nodeClone->fromVariantMap(map);
-				//nodeClone->setContent(node->content() + "-clone");
-// 				nodeClone->setContent(node->content());
-// 				nodeClone->setType(node->type());
-// 				nodeClone->setData(node->data());
-				
-				m_mspace->addNode(nodeClone);
-				
-// 				QString oldUuid = node->uuid();
-// 				QString newUuid = nodeClone->uuid();
-// 				if(oldUuid == newUuid)
-// 				{
-// 					qDebug() << "oops";
-// 					exit(-1);
-// 				}
-// 				
-				
-				m_mspace->addLink(varMemory, nodeClone, MLinkType::MemoryLink());
-			}
-		}
-		*/
 		
 		// TODO: Update LTI of actMemory and varMemory, ...and goalMemory?
 		

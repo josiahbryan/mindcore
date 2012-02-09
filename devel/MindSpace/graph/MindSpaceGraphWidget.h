@@ -32,7 +32,7 @@ public:
 	
 	void itemMoved(MindSpaceGraphNode *node=0);
 	
-	void setMindSpace(MSpace*);
+	void setMindSpace(MSpace*, QList<MNodeType> typeFilter = QList<MNodeType>());
 	MSpace *mindSpace() { return m_mindSpace; }
 	
 	void mapNode(MNode *node, int levels=5, int currentLevel=0);
@@ -82,6 +82,9 @@ private:
 	QHash<MLink*,MindSpaceGraphEdgeData> m_graphLinks;
 	QList<MLink*> m_linksProcessed;
 	bool m_layoutStopped;
+	
+	QList<MNodeType> m_typeFilter;
+	QList<MNode*> m_filteredNodes;
 };
 
 #endif
