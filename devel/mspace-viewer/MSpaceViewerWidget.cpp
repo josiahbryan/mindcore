@@ -154,16 +154,22 @@ void MSpaceViewerWidget::loadFile(QString file)
 		delete m_mind;
 	
 	MindSpace::MSpace *mind = new MindSpace::MSpace();
-	m_mind = mind;
 	
-	if(!m_mind->loadFromFile(file))
+	//qDebug() << "MSpaceViewerWidget::loadFile(): Loading file: "<<file;
+	if(!mind->loadFromFile(file))
 		return;
 	
-	const QList<MNode*> & list = m_mind->nodes();
+	/*
+	const QList<MNode*> & list = mind->nodes();
+	
 	if(!list.isEmpty())
 		search(list.first()->content());
 	else
-		qDebug() << "MSpaceViewerWidget::loadFile(): File "<<file<<" has no nodes defined"; 
+		qDebug() << "MSpaceViewerWidget::loadFile(): File "<<file<<" has no nodes defined";
+	*/
+	setMindSpace(mind);
+	m_mind = mind;
+	 
 }
 
 void MSpaceViewerWidget::setMindSpace(MSpace *mspace)
