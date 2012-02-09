@@ -1,4 +1,4 @@
-/** \file mindspace-types.node.prototypes - Generated from MindSpace.types by mindspace-types.pl on Wed Feb  8 20:55:00 EST 2012 **/
+/** \file mindspace-types.node.prototypes - Generated from MindSpace.types by mindspace-types.pl on Thu Feb  9 16:08:36 EST 2012 **/
 
 /** Shared reference to special node type ConceptNode */
 static const MNodeType & ConceptNode();

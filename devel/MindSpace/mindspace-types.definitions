@@ -1,4 +1,4 @@
-/** \file mindspace-types.definitions - Generated from MindSpace.types by mindspace-types.pl on Wed Feb  8 20:55:00 EST 2012  **/
+/** \file mindspace-types.definitions - Generated from MindSpace.types by mindspace-types.pl on Thu Feb  9 16:08:36 EST 2012  **/
 
 static MLinkType MLinkType_KLineLink ( "KLineLink", "e706cc14-e9ea-4dd3-9b65-5a3f5bedba96" );
 const MLinkType & MLinkType::KLineLink() { return MLinkType_KLineLink; }
@@ -104,6 +104,8 @@ static MLinkType MLinkType_MemberLink ( "MemberLink", "8db43876-9558-42a2-99fc-b
 const MLinkType & MLinkType::MemberLink() { return MLinkType_MemberLink; }
 static MLinkType MLinkType_SubsetLink ( "SubsetLink", "a50782c4-82d9-48a3-a073-140c4ec4c1ae", true, QStringList() << "OrderedLink" );
 const MLinkType & MLinkType::SubsetLink() { return MLinkType_SubsetLink; }
+static MLinkType MLinkType_NextItemLink ( "NextItemLink", "8c181177-1b39-4509-b858-b58775392bfe", true, QStringList() << "OrderedLink" );
+const MLinkType & MLinkType::NextItemLink() { return MLinkType_NextItemLink; }
 static MLinkType MLinkType_AndLink ( "AndLink", "9338c148-6afc-44b9-9dbc-35a830f5d3a6", true, QStringList() << "UnorderedLink" );
 const MLinkType & MLinkType::AndLink() { return MLinkType_AndLink; }
 static MLinkType MLinkType_OrLink ( "OrLink", "c79ac948-69c9-47d5-be1a-08a280407a0b", true, QStringList() << "UnorderedLink" );

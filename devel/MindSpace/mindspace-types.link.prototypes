@@ -1,4 +1,4 @@
-/** \file mindspace-types.link.prototypes - Generated from MindSpace.types by mindspace-types.pl on Wed Feb  8 20:55:00 EST 2012  **/
+/** \file mindspace-types.link.prototypes - Generated from MindSpace.types by mindspace-types.pl on Thu Feb  9 16:08:36 EST 2012  **/
 
 /** Shared reference to special link type KLineLink */
 static const MLinkType & KLineLink();
@@ -84,6 +84,8 @@ static const MLinkType & ListLink();
 static const MLinkType & MemberLink();
 /** Shared reference to special link type SubsetLink */
 static const MLinkType & SubsetLink();
+/** Shared reference to special link type NextItemLink */
+static const MLinkType & NextItemLink();
 /** Shared reference to special link type AndLink */
 static const MLinkType & AndLink();
 /** Shared reference to special link type OrLink */

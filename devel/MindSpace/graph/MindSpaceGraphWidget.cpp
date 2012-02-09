@@ -71,13 +71,38 @@ QColor MindSpaceGraphWidget::colorForType(MindSpace::MNodeType type)
 	QVariant var = MindSpaceGraphWidget_ColorSettings.value(type.uuid());
 	if(var.isNull())
 	{
+		QVariant inuseData = MindSpaceGraphWidget_ColorSettings.value("inuse");
+		QVariantMap colorsUsed = inuseData.toMap();
+		
 		QColor color;
 		
 		const int hueSeparation = 5; // ensure the randomly-picked hues are separated by at least 5 values
-		color.setHsv( rand() % (360/hueSeparation) * hueSeparation, rand() % 55 + 200, rand() % 55 + 200 );
+		
+		bool inuse = true;
+		int loopCount = 0;
+		int maxLoop = 360/hueSeparation;
+		bool checkInuse = true;
+		
+		while(inuse)
+		{
+			inuse = false;
+			
+			color.setHsv( rand() % (360/hueSeparation) * hueSeparation, rand() % 55 + 200, rand() % 55 + 200 );
+			
+			if(checkInuse && colorsUsed.contains(tr("%1").arg(color.rgb())))
+				inuse = true;
+			loopCount++;
+			
+			if(loopCount >= maxLoop)
+			{
+				checkInuse = false;
+			}
+		}
+		colorsUsed.insert(tr("%1").arg(color.rgb()), true);
 		var = color;
 		
 		MindSpaceGraphWidget_ColorSettings.setValue(type.uuid(), var);
+		MindSpaceGraphWidget_ColorSettings.setValue("inuse",colorsUsed);
 	}
 	
 	if(var.type() == QVariant::String)

@@ -95,6 +95,7 @@ UnorderedLink	SetLink					d3f3cd08-5213-4c53-ad7a-49a960468db8
 OrderedLink	ListLink				c6993e4c-a991-4800-9ae4-db383c138c81
 OrderedLink	MemberLink				8db43876-9558-42a2-99fc-be8948dfefb6
 OrderedLink	SubsetLink				a50782c4-82d9-48a3-a073-140c4ec4c1ae
+OrderedLink	NextItemLink				8c181177-1b39-4509-b858-b58775392bfe
 
 // Boolean set operations, logical constants
 UnorderedLink	AndLink					9338c148-6afc-44b9-9dbc-35a830f5d3a6

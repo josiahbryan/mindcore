@@ -186,6 +186,8 @@ protected:
 	
 	MNode *m_node;
 	
+	MNode *m_currentGoalMemory;
+	
 };
 
 bool operator==(SimpleBotAgent::StateInfo a, SimpleBotAgent::StateInfo b); 

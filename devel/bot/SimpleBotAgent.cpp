@@ -83,6 +83,7 @@ SimpleBotAgent::SimpleBotAgent(MSpace *ms)
 	, m_currentGoal(0)
 	, m_currentAction(0)
 	, m_node(0)
+	, m_currentGoalMemory(0)
 {
 	if(!m_mspace)
 		m_mspace = new MSpace();
@@ -231,11 +232,29 @@ void SimpleBotAgent::chooseCurrentGoal()
 	
 	if(goal != m_currentGoal)
 	{
+		if(m_currentGoalMemory && m_currentGoal)
+		{
+			// Find/create agent's memory node
+			MNode *memory = m_node->linkedNode("AgentMemory", MNodeType::MemoryNode());
+			{
+				// Find/create memory node for this goal
+// 				QString goalMemoryKey = m_currentGoal->content();
+// 				MNode *goalMemory = memory->linkedNode(goalMemoryKey, MNodeType::MemoryNode());
+				
+				QString goalMemoryKey2 = goal->content();
+				MNode *goalMemory2 = memory->linkedNode(goalMemoryKey2, MNodeType::MemoryNode());
+				
+				{
+					m_mspace->addLink( m_currentGoalMemory, goalMemory2, MLinkType::NextItemLink() );
+				}
+			}
+		}
+		
 		m_currentGoal = goal;
+		m_currentGoalMemory = 0; // notify that the goal has changed, start a new memory node for the goal
 		
 		qDebug() << "SimpleBotAgent::chooseCurrentGoal: Current goal changed, new goal: "<<goal->content();
 		chooseAction();
-		
 	}
 }
 
@@ -294,33 +313,38 @@ void SimpleBotAgent::chooseAction()
 		/// Create/locate a memory snapshot of goal/action/variable combo
 		
 		// Find/create agent's memory node
-		MNode *memory = m_node->firstLinkedNode("AgentMemory");
-		if(!memory)
+		MNode *memory = m_node->linkedNode("AgentMemory", MNodeType::MemoryNode());
 		{
-			memory = m_mspace->addNode("AgentMemory", MNodeType::MemoryNode());
-			m_mspace->link(m_node, memory, MLinkType::PartOfLink());
-		}
-		
-		// Find/create memory node for this goal
-		QString goalMemoryKey = m_currentGoal->content();
-		MNode *goalMemory = memory->firstLinkedNode(goalMemoryKey);
-		if(!goalMemory)
-		{
-			goalMemory = m_mspace->addNode(goalMemoryKey, MNodeType::MemoryNode());
-			m_mspace->link(memory, goalMemory, MLinkType::MemoryLink());
-		}
-		
-		// Find/create memory node for this action
-		QString actMemoryKey = m_currentGoal->content();
-		MNode *actMemory = goalMemory->firstLinkedNode(actMemoryKey);
-		if(!actMemory)
-		{
-			actMemory = m_mspace->addNode(actMemoryKey, MNodeType::MemoryNode());
-			m_mspace->link(goalMemory, actMemory, MLinkType::MemoryLink());
+			// Find/create memory node for this goal
+			QString goalMemoryKey = m_currentGoal->content();
+			MNode *goalMemory = memory->linkedNode(goalMemoryKey, MNodeType::MemoryNode());
+			{
+				if(!m_currentGoalMemory)
+				{
+					// Store the "try counter" on the goal itself so it automatically gets preserved across program runs
+					int curGoalMemoryCounter = m_currentGoal->property("_goal_memory_counter").toInt();
+					if(curGoalMemoryCounter < 0)
+						curGoalMemoryCounter = 0;
+					curGoalMemoryCounter ++;
+					m_currentGoal->setProperty("_goal_memory_counter", curGoalMemoryCounter); 
+					
+					// Create the node
+					QString memKey = tr("GoalTry%1").arg(curGoalMemoryCounter);
+					m_currentGoalMemory = goalMemory->linkedNode(memKey, MNodeType::MemoryNode());
+				}
+				
+				// Create memory node for this action
+				QString actMemoryKey = m_currentAction->content();
+				MNode *actMemory = m_currentGoalMemory->linkedNode(actMemoryKey, MNodeType::MemoryNode(), MLinkType::NextItemLink());
+				actMemory->setData(m_currentAction->uuid());
+				
+				m_currentGoalMemory = actMemory;
+				// NextItemLink
+			}
 		}
 		
 		//MNode *actMemory = m_node;
-		
+		/*
 		// Find/create variable snapshot memory node for this action
 		QList<MNode*> vars = m_currentAction->linkedNode(MNodeType::VariableNode());
 		QStringList keyList;
@@ -359,7 +383,7 @@ void SimpleBotAgent::chooseAction()
 				m_mspace->addLink(varMemory, nodeClone, MLinkType::MemoryLink());
 			}
 		}
-		
+		*/
 		
 		// TODO: Update LTI of actMemory and varMemory, ...and goalMemory?
 		
@@ -561,12 +585,12 @@ void SimpleBotAgent::chooseAction()
 		}
 	}
 
-	if((m_currentAction->content() != "MoveAction" && vars.size() > 1) ||
-	   (m_currentAction->content() == "MoveAction" && vars.size() > 3))
-	{
-		qDebug() << "Your up creek without a paddle, buddy.";
-		exit(-1);
-	}
+// 	if((m_currentAction->content() != "MoveAction" && vars.size() > 1) ||
+// 	   (m_currentAction->content() == "MoveAction" && vars.size() > 3))
+// 	{
+// 		qDebug() << "Your up creek without a paddle, buddy.";
+// 		exit(-1);
+// 	}
 	
 	qDebug("\n\n");
 
