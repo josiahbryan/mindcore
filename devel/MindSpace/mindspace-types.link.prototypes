@@ -1,4 +1,4 @@
-/** \file mindspace-types.link.prototypes - Generated from MindSpace.types by mindspace-types.pl on Tue Feb  7 13:04:13 EST 2012  **/
+/** \file mindspace-types.link.prototypes - Generated from MindSpace.types by mindspace-types.pl on Wed Feb  8 18:48:12 EST 2012  **/
 
 /** Shared reference to special link type KLineLink */
 static const MLinkType & KLineLink();

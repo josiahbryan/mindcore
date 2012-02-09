@@ -291,6 +291,8 @@ void SimpleBotAgent::chooseAction()
 			
 			// NOTE We need to store parameters of action in memory and reward LTI/STI for *that* combo, not just the aciton in general
 			
+			// NOTE We ALSO need to associate the actions with the *current goal* in memory
+			
 			
 			// Loop thru the evaulation information contained in the goal's data() function, find the variables
 			// and compare them to the values the variables had at the start of the action (stored in another block below in m_goalVarSnapshot)
@@ -356,7 +358,7 @@ void SimpleBotAgent::chooseAction()
 					
 					// Make sure ZERO change is marked as BAD
 					if(valueDelta == 0.0)
-						valueDelta = -0.1 * expectedChangeSign;
+						valueDelta = -0.07 * expectedChangeSign;
 						
 					/// TODO 0.1 = magic number, should it be configurable ?
 					double propLtiChange = 0.1 * valueDelta * expectedChangeSign; // Basically, for things that should be minimized 
