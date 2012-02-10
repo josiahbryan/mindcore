@@ -175,7 +175,7 @@ protected:
 	MNode *m_currentAction;
 	
 	// Calculate the probability that the MNode *action will achieve/help toward  m_currentGoal 
-	double calcGoalActionProb(MNode *action);
+	double calcGoalActionProb(MNode *goal, MNode *action);
 	
 	double m_lastHunger;
 	double m_lastEnergy;

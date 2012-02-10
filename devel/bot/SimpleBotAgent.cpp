@@ -232,7 +232,8 @@ void SimpleBotAgent::chooseCurrentGoal()
 	
 	if(goal != m_currentGoal)
 	{
-		if(m_currentGoalMemory && m_currentGoal)
+		if(m_currentGoalMemory && 
+		   m_currentGoal)
 		{
 			// Find/create agent's memory node
 			MNode *memory = m_node->linkedNode("AgentMemory", MNodeType::MemoryNode());
@@ -244,6 +245,17 @@ void SimpleBotAgent::chooseCurrentGoal()
 					m_mspace->addLink( m_currentGoalMemory, goalMemory, MLinkType::NextItemLink() );
 				}
 			}
+			
+			int curGoalMemoryCounter = m_currentGoal->property("_goal_memory_counter").toInt();
+			QString memKey = tr("GoalTry%1").arg(curGoalMemoryCounter);
+			
+			goalTryNode = goalMemory->linkedNode(memKey, MNodeType::GoalTryNode());
+			
+			QTime startTime = goalTryNode->data().toTime();
+			int delta = startTime.msecsTo(QTime::currentTime());
+			goalTryNode->setLongTermImportance(delta);
+			
+			// TODO: Find better quantifiers of the "importance" of this "try" other than the length of time it took to finish the goal
 		}
 		
 		m_currentGoal = goal;
@@ -254,15 +266,26 @@ void SimpleBotAgent::chooseCurrentGoal()
 	}
 }
 
-double SimpleBotAgent::calcGoalActionProb(MNode *action)
+double SimpleBotAgent::calcGoalActionProb(MNode *goal, MNode *action)
 {
-	/// TODO
+	MNode *goalActNode = 0;
+	// Find/create agent's memory node
+	MNode *memory = m_node->linkedNode("AgentMemory", MNodeType::MemoryNode());
+	{
+		// Find/create memory node for this goal
+		QString goalMemoryKey = goal->content();
+		MNode *goalMemory = memory->linkedNode(goalMemoryKey, MNodeType::GoalMemoryNode());
+		{
+			// Get the action node inside the goal
+			QString actMemoryKey = action->content();
+			goalActNode = goalMemory->linkedNode(actMemoryKey, MNodeType::ActionTryNode());
+		}
+	}
+	
+	
 	//return ((double)(rand() % 100)) / 100.;
-	double lti = action->longTermImportance();
-// 	if(lti == 1.0)
-// 	{
-// 		lti *= ((double)(rand() % 100)) / 100.;
-// 	}
+	//double lti = action->longTermImportance();
+	double lti = goalActNode->longTermImportance();
 	
 	double rv = ((double)(rand() % 10) - 5.) / 100.;
 	lti += rv;
@@ -285,7 +308,7 @@ void SimpleBotAgent::chooseAction()
 				//info.node->setLongTermImportance(1.0);
 			}
 			
-			double p = calcGoalActionProb(info.node);
+			double p = calcGoalActionProb(m_currentGoal, info.node);
 			qDebug() << "SimpleBotAgent::chooseAction: p:"<<p<<", info.node:" << info.node;
 			if(p >= maxProb)
 			{
@@ -384,16 +407,9 @@ void SimpleBotAgent::chooseAction()
 			}
 		}
 		
-		// TODO: Update LTI of actMemory and varMemory, ...and goalMemory?
-		
-		
 		
 		// eval goal value change and reward STI/LTI of action accordingly
 		
-		
-		// NOTE We need to store parameters of action in memory and reward LTI/STI for *that* combo, not just the aciton in general
-		
-		// NOTE We ALSO need to associate the actions with the *current goal* in memory
 		
 		
 		// Loop thru the evaulation information contained in the goal's data() function, find the variables
