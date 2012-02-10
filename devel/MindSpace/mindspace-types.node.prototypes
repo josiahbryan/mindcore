@@ -1,4 +1,4 @@
-/** \file mindspace-types.node.prototypes - Generated from MindSpace.types by mindspace-types.pl on Thu Feb  9 16:54:00 EST 2012 **/
+/** \file mindspace-types.node.prototypes - Generated from MindSpace.types by mindspace-types.pl on Thu Feb  9 20:28:09 EST 2012 **/
 
 /** Shared reference to special node type ConceptNode */
 static const MNodeType & ConceptNode();
@@ -20,6 +20,8 @@ static const MNodeType & GoalMemoryNode();
 static const MNodeType & GoalTryNode();
 /** Shared reference to special node type ActionMemoryNode */
 static const MNodeType & ActionMemoryNode();
+/** Shared reference to special node type ActionTryNode */
+static const MNodeType & ActionTryNode();
 /** Shared reference to special node type GoalQuantifierNode */
 static const MNodeType & GoalQuantifierNode();
 /** Shared reference to special node type ContextNode */

@@ -235,6 +235,9 @@ void MindSpaceGraphWidget::addLink(MLink *link)
 			
 			if(!endNode)
 			{
+				if(m_typeFilter.contains(node2->type()))
+					continue;
+					
 				qDebug() << "MindSpaceGraphWidget::addLink: Cannot find graph node for ARG node2: "<<link->node2();
 				continue;
 			}
@@ -253,7 +256,8 @@ void MindSpaceGraphWidget::addLink(MLink *link)
 		MindSpaceGraphNode *endNode = m_graphNodes[link->node2()];
 		if(!endNode)
 		{
-			qDebug() << "MindSpaceGraphWidget::addLink: Cannot find graph node for node2: "<<link->node2();
+			if(!m_typeFilter.contains(link->node2()->type()))
+				qDebug() << "MindSpaceGraphWidget::addLink: Cannot find graph node for node2: "<<link->node2();
 			//return; 
 		}
 		else

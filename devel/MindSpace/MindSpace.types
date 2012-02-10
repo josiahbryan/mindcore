@@ -71,6 +71,7 @@ MemoryNode		VariableSnapshotNode		d48a339e-d435-475f-9192-f0e06e055daf
 MemoryNode		GoalMemoryNode			bfd413fb-cd40-499b-88bb-e3ccb2f77c4e
 MemoryNode		GoalTryNode			caf1f840-7a53-4776-a03c-bdd8bea1fb88
 MemoryNode		ActionMemoryNode		7e91563d-f1ad-4541-9555-0a5f529bbf84
+MemoryNode		ActionTryNode			62c1ecfa-eaf9-4688-a78b-daa3ad393255
 
 Link			GoalVariableLink		46a46123-be6f-4df3-adc6-2880235a5ff3
 
