@@ -65,7 +65,7 @@ public:
 	
 	
 protected:
-	void raiseException(MNode *varNode=0, const QString& message="");
+	void raiseException(MNode *varNode=0, QVariant targetVal=0, const QString& message="");
 	void actionCompleted();
 
 	SimpleBotAgent *m_agent;

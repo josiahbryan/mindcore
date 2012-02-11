@@ -1,9 +1,9 @@
 #include "SimpleBotAgent.h"
 #include "AgentSubsystems.h"
 
-void AgentSubsystem::raiseException(MNode *node, const QString& message)
+void AgentSubsystem::raiseException(MNode *node, QVariant targetVal, const QString& message)
 {
-	m_agent->actionException(m_currentAction, node, message);
+	m_agent->actionException(m_currentAction, node, targetVal, message);
 }
 
 void AgentSubsystem::actionCompleted()
@@ -114,7 +114,7 @@ bool AgentBioSystem::executeAction(MNode *node)
 		double foodAmtAvail = storedFood();
 		if(foodAmtAvail <= 0.)
 		{
-			raiseException(m_foodVar, "No food available");
+			raiseException(m_foodVar, 1., "No food available");
 			return false;
 		}
 		
@@ -320,7 +320,7 @@ void AgentMovementSystem::advance()
 			else
 			{
 				qDebug() << "AgentMovementSystem::advance: Out of energy, can't move.";
-				raiseException(bio->node()->firstLinkedNode("EnergyValue"), "Out of energy, can't move.");
+				raiseException(bio->node()->firstLinkedNode("EnergyValue"), 1., "Out of energy, can't move.");
 			}
 		}
 		else
@@ -344,7 +344,7 @@ void AgentMovementSystem::changeAgentPosition()
 	if(newPos != expect)
 	{
 		qDebug() << "AgentMovementSystem::changeAgentPosition: Hit wall, can't move any more. Flagging error.";
-		raiseException(0, "Hit wall, can't move any more");
+		raiseException(0, 0, "Hit wall, can't move any more");
 		
 		//chooseVector();
 	}

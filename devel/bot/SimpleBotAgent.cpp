@@ -225,8 +225,22 @@ static bool SimpleBotAgent_goalSort(MNode *n1, MNode *n2)
 
 void SimpleBotAgent::chooseCurrentGoal()
 {
-	qSort(m_goals.begin(), m_goals.end(), SimpleBotAgent_goalSort);
-	MNode *goal = m_goals.first();
+// 	if(m_currentGoal && !m_goalStack.isEmpty())
+// 		m_goalStack.takeLast(); // current goal
+// 	
+	MNode *goal;
+	if(!m_goalStack.isEmpty())
+	{
+		goal = m_goalStack.takeLast();
+		qDebug() << "SimpleBotAgent::chooseCurrentGoal: Popped goal off stack: "<<goal->content();
+	}
+	else
+	{
+		qSort(m_goals.begin(), m_goals.end(), SimpleBotAgent_goalSort);
+		goal = m_goals.first();
+		
+		qDebug() << "SimpleBotAgent::chooseCurrentGoal: Chose goal based on STI: "<<goal->content();
+	}
 	
 	//qDebug() << "SimpleBotAgent::chooseCurrentGoal: first goal after sort: "<<goal->content();
 	
@@ -503,7 +517,7 @@ void SimpleBotAgent::chooseAction()
 				// Also adjust the LTI of this goal->action combo
 				goalActNode->setLongTermImportance( goalActNode->longTermImportance() + propLtiChange );
 				
-				qDebug() << "SimpleBotAgent::chooseAction: " << m_currentGoal->content().toUpper()<</*", new STI: "<< m_currentAction->longTermImportance()<<*/", new goalActNode STI: "<<goalActNode->longTermImportance()<<", action was: "<<m_currentAction->content()<<" (prop lti change: "<<propLtiChange<<", thisValue:" <<thisValue.toDouble()<<", lastValue:"<<lastValue.toDouble()<<", change:"<<valueDelta<<")";
+				qDebug() << "SimpleBotAgent::chooseAction: " << m_currentGoal->content()<</*", new STI: "<< m_currentAction->longTermImportance()<<*/", new goalActNode STI: "<<goalActNode->longTermImportance()<<", action was: "<<m_currentAction->content()<<" (prop lti change: "<<propLtiChange<<", thisValue:" <<thisValue.toDouble()<<", lastValue:"<<lastValue.toDouble()<<", change:"<<valueDelta<<")";
 				
 				// Use the goalVal to compare the change so we can have something to use to update the STI of the goal
 				if(goalVal.isValid())
@@ -527,7 +541,7 @@ void SimpleBotAgent::chooseAction()
 		//double propAbsSti = qAbs(goalDeltaSum) / goalVal.toDouble(); // convert to abs 0-1 value
 		double avgGoalDelta = goalDeltaSum / ((double)rowCount);
 		m_currentGoal->setShortTermImportance(avgGoalDelta);
-		qDebug() << "SimpleBotAgent::chooseAction: " << m_currentGoal->content().toUpper()<<": goalDeltaSum: "<<goalDeltaSum<<", avgGoalDelta: "<<avgGoalDelta;
+		qDebug() << "SimpleBotAgent::chooseAction: " << m_currentGoal->content()<<": goalDeltaSum: "<<goalDeltaSum<<", avgGoalDelta: "<<avgGoalDelta;
 		
 		
 		// TODO: We stored the goalTryNode and we have the m_currentGoalMemory as the memory node of the last completed action -
@@ -645,13 +659,100 @@ void SimpleBotAgent::actionCompleted(MNode *currentAction)
 
 //MNode *m_currentGoal;
 
-void SimpleBotAgent::actionException(MNode *currentAction, MNode *exceptionVar, const QString& message)
+void SimpleBotAgent::actionException(MNode *currentAction, MNode *exceptionVar, QVariant targetVal,  const QString& message)
 {
-	m_exceptionVar = exceptionVar;
+	//m_exceptionVar = exceptionVar;
 	
 	//qDebug() << "SimpleBotAgent::actionException: Unandled: "<<message<<", current action: "<<currentAction;
 	//exit(-1);
-	qDebug() << "SimpleBotAgent::actionException: "<<message<<", current action: "<<currentAction;
+	qDebug() << "SimpleBotAgent::actionException: "<<message<<", current action: "<<currentAction<<", exceptionVar: "<<exceptionVar<<", targetVal: "<<targetVal;
+	
+	// Has exception var, create faux goal with MAX/MIN based on delta (targetVal-exceptionVar.data())
+	if(exceptionVar)
+	{
+		double targetNum = targetVal.toDouble();
+		double currentNum = exceptionVar->data().toDouble();
+		double delta = targetNum - currentNum;
+		QString func = delta >= 0 ? "MAX" : "MIN";
+		QString varName = exceptionVar->content();
+		
+		qDebug() << "\t delta:"<<delta<<", func:"<<func<<", varName:"<<varName;
+		
+		MNode *fauxGoal = 0;
+		GOAL_SEARCH: foreach(MNode *goal, m_goals)
+		{
+			QVariantList goalData = m_currentGoal->data().toList();
+			int rowCount = 0;
+			foreach(QVariant rowData, goalData)
+			{	
+				rowCount ++ ;
+				
+				QVariantList goalRow = rowData.toList();
+				if(goalRow.size() < 2)
+				{
+					qDebug() << "SimpleBotAgent::actionException: Error searching goal "<<goal->content()<<": row "<<rowCount<<" has less than 2 data elements: "<<goalRow;
+					continue;
+				}
+				
+				QString evalFunc = goalRow[0].toString();
+				QString varId    = goalRow[1].toString(); // can be name or UUID
+				QVariant goalVal = goalRow.size() >= 3 ? goalRow[2] : QVariant();
+				
+				// Find the node referenced as the variable
+				MNode *goalVar = m_currentGoal->linkedNodeUuid(varId); // check by uuid first
+				if(!goalVar)
+					goalVar = m_currentGoal->firstLinkedNode(varId); // check by content if uuid not matched
+				
+				if(!goalVar)
+				{
+					qDebug() << "SimpleBotAgent::actionException: Error searching goal "<<goal->content()<<": Unable to find linked var:" << varId;
+					continue;
+				}
+				
+				if(goalVar->uuid() == exceptionVar->uuid() &&
+				   goalVal.toDouble() == targetNum)
+				{
+					fauxGoal = goal;
+					qDebug() << "SimpleBotAgent::actionException: Found matching goal: "<<goal<<" for exception data: "<<goalVar<<goalVal<<" compared to:"<<exceptionVar<<targetNum;
+					break;
+				}
+				else
+				{
+					qDebug() << "\t goalVar:"<<goalVar<<"!="<<exceptionVar<<", or goalVal:"<<goalVal<<"!="<<targetNum;
+				}
+			}
+		}
+		
+		if(!fauxGoal)
+		{
+			MNode *agentGoals = m_node->linkedNode("AgentGoals", MNodeType::GoalNode());
+			
+			fauxGoal = agentGoals->linkedNode(tr("%1(%2)").arg(func).arg(varName), MNodeType::GoalNode(), MLinkType::PartOf());
+				
+			QVariantList goalData;
+			{	
+				QVariantList goalRow;
+				goalRow << func << varName << targetVal;
+				
+				goalData.append(QVariant(goalRow));
+			}
+			
+			fauxGoal->setData(goalData);
+			
+			if(!m_goals.contains(fauxGoal))
+				m_goals << fauxGoal;
+			
+			m_mspace->link(fauxGoal, exceptionVar, MLinkType::GoalVariableLink());
+			qDebug() << "SimpleBotAgent::actionException: Created faux goal: "<<fauxGoal->content()<<" for exception data";
+		}
+		
+		m_goalStack.append(m_currentGoal);
+		
+		qDebug() << "SimpleBotAgent::actionException: Current goal changed, new goal: "<<fauxGoal->content()<<", was:"<<m_currentGoal->content()<<", m_goalStack.size:"<<m_goalStack.size();
+		
+		m_currentGoal = fauxGoal;
+		m_currentGoalMemory = 0; // notify that the goal has changed, start a new memory node for the goal
+	}
 	
 	chooseAction();
 }

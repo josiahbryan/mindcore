@@ -72,7 +72,7 @@ public:
 	
 	StateInfo state() { return m_state; }
 	
-	void actionException(MNode *currentAction, MNode *exceptionVar, const QString& message);
+	void actionException(MNode *currentAction, MNode *exceptionVar, QVariant targetVal, const QString& message);
 	
 	MNode *currentAction() { return m_currentAction; }
 	
