@@ -72,7 +72,7 @@ public:
 	
 	StateInfo state() { return m_state; }
 	
-	void actionException(MNode *currentAction, const QString& message);
+	void actionException(MNode *currentAction, MNode *exceptionVar, const QString& message);
 	
 	MNode *currentAction() { return m_currentAction; }
 	
@@ -187,6 +187,10 @@ protected:
 	MNode *m_node;
 	
 	MNode *m_currentGoalMemory;
+	
+	MNode *m_exceptionVar;
+	
+	QList<MNode*> m_goalStack;
 	
 };
 

@@ -216,7 +216,7 @@ static bool SimpleBotAgent_goalSort(MNode *n1, MNode *n2)
 		return false;
 		
 	double delta = n1->shortTermImportance() - n2->shortTermImportance();
-	double rv = ((double)(rand() % 10) - 5.) / 100.;
+	double rv = ((double)(rand() % 10) - 5.) / 100.; // Add a random +/- 5% to the value to prevent deadlocking
 	delta += rv;
 	
 	return delta > 0;
@@ -232,31 +232,41 @@ void SimpleBotAgent::chooseCurrentGoal()
 	
 	if(goal != m_currentGoal)
 	{
+		/*
 		if(m_currentGoalMemory && 
 		   m_currentGoal)
 		{
 			// Find/create agent's memory node
 			MNode *memory = m_node->linkedNode("AgentMemory", MNodeType::MemoryNode());
 			{
-				// Find/create memory node for this goal
+				// Find/create memory node for the new goal
  				QString goalMemoryKey = goal->content();
  				MNode *goalMemory = memory->linkedNode(goalMemoryKey, MNodeType::GoalMemoryNode());
 				{
+					// Link last item in the linked list of actions to the next goal
 					m_mspace->addLink( m_currentGoalMemory, goalMemory, MLinkType::NextItemLink() );
 				}
+				
+				
+				// Find the memory node for the old (current) goal
+				QString curGoalMemoryKey = m_currentGoal->content();
+				MNode *curGoalMemory = memory->linkedNode(curGoalMemoryKey, MNodeType::GoalMemoryNode());
+				{
+					int curGoalMemoryCounter = m_currentGoal->property("_goal_memory_counter").toInt();
+					QString memKey = tr("GoalTry%1").arg(curGoalMemoryCounter);
+					
+					MNode *goalTryNode = curGoalMemory->linkedNode(memKey, MNodeType::GoalTryNode());
+					
+					// Update the LTI of the "GoalTry" node based on the time it took to complete this "try"s
+					QTime startTime = goalTryNode->data().toTime();
+					int delta = startTime.msecsTo(QTime::currentTime());
+					goalTryNode->setLongTermImportance(delta);
+				
+					// TODO: Find better quantifiers of the "importance" of this "try" other than the length of time it took to finish the goal
+				}
 			}
-			
-			int curGoalMemoryCounter = m_currentGoal->property("_goal_memory_counter").toInt();
-			QString memKey = tr("GoalTry%1").arg(curGoalMemoryCounter);
-			
-			goalTryNode = goalMemory->linkedNode(memKey, MNodeType::GoalTryNode());
-			
-			QTime startTime = goalTryNode->data().toTime();
-			int delta = startTime.msecsTo(QTime::currentTime());
-			goalTryNode->setLongTermImportance(delta);
-			
-			// TODO: Find better quantifiers of the "importance" of this "try" other than the length of time it took to finish the goal
 		}
+		*/
 		
 		m_currentGoal = goal;
 		m_currentGoalMemory = 0; // notify that the goal has changed, start a new memory node for the goal
@@ -269,6 +279,7 @@ void SimpleBotAgent::chooseCurrentGoal()
 double SimpleBotAgent::calcGoalActionProb(MNode *goal, MNode *action)
 {
 	MNode *goalActNode = 0;
+	
 	// Find/create agent's memory node
 	MNode *memory = m_node->linkedNode("AgentMemory", MNodeType::MemoryNode());
 	{
@@ -287,7 +298,7 @@ double SimpleBotAgent::calcGoalActionProb(MNode *goal, MNode *action)
 	//double lti = action->longTermImportance();
 	double lti = goalActNode->longTermImportance();
 	
-	double rv = ((double)(rand() % 10) - 5.) / 100.;
+	double rv = ((double)(rand() % 10) - 5.) / 100.; // Add a random +/- 5% to the value to prevent deadlocking
 	lti += rv;
 	
 	return lti;
@@ -332,7 +343,7 @@ void SimpleBotAgent::chooseAction()
 		/// Create/locate a memory snapshot of goal/action/variable combo
 		
 		// Store goalTryNode inside the block below for updating the LTI of it as we proceede
-		MNode *goalTryNode = 0;
+		//MNode *goalTryNode = 0;
 		MNode *goalActNode = 0;
 		
 		// Find/create agent's memory node
@@ -351,6 +362,7 @@ void SimpleBotAgent::chooseAction()
 				// chooseCurrentGoal() resets m_currentGoalMemory to NULL when the goal changges,
 				// so start out the m_currentGoalMemory ptr at a GoalTryNode using a node name
 				// constructed sequentially based on the number of times we've attempted this goal
+				/*
 				if(!m_currentGoalMemory)
 				{
 					// Store the "try counter" on the goal itself so it automatically gets preserved across program runs
@@ -376,9 +388,11 @@ void SimpleBotAgent::chooseAction()
 					
 					goalTryNode = goalMemory->linkedNode(memKey, MNodeType::GoalTryNode());
 				}
+				*/
 					
 				// Create memory node for this action
 				QString actMemoryKey = m_currentAction->content();
+				/*
 				MNode *actMemory = m_mspace->addNode(actMemoryKey, MNodeType::ActionMemoryNode());
 				actMemory->setData(m_currentAction->uuid());
 				
@@ -397,7 +411,7 @@ void SimpleBotAgent::chooseAction()
 				// m_currentGoalMemory to the current ActionMemoryNode, essentially creating a simple 'linked list'
 				m_mspace->addLink(m_currentGoalMemory, actMemory, MLinkType::NextItemLink());
 				m_currentGoalMemory = actMemory;
-				
+				*/
 				// Note that we'll also use the m_currentGoalMemory ptr to set the LTI of this action memory item based on the contribution toward the persuit of the goal, below.
 					
 				// Also create a link directly from goalMemory to a node for the current action (not inside the goalTry loop, for LTI adjustment)
@@ -489,7 +503,7 @@ void SimpleBotAgent::chooseAction()
 				// Also adjust the LTI of this goal->action combo
 				goalActNode->setLongTermImportance( goalActNode->longTermImportance() + propLtiChange );
 				
-				qDebug() << "SimpleBotAgent::chooseAction: " << m_currentGoal->content().toUpper()<<", new STI: "<< m_currentAction->longTermImportance()<<", new goalActNode STI: "<<goalActNode->longTermImportance()<<", action was: "<<m_currentAction->content()<<" (prop lti change: "<<propLtiChange<<", thisValue:" <<thisValue.toDouble()<<", lastValue:"<<lastValue.toDouble()<<", change:"<<valueDelta<<")";
+				qDebug() << "SimpleBotAgent::chooseAction: " << m_currentGoal->content().toUpper()<</*", new STI: "<< m_currentAction->longTermImportance()<<*/", new goalActNode STI: "<<goalActNode->longTermImportance()<<", action was: "<<m_currentAction->content()<<" (prop lti change: "<<propLtiChange<<", thisValue:" <<thisValue.toDouble()<<", lastValue:"<<lastValue.toDouble()<<", change:"<<valueDelta<<")";
 				
 				// Use the goalVal to compare the change so we can have something to use to update the STI of the goal
 				if(goalVal.isValid())
@@ -619,6 +633,8 @@ void SimpleBotAgent::chooseAction()
 	qDebug("\n\n");
 
 	update();
+	
+	m_exceptionVar = 0;
 }
 
 void SimpleBotAgent::actionCompleted(MNode *currentAction)
@@ -629,9 +645,10 @@ void SimpleBotAgent::actionCompleted(MNode *currentAction)
 
 //MNode *m_currentGoal;
 
-void SimpleBotAgent::actionException(MNode *currentAction, const QString& message)
+void SimpleBotAgent::actionException(MNode *currentAction, MNode *exceptionVar, const QString& message)
 {
-	/// TODO
+	m_exceptionVar = exceptionVar;
+	
 	//qDebug() << "SimpleBotAgent::actionException: Unandled: "<<message<<", current action: "<<currentAction;
 	//exit(-1);
 	qDebug() << "SimpleBotAgent::actionException: "<<message<<", current action: "<<currentAction;

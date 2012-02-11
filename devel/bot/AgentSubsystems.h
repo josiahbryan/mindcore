@@ -65,7 +65,7 @@ public:
 	
 	
 protected:
-	void raiseException(const QString& message="");
+	void raiseException(MNode *varNode=0, const QString& message="");
 	void actionCompleted();
 
 	SimpleBotAgent *m_agent;
@@ -99,10 +99,12 @@ public:
 	double hunger() { return m_hungerVar->data().toDouble(); }
 	double energy() { return m_energyVar->data().toDouble(); }
 	double eatTime() { return m_eatLength; }
+	double storedFood() { return m_foodVar->data().toDouble(); }
 	
 protected:
 	MNode *m_hungerVar;
 	MNode *m_energyVar;
+	MNode *m_foodVar;
 	
 	void setupEatingState(MNode *time);
 	

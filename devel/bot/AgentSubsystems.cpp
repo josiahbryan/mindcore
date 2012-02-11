@@ -1,9 +1,9 @@
 #include "SimpleBotAgent.h"
 #include "AgentSubsystems.h"
 
-void AgentSubsystem::raiseException(const QString& message)
+void AgentSubsystem::raiseException(MNode *node, const QString& message)
 {
-	m_agent->actionException(m_currentAction, message);
+	m_agent->actionException(m_currentAction, node, message);
 }
 
 void AgentSubsystem::actionCompleted()
@@ -40,6 +40,7 @@ void AgentBioSystem::initMindSpace()
 		// find/create the hunger/energy variables with initial data values of 1.0
 		m_hungerVar = m_node->linkedNode("HungerValue", MNodeType::VariableNode(), MLinkType::PartOf(), 1.0);
 		m_energyVar = m_node->linkedNode("EnergyValue", MNodeType::VariableNode(), MLinkType::PartOf(), 1.0);
+		m_foodVar   = m_node->linkedNode("StoredFood",  MNodeType::VariableNode(), MLinkType::PartOf(), 0.0);
 	
 		// Add an action to the system node
 		MNode *act  = m_node->linkedNode("EatAction",   MNodeType::ActionNode());
@@ -110,6 +111,13 @@ bool AgentBioSystem::executeAction(MNode *node)
 	
 	if(node->content() == "EatAction")
 	{
+		double foodAmtAvail = storedFood();
+		if(foodAmtAvail <= 0.)
+		{
+			raiseException(m_foodVar, "No food available");
+			return false;
+		}
+		
 		// Get length of time
 		MNode *time = node->firstLinkedNode("EatTime");
 		
@@ -127,7 +135,7 @@ bool AgentBioSystem::executeAction(MNode *node)
 	}
 	else
 	{
-		qDebug() << "AgentBioSystem::executeAction: Unknown action: " << node->content(); 
+		//qDebug() << "AgentBioSystem::executeAction: Unknown action: " << node->content(); 
 	}
 	
 	return false;
@@ -270,7 +278,7 @@ bool AgentMovementSystem::executeAction(MNode *node)
 	}
 	else
 	{
-		qDebug() << "AgentMovementSystem::executeAction: Unknown action: "<<node->content(); 
+		//qDebug() << "AgentMovementSystem::executeAction: Unknown action: "<<node->content(); 
 	}
 	
 	return false;
@@ -312,7 +320,7 @@ void AgentMovementSystem::advance()
 			else
 			{
 				qDebug() << "AgentMovementSystem::advance: Out of energy, can't move.";
-				raiseException("Out of energy, can't move.");
+				raiseException(bio->node()->firstLinkedNode("EnergyValue"), "Out of energy, can't move.");
 			}
 		}
 		else
@@ -336,7 +344,7 @@ void AgentMovementSystem::changeAgentPosition()
 	if(newPos != expect)
 	{
 		qDebug() << "AgentMovementSystem::changeAgentPosition: Hit wall, can't move any more. Flagging error.";
-		raiseException("Hit wall, can't move any more");
+		raiseException(0, "Hit wall, can't move any more");
 		
 		//chooseVector();
 	}

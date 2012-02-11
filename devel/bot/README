@@ -48,3 +48,24 @@ Subsys's would have their own implicit goals for which they're trying to maintai
 Subsys like movement needs to horzintally query bio sys for energy needs and move
 Add interface to subsys for agent to query for actions
 Agent try actions to achieve goal and memorize actions tried (MemoryNode/MemoryLink)
+
+-----------------
+
+exception ( var ) - NOTE should we include arg for target value as well?
+	construct faux goal to max(var)
+	shop for actions to max(var)
+	example:
+		goal min(hunger)
+		act eat
+		excep for food
+		goal faux max(food)
+		act findFood
+		learn that
+			in future, in excep for food, and then in choose goal, 
+			it can first see if any other goals accomplish the food
+			...
+			or just the first act in faux max(food) can be the findFood act, which reall is the findFood(Goal), ...      ..?
+			
+
+			 
+
