@@ -65,7 +65,7 @@ void MindSpaceGraphNode::calculateForces()
 	
 	// Now subtract all forces pulling items together
 	// TODO Magic number...
-	double weight = (double)(m_edgeList.size() + 1) * 2. * m_weight;
+	double weight = (double)(m_edgeList.size() + 1) * 4. * m_weight;
 	//qDebug() << this << "Weight: "<<weight;
 
 	// TODO Should we factor in the weight of the edge? (edge->weight())

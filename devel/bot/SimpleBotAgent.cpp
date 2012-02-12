@@ -11,7 +11,7 @@ bool operator!(SimpleBotAgent::StateInfo a) { return a.isNull(); }
 SimpleBotAgent::InfoDisplay::InfoDisplay(SimpleBotAgent *agent)
 {
 	m_agent = agent;
-	m_rect  = QRect(10,10,160,70);
+	m_rect  = QRect(10,10,160,80);
 	setPos(0,0);
 	setZValue(150);
 }
@@ -55,6 +55,8 @@ void SimpleBotAgent::InfoDisplay::paint(QPainter *p, const QStyleOptionGraphicsI
 	p->save();
 	p->setPen(Qt::white);
 	p->setFont(QFont("Monospace", fontSize, QFont::Bold));
+	if(m_agent->m_currentGoal)
+		p->drawText(rect.topLeft() + QPoint(margin, y += fontSize), QString( "Goal:   %1"  ).arg(m_agent->m_currentGoal->content()));
 	p->drawText(rect.topLeft() + QPoint(margin, y += fontSize), QString( "State:  %1"  ).arg(stateName));
 	p->drawText(rect.topLeft() + QPoint(margin, y += fontSize), QString( "Hunger: %1%" ).arg(((int)(bio->hunger() * 100.))));
 	p->drawText(rect.topLeft() + QPoint(margin, y += fontSize), QString( "Energy: %1%" ).arg(((int)(bio->energy() * 100.))));
@@ -516,6 +518,17 @@ void SimpleBotAgent::chooseAction()
 				
 				// Also adjust the LTI of this goal->action combo
 				goalActNode->setLongTermImportance( goalActNode->longTermImportance() + propLtiChange );
+				MLink *link = goalActNode->links().at(0);
+				if(link)
+				{
+					double tv = goalActNode->longTermImportance();
+					if(tv < 0)
+						tv = 0.001;
+					//if(tv > 10.0)
+					//	tv = tv/10.;
+					tv *= 1.5;
+					link->setTruthValue(MTruthValue( tv ));
+				}
 				
 				qDebug() << "SimpleBotAgent::chooseAction: " << m_currentGoal->content()<</*", new STI: "<< m_currentAction->longTermImportance()<<*/", new goalActNode STI: "<<goalActNode->longTermImportance()<<", action was: "<<m_currentAction->content()<<" (prop lti change: "<<propLtiChange<<", thisValue:" <<thisValue.toDouble()<<", lastValue:"<<lastValue.toDouble()<<", change:"<<valueDelta<<")";
 				
@@ -746,8 +759,39 @@ void SimpleBotAgent::actionException(MNode *currentAction, MNode *exceptionVar, 
 			qDebug() << "SimpleBotAgent::actionException: Created faux goal: "<<fauxGoal->content()<<" for exception data: var:"<<exceptionVar->content()<<", varName:"<<varName<<", target:"<<targetVal.toDouble();
 		}
 		
-		if(m_goalStack.last() != m_currentGoal)
+		if(!m_goalStack.isEmpty())
+		{	
+			//qDebug() << "\t lastGoal: "<<lastGoal<<", currentGoal:"<<m_currentGoal;
+			MNode *lastGoal = m_goalStack.last();
+			
+			if(lastGoal == fauxGoal)
+			{
+				// take off last goal, put on current goal
+				m_goalStack.takeLast();
+				m_goalStack.append(m_currentGoal);
+			}
+			else
+			if(m_currentGoal != lastGoal &&
+			   m_currentGoal != fauxGoal)
+			{
+				m_goalStack.append(m_currentGoal);
+			}
+			
+			int row = 0;
+			foreach(MNode *goal, m_goalStack)
+			{
+				qDebug() << "\t goalStack "<<row<<": "<<goal->content(); 
+				row++;
+			}
+			
+			qDebug() << "\t lastGoal: "<<lastGoal<<", currentGoal:"<<m_currentGoal<<", fauxGoal:"<<fauxGoal;
+			
+			//qDebug() << "\t ------";
+		}
+		else
+		{
 			m_goalStack.append(m_currentGoal);
+		}
 		
 		qDebug() << "SimpleBotAgent::actionException: Current goal changed, new goal: "<<fauxGoal->content()<<", was:"<<m_currentGoal->content()<<", m_goalStack.size:"<<m_goalStack.size();
 		
