@@ -172,8 +172,8 @@ bool AgentBioSystem::useEnergy(double speed) // 0-1
 	double hunger = m_hungerVar->data().toDouble();
 	m_hungerVar->setData( qMin(1., hunger + hungerAmt) );
 	
-	if(m_hungerVar->data().toDouble() >= 1.0)
-		return false; // can't use more energy if too hungry
+	//if(m_hungerVar->data().toDouble() >= 1.0)
+		//return false; // can't use more energy if too hungry
 	
 	return true; 
 }

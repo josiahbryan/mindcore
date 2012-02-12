@@ -99,7 +99,7 @@ SimpleBotAgent::SimpleBotAgent(MSpace *ms)
 	
 	// Timer setup
 	connect(&m_advanceTimer, SIGNAL(timeout()), this, SLOT(advance()));
-	m_advanceTimer.setInterval( 1000 / 10 );
+	m_advanceTimer.setInterval( 1000 / 4 );
 	
 	m_timer.start();
 	m_state = StateUnknown;
@@ -681,7 +681,7 @@ void SimpleBotAgent::actionException(MNode *currentAction, MNode *exceptionVar, 
 		MNode *fauxGoal = 0;
 		GOAL_SEARCH: foreach(MNode *goal, m_goals)
 		{
-			QVariantList goalData = m_currentGoal->data().toList();
+			QVariantList goalData = goal->data().toList();
 			int rowCount = 0;
 			foreach(QVariant rowData, goalData)
 			{	
@@ -699,9 +699,9 @@ void SimpleBotAgent::actionException(MNode *currentAction, MNode *exceptionVar, 
 				QVariant goalVal = goalRow.size() >= 3 ? goalRow[2] : QVariant();
 				
 				// Find the node referenced as the variable
-				MNode *goalVar = m_currentGoal->linkedNodeUuid(varId); // check by uuid first
+				MNode *goalVar = goal->linkedNodeUuid(varId); // check by uuid first
 				if(!goalVar)
-					goalVar = m_currentGoal->firstLinkedNode(varId); // check by content if uuid not matched
+					goalVar = goal->firstLinkedNode(varId); // check by content if uuid not matched
 				
 				if(!goalVar)
 				{
@@ -713,12 +713,12 @@ void SimpleBotAgent::actionException(MNode *currentAction, MNode *exceptionVar, 
 				   goalVal.toDouble() == targetNum)
 				{
 					fauxGoal = goal;
-					qDebug() << "SimpleBotAgent::actionException: Found matching goal: "<<goal<<" for exception data: "<<goalVar<<goalVal<<" compared to:"<<exceptionVar<<targetNum;
+					qDebug() << "\t g: "<<goal->content()<<" matches, goalVar: "<<varId<<goalVal.toDouble()<<", ex data:"<<exceptionVar->content()<<targetNum<<"("<<goalVar->uuid()<<"="<<exceptionVar->uuid()<<")";
 					break;
 				}
 				else
 				{
-					qDebug() << "\t goalVar:"<<goalVar<<"!="<<exceptionVar<<", or goalVal:"<<goalVal<<"!="<<targetNum;
+					qDebug() << "\t g: !"<<goal->content()<<" goalVar:"<<goalVar->content()<<"!="<<exceptionVar->content()<<", or goalVal:"<<goalVal.toDouble()<<"!="<<targetNum;
 				}
 			}
 		}
@@ -743,10 +743,11 @@ void SimpleBotAgent::actionException(MNode *currentAction, MNode *exceptionVar, 
 				m_goals << fauxGoal;
 			
 			m_mspace->link(fauxGoal, exceptionVar, MLinkType::GoalVariableLink());
-			qDebug() << "SimpleBotAgent::actionException: Created faux goal: "<<fauxGoal->content()<<" for exception data";
+			qDebug() << "SimpleBotAgent::actionException: Created faux goal: "<<fauxGoal->content()<<" for exception data: var:"<<exceptionVar->content()<<", varName:"<<varName<<", target:"<<targetVal.toDouble();
 		}
 		
-		m_goalStack.append(m_currentGoal);
+		if(m_goalStack.last() != m_currentGoal)
+			m_goalStack.append(m_currentGoal);
 		
 		qDebug() << "SimpleBotAgent::actionException: Current goal changed, new goal: "<<fauxGoal->content()<<", was:"<<m_currentGoal->content()<<", m_goalStack.size:"<<m_goalStack.size();
 		
