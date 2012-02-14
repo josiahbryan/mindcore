@@ -192,6 +192,10 @@ protected:
 	
 	QList<MNode*> m_goalStack;
 	
+	void setCurrentGoal(MNode *goal);
+	//QList<MLink*> siblingGoals(MNode *goal);
+	MNode *evaulateSiblingGoalLinks(MNode *currentNode);
+	
 };
 
 bool operator==(SimpleBotAgent::StateInfo a, SimpleBotAgent::StateInfo b); 

@@ -26,12 +26,14 @@ HEADERS += \
         BotWindow.h \
         SimpleBotEnv.h \
         SimpleBotAgent.h \
-	AgentSubsystems.h
+	AgentSubsystems.h \
+	FoodItem.h
 
 SOURCES += main.cpp \
         BotWindow.cpp \
         SimpleBotEnv.cpp \
         SimpleBotAgent.cpp \
-        AgentSubsystems.cpp
+        AgentSubsystems.cpp \
+        FoodItem.cpp
 
 

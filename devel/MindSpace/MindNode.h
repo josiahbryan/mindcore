@@ -55,6 +55,8 @@ namespace MindSpace
 		
 		/* const so that they don't modify our list externally - TODO should they be able to? */
 		const QList<MLink*> & links() const 	{ return m_links; }			/*!< \return the links pointing from and to this node.	\sa links */
+		QList<MLink*> outgoingLinks() const;						/*!< \return only the links outgoing from this node.	\sa links */
+		QList<MLink*> incomingLinks() const;						/*!< \return only the links incoming to this node.	\sa links */
 		
 		const QVariant & data() const		{ return m_data; }			/*!< \return the 'data' property variant.		\sa data */
 		
@@ -93,6 +95,7 @@ namespace MindSpace
 		void setLinks(const QList<MLink*>& links);
 		void addLink(MLink *link);
 		void removeLink(MLink *link);
+		MLink *addLink(MNode *, MindSpace::MLinkType linkType=MLinkType::PartOf());
 		
 		void setData(QVariant);
 	

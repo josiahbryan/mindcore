@@ -225,69 +225,119 @@ static bool SimpleBotAgent_goalSort(MNode *n1, MNode *n2)
 }
 
 
+// QList<MLink*> SimpleBotAgent::siblingGoals(MNode *goal)
+// {
+// 	if(!goal)
+// 	{
+// 		MNode *agentGoals = m_node->linkedNode("AgentGoals", MNodeType::GoalNode());
+// 		return agentGoals->linkedNodes(MNodeType::GoalNode()); // only returns first level
+// 	}
+// 	else
+// 	{
+// 		QList<MLink*> incoming = goal->incomingLinks();
+// 		
+// 		QList<MNode*> node;	
+// 	}
+// }
+
+MNode *SimpleBotAgent::evaulateSiblingGoalLinks(MNode *currentNode)
+{
+	QList<MLink*> incoming = currentNode->incomingLinks();
+	
+	// Only consider first incoming link
+	MLink *firstLink = incoming.first();
+	MNode *parentNode = firstLink->node1(); // node1 is the source node
+		
+	// Use outgoingLinks() instead of linkedNode(<goal node type>) becase we need to consider if the links are OrderedLinks
+	QList<MLink*> siblingLinks = parentNode->outgoingLinks();
+	
+	// Only consider first sibling link to check for OrderedLinks
+	firstLink = siblingLinks.first();
+	
+	// Grab a list of goal nodes so we dont have to filter it ourselves
+	QList<MNode*> curLevelGoals = parentNode->linkedNode(MNodeType::GoalNode());
+	
+	// pointer to return
+	MNode *goal = 0;
+	
+	// If links are ordered, find where the current goal resides in the list of link and take the next link as current
+	// If current goal is last in list, assend to parent and re-evaulate parent in the smae manner (STI or OrderedLink)
+	if(firstLink->type().uuid() == MLinkType::OrderedLink().uuid())
+	{
+		int idx = curLevelGoals.indexOf(currentNode);
+		if(idx == curLevelGoals.size() - 1) 
+		{
+			// current node is at the end, assend to parent
+			goal = evaulateSiblingGoalLinks(parentNode);
+			qDebug() << "SimpleBotAgent::evaulateSiblingGoalLinks: currentNode:"<<currentNode->content()<<": Chose goal based on parentNode:"<<parentNode->content()<<", new goal: "<<goal->content();
+		}
+		else
+		{
+			goal = curLevelGoals.at(idx + 1);
+			qDebug() << "SimpleBotAgent::evaulateSiblingGoalLinks: currentNode:"<<currentNode->content()<<": Chose goal based on OrderedLink idx:"<<idx<<", new goal: "<<goal->content();
+		}
+	}
+	else
+	{
+		qSort(curLevelGoals.begin(), curLevelGoals.end(), SimpleBotAgent_goalSort);
+		goal = curLevelGoals.first();
+		
+		qDebug() << "SimpleBotAgent::evaulateSiblingGoalLinks: currentNode:"<<currentNode->content()<<": Chose goal based on STI: "<<goal->content();
+	}
+	
+	return goal;
+}
+
 void SimpleBotAgent::chooseCurrentGoal()
 {
 // 	if(m_currentGoal && !m_goalStack.isEmpty())
 // 		m_goalStack.takeLast(); // current goal
 // 	
 	MNode *goal;
-	if(!m_goalStack.isEmpty())
+	
+	MNode *agentGoals  = m_node->linkedNode("AgentGoals", MNodeType::GoalNode());
+	MNode *goalPtrNode = agentGoals->linkedNode("GoalStack", MNodeType::MemoryNode());
+	
+	QList<MLink*> links = goalPtrNode->outgoingLinks();
+	
+	if(!links.isEmpty())
 	{
-		goal = m_goalStack.takeLast();
+		MLink *curGoalLink = links.takeLast();
+		goalPtrNode->removeLink(curGoalLink);
+	}
+	
+	if(!links.isEmpty())
+	{
+		MLink *prevGoalLink = links.takeLast();
+		goal = prevGoalLink->node2();
+		
+		goalPtrNode->removeLink(prevGoalLink);
 		qDebug() << "SimpleBotAgent::chooseCurrentGoal: Popped goal off stack: "<<goal->content();
 	}
 	else
 	{
-		qSort(m_goals.begin(), m_goals.end(), SimpleBotAgent_goalSort);
-		goal = m_goals.first();
-		
-		qDebug() << "SimpleBotAgent::chooseCurrentGoal: Chose goal based on STI: "<<goal->content();
+		//QList<Node*> curLevelGoals; // = siblingGoals(m_currentGoal);
+		if(!m_currentGoal)
+		{
+			MNode *agentGoals = m_node->linkedNode("AgentGoals", MNodeType::GoalNode());
+			QList<MNode*> curLevelGoals = agentGoals->linkedNode(MNodeType::GoalNode()); // only returns first level
+			
+			// Assume top-level goals are Unordered, so sort by STI instead of relying on link order 
+			qSort(curLevelGoals.begin(), curLevelGoals.end(), SimpleBotAgent_goalSort);
+			goal = m_goals.first();
+		}
+		else
+		{
+			goal = evaulateSiblingGoalLinks(m_currentGoal);
+		}
 	}
 	
 	//qDebug() << "SimpleBotAgent::chooseCurrentGoal: first goal after sort: "<<goal->content();
 	
 	if(goal != m_currentGoal)
 	{
-		/*
-		if(m_currentGoalMemory && 
-		   m_currentGoal)
-		{
-			// Find/create agent's memory node
-			MNode *memory = m_node->linkedNode("AgentMemory", MNodeType::MemoryNode());
-			{
-				// Find/create memory node for the new goal
- 				QString goalMemoryKey = goal->content();
- 				MNode *goalMemory = memory->linkedNode(goalMemoryKey, MNodeType::GoalMemoryNode());
-				{
-					// Link last item in the linked list of actions to the next goal
-					m_mspace->addLink( m_currentGoalMemory, goalMemory, MLinkType::NextItemLink() );
-				}
-				
-				
-				// Find the memory node for the old (current) goal
-				QString curGoalMemoryKey = m_currentGoal->content();
-				MNode *curGoalMemory = memory->linkedNode(curGoalMemoryKey, MNodeType::GoalMemoryNode());
-				{
-					int curGoalMemoryCounter = m_currentGoal->property("_goal_memory_counter").toInt();
-					QString memKey = tr("GoalTry%1").arg(curGoalMemoryCounter);
-					
-					MNode *goalTryNode = curGoalMemory->linkedNode(memKey, MNodeType::GoalTryNode());
-					
-					// Update the LTI of the "GoalTry" node based on the time it took to complete this "try"s
-					QTime startTime = goalTryNode->data().toTime();
-					int delta = startTime.msecsTo(QTime::currentTime());
-					goalTryNode->setLongTermImportance(delta);
-				
-					// TODO: Find better quantifiers of the "importance" of this "try" other than the length of time it took to finish the goal
-				}
-			}
-		}
-		*/
+		setCurrentGoal(goal);
 		
-		m_currentGoal = goal;
-		m_currentGoalMemory = 0; // notify that the goal has changed, start a new memory node for the goal
-		
-		qDebug() << "SimpleBotAgent::chooseCurrentGoal: Current goal changed, new goal: "<<goal->content();
 		chooseAction();
 	}
 }
@@ -692,8 +742,12 @@ void SimpleBotAgent::actionException(MNode *currentAction, MNode *exceptionVar, 
 		qDebug() << "\t delta:"<<delta<<", func:"<<func<<", varName:"<<varName;
 		
 		MNode *fauxGoal = 0;
-		GOAL_SEARCH: foreach(MNode *goal, m_goals)
+		foreach(MNode *goal, m_goals)
 		{
+			// TODO This block below attempts to match the goal data to the exception var/target val
+			// However, it's possible that goals may have more than one variable - in which case,
+			// this would match the last goal that it findds that matches - regardless of the other
+			// variables. That may not be the right action...
 			QVariantList goalData = goal->data().toList();
 			int rowCount = 0;
 			foreach(QVariant rowData, goalData)
@@ -736,6 +790,8 @@ void SimpleBotAgent::actionException(MNode *currentAction, MNode *exceptionVar, 
 			}
 		}
 		
+		// If we didnt find a goal that matched the exception/var,
+		// attempt to create it (or find a goal node linked to AgentGoals with the same name)
 		if(!fauxGoal)
 		{
 			MNode *agentGoals = m_node->linkedNode("AgentGoals", MNodeType::GoalNode());
@@ -759,6 +815,8 @@ void SimpleBotAgent::actionException(MNode *currentAction, MNode *exceptionVar, 
 			qDebug() << "SimpleBotAgent::actionException: Created faux goal: "<<fauxGoal->content()<<" for exception data: var:"<<exceptionVar->content()<<", varName:"<<varName<<", target:"<<targetVal.toDouble();
 		}
 		
+		// This routine here attempts to prevent unnecessary groth of the goal stack
+		// by intelligently removing/appending the current goal to the stack.
 		if(!m_goalStack.isEmpty())
 		{	
 			//qDebug() << "\t lastGoal: "<<lastGoal<<", currentGoal:"<<m_currentGoal;
@@ -777,6 +835,8 @@ void SimpleBotAgent::actionException(MNode *currentAction, MNode *exceptionVar, 
 				m_goalStack.append(m_currentGoal);
 			}
 			
+			
+			// Print out some debugging info so we can ensure its functioning correctly
 			int row = 0;
 			foreach(MNode *goal, m_goalStack)
 			{
@@ -790,16 +850,120 @@ void SimpleBotAgent::actionException(MNode *currentAction, MNode *exceptionVar, 
 		}
 		else
 		{
+			// Start off the stack with the current goal
 			m_goalStack.append(m_currentGoal);
 		}
 		
+		
+		// Output more debug info
 		qDebug() << "SimpleBotAgent::actionException: Current goal changed, new goal: "<<fauxGoal->content()<<", was:"<<m_currentGoal->content()<<", m_goalStack.size:"<<m_goalStack.size();
 		
-		m_currentGoal = fauxGoal;
-		m_currentGoalMemory = 0; // notify that the goal has changed, start a new memory node for the goal
+		setCurrentGoal(fauxGoal);
 	}
 	
 	chooseAction();
+}
+
+void SimpleBotAgent::setCurrentGoal(MNode *newGoal)
+{
+	/*
+	if(m_currentGoalMemory && 
+	   m_currentGoal)
+	{
+		// Find/create agent's memory node
+		MNode *memory = m_node->linkedNode("AgentMemory", MNodeType::MemoryNode());
+		{
+			// Find/create memory node for the new goal
+			QString goalMemoryKey = goal->content();
+			MNode *goalMemory = memory->linkedNode(goalMemoryKey, MNodeType::GoalMemoryNode());
+			{
+				// Link last item in the linked list of actions to the next goal
+				m_mspace->addLink( m_currentGoalMemory, goalMemory, MLinkType::NextItemLink() );
+			}
+			
+			
+			// Find the memory node for the old (current) goal
+			QString curGoalMemoryKey = m_currentGoal->content();
+			MNode *curGoalMemory = memory->linkedNode(curGoalMemoryKey, MNodeType::GoalMemoryNode());
+			{
+				int curGoalMemoryCounter = m_currentGoal->property("_goal_memory_counter").toInt();
+				QString memKey = tr("GoalTry%1").arg(curGoalMemoryCounter);
+				
+				MNode *goalTryNode = curGoalMemory->linkedNode(memKey, MNodeType::GoalTryNode());
+				
+				// Update the LTI of the "GoalTry" node based on the time it took to complete this "try"s
+				QTime startTime = goalTryNode->data().toTime();
+				int delta = startTime.msecsTo(QTime::currentTime());
+				goalTryNode->setLongTermImportance(delta);
+			
+				// TODO: Find better quantifiers of the "importance" of this "try" other than the length of time it took to finish the goal
+			}
+		}
+	}
+	*/
+	
+		
+	MNode *agentGoals  = m_node->linkedNode("AgentGoals", MNodeType::GoalNode());
+	MNode *goalPtrNode = agentGoals->linkedNode("GoalStack", MNodeType::MemoryNode());
+	
+	QList<MLink*> links = goalPtrNode->outgoingLinks();
+	
+	MNode *prevGoal    = links.size() >= 2 ? links.at(links.size() - 2)->node2() : 0; // node2 is the destination node
+	MNode *currentGoal = links.size() >= 1 ? links.at(links.size() - 1)->node2() : 0; // node2 is the destination node
+	
+	
+	if(prevGoal && newGoal && 
+	   prevGoal == newGoal)
+	{
+		MLink *prevGoalLink = links.at(links.size()-2);
+		MLink *curGoalLink  = links.at(links.size()-1);
+		
+		// take it out of 'second to last'
+		goalPtrNode->removeLink(prevGoalLink);
+		// append it to the end
+		goalPtrNode->addLink(prevGoalLink);
+		//delete links.last(); // we assume ownership of the link object once removed
+		
+		// Create the link
+		//MLink *link = goalPtrNode->addLink(goal, MLinkType::OrderedLink());
+		
+		// Hackish method of displaying the 'slot number' this link occupies on the graph (since the graph renders truth values
+		prevGoalLink->setTruthValue(MTruthValue( links.size() ));
+		curGoalLink ->setTruthValue(MTruthValue( links.size()-1 ));
+	}
+	else
+	if(currentGoal != newGoal)
+	{
+		// Create the link
+		MLink *link = goalPtrNode->addLink(newGoal, MLinkType::OrderedLink());
+		
+		// Hackish method of displaying the 'slot number' this link occupies on the graph (since the graph renders truth values
+		link->setTruthValue(MTruthValue( links.size() ));
+	}
+	
+	// Print out some debugging info so we can ensure its functioning correctly
+	QList<MLink*> newStack = goalPtrNode->outgoingLinks();
+	int row = 0;
+	foreach(MLink *goalLink, newStack)
+	{
+		MNode *goal = goalLink->node2();
+		qDebug() << "\t goalStack "<<row<<": "<<goal->content(); 
+		row++;
+	}
+	
+	qDebug() << "\t prevGoal: "<<prevGoal<<", currentGoal:"<<currentGoal<<", newGoal:"<<newGoal;
+	
+	
+	
+	m_currentGoal = newGoal;
+	m_currentGoalMemory = 0;
+	
+	qDebug() << "SimpleBotAgent::setCurrentGoal: Current goal changed, new goal: "<<newGoal->content();
+	
+// 	if(newStack.size() >= 2)
+// 		exit(-1);
+	
+	
 }
 
 QRectF SimpleBotAgent::boundingRect() const

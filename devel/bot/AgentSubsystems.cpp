@@ -111,12 +111,12 @@ bool AgentBioSystem::executeAction(MNode *node)
 	
 	if(node->content() == "EatAction")
 	{
-		double foodAmtAvail = storedFood();
-		if(foodAmtAvail <= 0.)
-		{
-			raiseException(m_foodVar, 1., "No food available");
-			return false;
-		}
+// 		double foodAmtAvail = storedFood();
+// 		if(foodAmtAvail <= 0.)
+// 		{
+// 			raiseException(m_foodVar, 1., "No food available");
+// 			return false;
+// 		}
 		
 		// Get length of time
 		MNode *time = node->firstLinkedNode("EatTime");
@@ -167,8 +167,8 @@ bool AgentBioSystem::useEnergy(double speed) // 0-1
 		
 	m_energyVar->setData( qMax(0., energy - amt) );
 	
-	// at 100% speed, hunger increased by 5%
-	double hungerAmt = 0.05 * speed;
+	// at 100% speed, hunger increased by 1%
+	double hungerAmt = 0.01 * speed;
 	double hunger = m_hungerVar->data().toDouble();
 	m_hungerVar->setData( qMin(1., hunger + hungerAmt) );
 	

@@ -238,6 +238,24 @@ void MNode::addLink(MLink *link)
 	emit linkAdded(link);
 }
 
+/** Convenience function, equivelant to calling sourceNode->addLink(new MLink(sourceNode,destNode,linkType)) */
+MLink *MNode::addLink(MNode *destNode, MindSpace::MLinkType linkType)
+{
+	MLink *link = new MLink(this, destNode, linkType);
+	addLink(link);
+	
+	if(m_mspace)
+	{
+		m_mspace->addLink(link);
+	}
+	else
+	{
+		qDebug() << "MNode::addLink: "<<this<<" -> "<<destNode<<": No m_mspace setup yet!";
+	}
+		
+	return link;
+}
+
 /** Remove link \a link from the internal list of links. \a emits linkRemoved */
 void MNode::removeLink(MLink *link)
 {
@@ -400,5 +418,22 @@ MNode *MNode::linkedNode(const QString& content, MindSpace::MNodeType type, Mind
 	return node;
 }
 
+QList<MLink*> MNode::outgoingLinks() const
+{
+	QList<MLink*> out;
+	foreach(MLink *link, m_links)
+		if(link->node2() != this)
+			out.append(link);
+	return out;
+}
+
+QList<MLink*> MNode::incomingLinks() const
+{
+	QList<MLink*> in;
+	foreach(MLink *link, m_links)
+		if(link->node2() == this)
+			in.append(link);
+	return in;
+}
 
 }; // end namespace

@@ -16,6 +16,8 @@ using namespace MindSpace;
 #include "SimpleBotAgent.h"
 #include "SimpleBotEnv.h"
 
+#include "FoodItem.h"
+
 TweakedGraphicsView::TweakedGraphicsView()
 	: QGraphicsView()
 {
@@ -86,6 +88,11 @@ BotWindow::BotWindow()
 	//bot->setMindSpace(m_mspace);
 	
 	env->addItem(bot->infoItem());
+	
+	FoodItem *food = new FoodItem();
+	env->addItem(food);
+	
+	food->setPos(rand() % 200, rand() % 200); 
 	
 	m_gv = new TweakedGraphicsView();
 	m_gv->setScene(env);
