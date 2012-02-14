@@ -67,5 +67,39 @@ exception ( var ) - NOTE should we include arg for target value as well?
 			or just the first act in faux max(food) can be the findFood act, which reall is the findFood(Goal), ...      ..?
 			
 
-			 
+-------------------
+
+hungry
+	eat
+	out of food
+		faux(max food)
+			
+			
+
+P(A|G&C)
+
+Goals
+-----
+- dynamic
+	- can be added and removed during runtime
+- goals on same level are siblings
+	- if linked from parent as UnorderedLinks, sort by relative STI
+	- if linked from parent as OrderedLinks, go to next goal in list (consider: use NextItemLink...?)
+
+- actions can add/remove goals
+- agent should find goals from MindSpace instead of storing in a List
+
+
+
+Context
+-------
+- Current Action
+- Current Goal
+- Current Variables
+- History of Actions (to some extent)
+- History of Goals (...)
+- History of Variables (more important...?)
+
+- Need to compare the similarity of a context to another
+- Need to assign a probability that this context will lead to the goal
 
