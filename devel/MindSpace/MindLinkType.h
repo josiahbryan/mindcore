@@ -101,7 +101,12 @@ namespace MindSpace
 		#include "mindspace-types.link.prototypes"
 	
 		/*! \return true if \a a has the same uuid() as \a b */
-		inline bool operator==(const MLinkType &b)
+// 		inline bool operator==(const MLinkType &b)
+// 		{
+// 			return uuid() == b.uuid();
+// 		}
+		
+		inline bool operator==(MLinkType b) const
 		{
 			return uuid() == b.uuid();
 		}

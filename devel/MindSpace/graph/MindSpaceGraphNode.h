@@ -15,6 +15,7 @@ public:
 	MindSpaceGraphNode(MindSpaceGraphWidget *graphWidget, const QString& label="");
 	
 	void addEdge(MindSpaceGraphEdge *edge);
+	void removeEdge(MindSpaceGraphEdge *edge);
 	QList<MindSpaceGraphEdge *> edges() const;
 	
 	enum { Type = UserType + 1 };

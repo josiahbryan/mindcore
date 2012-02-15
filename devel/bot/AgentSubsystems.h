@@ -139,6 +139,8 @@ protected:
 	void setupRestingState(MNode *time);
 	void changeAgentPosition();
 	
+	void clearTouchSensorLink();
+	
 	QPointF m_vec;
 	double m_speed;
 	double m_angle;
@@ -149,6 +151,8 @@ protected:
 	int m_restLength;
 	
 	bool m_isMoving;
+	
+	MNode *m_touchSensor;
 };
 
 // class AgentTouchSystem : public AgentSubsystem

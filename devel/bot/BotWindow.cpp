@@ -89,10 +89,12 @@ BotWindow::BotWindow()
 	
 	env->addItem(bot->infoItem());
 	
-	FoodItem *food = new FoodItem();
-	env->addItem(food);
-	
-	food->setPos(rand() % 200, rand() % 200); 
+	for(int i=0; i<10; i++)
+	{
+		FoodItem *food = new FoodItem();
+		env->addItem(food);
+		food->setPos((rand() % (180/20))*20 + 10, (rand() % (180/20)) * 20 + 10);
+	} 
 	
 	m_gv = new TweakedGraphicsView();
 	m_gv->setScene(env);

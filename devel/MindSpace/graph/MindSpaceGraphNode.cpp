@@ -29,6 +29,12 @@ void MindSpaceGraphNode::addEdge(MindSpaceGraphEdge *edge)
 	edge->adjust();
 }
 
+void MindSpaceGraphNode::removeEdge(MindSpaceGraphEdge *edge)
+{
+	m_edgeList.removeAll(edge);
+	edge->adjust();
+}
+
 QList<MindSpaceGraphEdge *> MindSpaceGraphNode::edges() const
 {
 	return m_edgeList;

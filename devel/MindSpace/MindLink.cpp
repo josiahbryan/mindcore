@@ -134,8 +134,8 @@ MLink::~MLink()
 	setNode2(0);
 	setArguments(QList<MNode*>());
 	
-/*	if(MSpace *mind = MSpace::activeSpace())
-		mind->removeLink(this);*/
+	//if(MSpace *mind = MSpace::activeSpace())
+	//	mind->removeLink(this);
 }
 
 /** \return true if BOTH node1() and node2() are NULL. \sa node1, node2 */

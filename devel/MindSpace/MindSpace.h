@@ -81,6 +81,8 @@ namespace MindSpace
 		void nodeContentChanged(QString, QString);
 		void linkUpdated();
 		void nodeUpdated();
+		void removeDeadLink();
+		void removeDeadNode();
 	
 	private:
 		QList<MNode*> m_nodes;

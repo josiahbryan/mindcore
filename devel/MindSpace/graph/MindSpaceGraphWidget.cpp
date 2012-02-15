@@ -311,7 +311,11 @@ void MindSpaceGraphWidget::removeLink(MLink *link)
 		
 	MindSpaceGraphEdgeData data = m_graphLinks[link];
 	foreach(MindSpaceGraphEdge *edge, data.edges)
+	{
+		edge->sourceNode()->removeEdge(edge);
+		edge->destNode()->removeEdge(edge);
 		scene()->removeItem(edge);
+	}
 	qDeleteAll(data.edges);
 	
 	if(data.node)

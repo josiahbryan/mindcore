@@ -64,7 +64,7 @@ void MSpace::addNode(MNode *node)
 	connect(node, SIGNAL(contentChanged(QString,QString)),  this, SLOT(nodeUpdated()));
 	connect(node, SIGNAL(importanceChanged(double,double)), this, SLOT(nodeUpdated()));
 	connect(node, SIGNAL(nodeTypeChanged(MNodeType)),       this, SLOT(nodeUpdated()));
-	
+	connect(node, SIGNAL(destroyed()),                      this, SLOT(removeDeadNode()));
 	
 	emit nodeAdded(node);
 }
@@ -122,6 +122,14 @@ void MSpace::removeNode(MNode *node)
 	emit nodeRemoved(node);
 }
 
+void MSpace::removeDeadNode()
+{
+	MNode *node = dynamic_cast<MNode*>(sender());
+	if(!node)
+		return;
+	removeNode(node);
+}
+
 void MSpace::addLink(MLink *link)
 {
 	if(m_links.contains(link))
@@ -131,6 +139,7 @@ void MSpace::addLink(MLink *link)
 	m_uuidToLink[link->uuid()] = link;
 	
 	connect(link, SIGNAL(truthValueChanged(MTruthValue)), this, SLOT(linkUpdated()));
+	connect(link, SIGNAL(destroyed()),                    this, SLOT(removeDeadLink()));
 	
 	emit linkAdded(link);
 }
@@ -142,6 +151,18 @@ void MSpace::linkUpdated()
 		return;
 	
 	emit linkUpdated(link);
+}
+
+void MSpace::removeDeadLink()
+{
+	MLink *link = dynamic_cast<MLink*>(sender());
+	if(!link)
+	{
+		//qDebug() << "********** MSpace::removeDeadLink(): Unable to cast dead link, not removing: "<<sender();
+		return;
+	}
+	//qDebug() << "+++ MSpace::removeDeadLink(): Removing dead link:"<<link;
+	removeLink(link);
 }
 
 MLink *MSpace::addLink(MNode *node1, MNode *node2, MLinkType type)

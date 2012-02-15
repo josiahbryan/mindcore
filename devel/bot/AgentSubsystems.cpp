@@ -196,6 +196,8 @@ void AgentMovementSystem::initMindSpace()
 	// Create the system node
 	m_node = m_agent->node()->linkedNode("MovementSystem", MNodeType::ConceptNode());
 	{
+		m_touchSensor = m_node->linkedNode("TouchSensor", MNodeType::VariableNode(), MLinkType::PartOf(), true);
+		
 		// Find/create the action and link the vars to the act, and act to the system node
 		MNode *act = m_node->linkedNode("MoveAction", MNodeType::ActionNode());
 		{
@@ -330,24 +332,75 @@ void AgentMovementSystem::advance()
 	}
 }
 
+void AgentMovementSystem::clearTouchSensorLink()
+{
+	// Note: This will leave a node dangling if no other links are present to the node, such as a wall
+	QList<MLink*> out = m_touchSensor->outgoingLinks();
+	foreach(MLink *link, out)
+	{
+		m_touchSensor->removeLink(link);
+		m_touchSensor->mindSpace()->removeLink(link);
+		delete link;
+	}
+}
+
 void AgentMovementSystem::changeAgentPosition()
 {
 // 	if(m_vec.isNull())
 // 		chooseVector();
 		
+	QPointF oldPos = m_agent->pos();
 	QRectF sceneRect = m_agent->scene()->sceneRect();
-	QPointF newPos = m_agent->pos() + m_vec; //QPointF(xvel, yvel);
+	QPointF newPos = oldPos + m_vec; //QPointF(xvel, yvel);
 	QPointF expect = newPos;
 	newPos.setX(qMin(qMax(newPos.x(), sceneRect.left() + 10), sceneRect.right()  - 10));
 	newPos.setY(qMin(qMax(newPos.y(), sceneRect.top()  + 10), sceneRect.bottom() - 10));
 	
+	if(m_touchSensor->data().toBool())
+		m_touchSensor->setData(false);
+		
 	if(newPos != expect)
 	{
-		qDebug() << "AgentMovementSystem::changeAgentPosition: Hit wall, can't move any more. Flagging error.";
+		//qDebug() << "AgentMovementSystem::changeAgentPosition: Hit wall, can't move any more. Flagging error.";
+		m_touchSensor->setData(true);
+		
+		clearTouchSensorLink();
+		
+		// TODO: Should we use a SpecificEntityNode linked to the concept of a Wall?
+		MNode *wall = m_touchSensor->mindSpace()->node("Wall", MNodeType::ConceptNode());
+		m_touchSensor->addLink(wall, MLinkType::MemoryLink());
+			
 		raiseException(0, 0, "Hit wall, can't move any more");
 		
 		//chooseVector();
 	}
+	
+	
+	QSizeF size = m_agent->boundingRect().size();
+	QPointF halfSize(size.width()/2, size.height() - 2);
+	QList<QGraphicsItem *> items = m_agent->scene()->items(QRectF(newPos - halfSize, size), Qt::IntersectsItemBoundingRect, Qt::AscendingOrder);
+	foreach(QGraphicsItem *item, items)
+	{
+		if(item != m_agent &&
+		   item != m_agent->infoItem())
+		{
+			newPos = oldPos;
+			m_touchSensor->setData(true);
+			
+			clearTouchSensorLink();
+			
+			// TODO: This is CHEATING - we need to upcast the item to some generic type that returns an MNode* pointer
+			MNode *food = m_touchSensor->mindSpace()->node("Food", MNodeType::ConceptNode());
+			m_touchSensor->addLink(food, MLinkType::MemoryLink());
+			
+			raiseException(0, 0, tr("Hit another item, can't move any more."));
+			qDebug() << "AgentMovementSystem::changeAgentPosition(): Collided with item: "<<item;
+			item->setOpacity(0.3); 
+		}
+	}
+	
+	if(!m_touchSensor->data().toBool())
+		clearTouchSensorLink();
 	
 	m_agent->setPos(newPos);
 }

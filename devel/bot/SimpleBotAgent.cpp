@@ -25,7 +25,7 @@ void SimpleBotAgent::InfoDisplay::paint(QPainter *p, const QStyleOptionGraphicsI
 	QRect rect = m_rect;
 	
 	p->setPen(Qt::black);
-	p->fillRect(rect, QColor(0,0,0,187));
+	p->fillRect(rect, QColor(0,0,0,150));
 	p->drawRect(rect);
 	
 	//QString stateName = agent->state().name;
@@ -101,7 +101,7 @@ SimpleBotAgent::SimpleBotAgent(MSpace *ms)
 	
 	// Timer setup
 	connect(&m_advanceTimer, SIGNAL(timeout()), this, SLOT(advance()));
-	m_advanceTimer.setInterval( 1000 / 4 );
+	m_advanceTimer.setInterval( 1000 / 60 );
 	
 	m_timer.start();
 	m_state = StateUnknown;
@@ -152,7 +152,7 @@ void SimpleBotAgent::initGoals()
 		MNode *hungerGoal = agentGoals->firstLinkedNode("HungerGoal");
 		if(!hungerGoal)
 		{
-			hungerGoal = agentGoals->linkedNode("HungerGoal", MNodeType::GoalNode(), MLinkType::OrderedLink());
+			hungerGoal = agentGoals->linkedNode("HungerGoal", MNodeType::GoalNode(), MLinkType::UnorderedLink());
 			
 			// NOTE Idea: Perhaps the link weight (Tv) could be the way to rank the goals...
 			// NOTE Revision: The lti/sti would be a better ranking...
@@ -185,7 +185,7 @@ void SimpleBotAgent::initGoals()
 		MNode *energyGoal = agentGoals->firstLinkedNode("EnergyGoal");
 		if(!energyGoal)
 		{
-			energyGoal = agentGoals->linkedNode("EnergyGoal", MNodeType::GoalNode(), MLinkType::OrderedLink());
+			energyGoal = agentGoals->linkedNode("EnergyGoal", MNodeType::GoalNode(), MLinkType::UnorderedLink());
 			
 			QVariantList goalData;
 			{	
@@ -262,7 +262,7 @@ MNode *SimpleBotAgent::evaulateSiblingGoalLinks(MNode *currentNode)
 	
 	// If links are ordered, find where the current goal resides in the list of link and take the next link as current
 	// If current goal is last in list, assend to parent and re-evaulate parent in the smae manner (STI or OrderedLink)
-	if(firstLink->type().uuid() == MLinkType::OrderedLink().uuid())
+	if(firstLink->type() == MLinkType::OrderedLink())
 	{
 		int idx = curLevelGoals.indexOf(currentNode);
 		if(idx == curLevelGoals.size() - 1) 
@@ -304,6 +304,9 @@ void SimpleBotAgent::chooseCurrentGoal()
 	{
 		MLink *curGoalLink = links.takeLast();
 		goalPtrNode->removeLink(curGoalLink);
+		
+		m_mspace->removeLink(curGoalLink);
+		delete curGoalLink;
 	}
 	
 	if(!links.isEmpty())
@@ -313,6 +316,9 @@ void SimpleBotAgent::chooseCurrentGoal()
 		
 		goalPtrNode->removeLink(prevGoalLink);
 		qDebug() << "SimpleBotAgent::chooseCurrentGoal: Popped goal off stack: "<<goal->content();
+		
+		m_mspace->removeLink(prevGoalLink);
+		delete prevGoalLink;
 	}
 	else
 	{
@@ -372,6 +378,14 @@ double SimpleBotAgent::calcGoalActionProb(MNode *goal, MNode *action)
 
 void SimpleBotAgent::chooseAction()
 {
+	bool debug = false;
+	
+	// debug must be true for any of these to output anything:
+	bool debugActionProg = true;
+	bool debugLtiChange  = true;
+	bool debugVarValues  = true;
+	bool debugBasic      = true;
+	
 	AgentSubsystem::ActionInfo maxInfo;
 	double maxProb = -65536.0;
 	static bool isSetup = false;
@@ -386,7 +400,8 @@ void SimpleBotAgent::chooseAction()
 			}
 			
 			double p = calcGoalActionProb(m_currentGoal, info.node);
-			qDebug() << "SimpleBotAgent::chooseAction: p:"<<p<<", info.node:" << info.node;
+			if(debug && debugActionProg)
+				qDebug() << "SimpleBotAgent::chooseAction: p:"<<p<<", info.node:" << info.node;
 			if(p >= maxProb)
 			{
 				maxProb = p;
@@ -580,7 +595,8 @@ void SimpleBotAgent::chooseAction()
 					link->setTruthValue(MTruthValue( tv ));
 				}
 				
-				qDebug() << "SimpleBotAgent::chooseAction: " << m_currentGoal->content()<</*", new STI: "<< m_currentAction->longTermImportance()<<*/", new goalActNode STI: "<<goalActNode->longTermImportance()<<", action was: "<<m_currentAction->content()<<" (prop lti change: "<<propLtiChange<<", thisValue:" <<thisValue.toDouble()<<", lastValue:"<<lastValue.toDouble()<<", change:"<<valueDelta<<")";
+				if(debug && debugLtiChange)
+					qDebug() << "SimpleBotAgent::chooseAction: " << m_currentGoal->content()<</*", new STI: "<< m_currentAction->longTermImportance()<<*/", new goalActNode STI: "<<goalActNode->longTermImportance()<<", action was: "<<m_currentAction->content()<<" (prop lti change: "<<propLtiChange<<", thisValue:" <<thisValue.toDouble()<<", lastValue:"<<lastValue.toDouble()<<", change:"<<valueDelta<<")";
 				
 				// Use the goalVal to compare the change so we can have something to use to update the STI of the goal
 				if(goalVal.isValid())
@@ -604,7 +620,8 @@ void SimpleBotAgent::chooseAction()
 		//double propAbsSti = qAbs(goalDeltaSum) / goalVal.toDouble(); // convert to abs 0-1 value
 		double avgGoalDelta = goalDeltaSum / ((double)rowCount);
 		m_currentGoal->setShortTermImportance(avgGoalDelta);
-		qDebug() << "SimpleBotAgent::chooseAction: " << m_currentGoal->content()<<": goalDeltaSum: "<<goalDeltaSum<<", avgGoalDelta: "<<avgGoalDelta;
+		if(debug && debugLtiChange)
+			qDebug() << "SimpleBotAgent::chooseAction: " << m_currentGoal->content()<<": goalDeltaSum: "<<goalDeltaSum<<", avgGoalDelta: "<<avgGoalDelta;
 		
 		
 		// TODO: We stored the goalTryNode and we have the m_currentGoalMemory as the memory node of the last completed action -
@@ -653,7 +670,8 @@ void SimpleBotAgent::chooseAction()
 	// Why clone... ?
 	m_currentAction = maxInfo.node;//->clone();
 	
-	qDebug() << "SimpleBotAgent::chooseAction: Chose new action: "<<m_currentAction;
+	if(debug && debugBasic)
+		qDebug() << "SimpleBotAgent::chooseAction: Current Goal: "<<m_currentGoal->content()<<", Chose new action: "<<m_currentAction;
 
 	//qDebug() << "Action changed, cloned action node. Debug info: orig node:"<<maxInfo.node<<", orig node type: "<<maxInfo.node->type()<<", cloned type:" <<m_currentAction->type();
 //	const QList<MLink*> & links = m_currentAction->links();
@@ -685,7 +703,8 @@ void SimpleBotAgent::chooseAction()
 		{
 			node->setData( rand() % 359 );
 		}
-		qDebug() << " \t Variable: "<<node->content()<<", Data: "<<node->data();
+		if(debug && debugVarValues)
+			qDebug() << " \t Variable: "<<node->content()<<", Data: "<<node->data();
 	}
 	
 	foreach(AgentSubsystem *subsys, m_subsystems)
@@ -696,7 +715,8 @@ void SimpleBotAgent::chooseAction()
 		}
 		else
 		{
-			qDebug() << "SimpleBotAgent::chooseAction: "<<subsys<<" subsystem accepted "<<m_currentAction->content();
+			if(debug)
+				qDebug() << "SimpleBotAgent::chooseAction: "<<subsys<<" subsystem accepted "<<m_currentAction->content();
 		}
 	}
 
@@ -707,7 +727,7 @@ void SimpleBotAgent::chooseAction()
 // 		exit(-1);
 // 	}
 	
-	qDebug("\n\n");
+	//qDebug("\n\n");
 
 	update();
 	
@@ -716,7 +736,7 @@ void SimpleBotAgent::chooseAction()
 
 void SimpleBotAgent::actionCompleted(MNode *currentAction)
 {
-	qDebug() << "SimpleBotAgent::actionCompleted: "<<currentAction;
+	//qDebug() << "SimpleBotAgent::actionCompleted: "<<currentAction;
 	chooseAction();
 }
 
@@ -731,6 +751,7 @@ void SimpleBotAgent::actionException(MNode *currentAction, MNode *exceptionVar, 
 	qDebug() << "SimpleBotAgent::actionException: "<<message<<", current action: "<<currentAction<<", exceptionVar: "<<exceptionVar<<", targetVal: "<<targetVal;
 	
 	// Has exception var, create faux goal with MAX/MIN based on delta (targetVal-exceptionVar.data())
+	/*
 	if(exceptionVar)
 	{
 		double targetNum = targetVal.toDouble();
@@ -860,7 +881,7 @@ void SimpleBotAgent::actionException(MNode *currentAction, MNode *exceptionVar, 
 		
 		setCurrentGoal(fauxGoal);
 	}
-	
+	*/
 	chooseAction();
 }
 
@@ -902,6 +923,7 @@ void SimpleBotAgent::setCurrentGoal(MNode *newGoal)
 	}
 	*/
 	
+	qDebug() << "SimpleBotAgent::setCurrentGoal: newGoal: "<<newGoal->content();
 		
 	MNode *agentGoals  = m_node->linkedNode("AgentGoals", MNodeType::GoalNode());
 	MNode *goalPtrNode = agentGoals->linkedNode("GoalStack", MNodeType::MemoryNode());
@@ -936,6 +958,7 @@ void SimpleBotAgent::setCurrentGoal(MNode *newGoal)
 	{
 		// Create the link
 		MLink *link = goalPtrNode->addLink(newGoal, MLinkType::OrderedLink());
+		//qDebug() << "\t ** ADDING new link for goal: "<<newGoal<<", link: "<< link; 
 		
 		// Hackish method of displaying the 'slot number' this link occupies on the graph (since the graph renders truth values
 		link->setTruthValue(MTruthValue( links.size() ));
@@ -948,6 +971,7 @@ void SimpleBotAgent::setCurrentGoal(MNode *newGoal)
 	{
 		MNode *goal = goalLink->node2();
 		qDebug() << "\t goalStack "<<row<<": "<<goal->content(); 
+		//qDebug() << "\t \t "<<goalLink;
 		row++;
 	}
 	
@@ -958,7 +982,7 @@ void SimpleBotAgent::setCurrentGoal(MNode *newGoal)
 	m_currentGoal = newGoal;
 	m_currentGoalMemory = 0;
 	
-	qDebug() << "SimpleBotAgent::setCurrentGoal: Current goal changed, new goal: "<<newGoal->content();
+	//qDebug() << "SimpleBotAgent::setCurrentGoal: Current goal changed, new goal: "<<newGoal->content();
 	
 // 	if(newStack.size() >= 2)
 // 		exit(-1);

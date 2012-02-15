@@ -232,17 +232,34 @@ void MNode::setLinks(const QList<MLink*>& links)
 void MNode::addLink(MLink *link)
 {
 	if(m_links.contains(link))
+	{
+		//qDebug() << "MNode::addLink(link): "<<this<<": Node already contains link: "<<link<<", not adding";
 		return;
+	}
 		
 	m_links.append(link);
 	emit linkAdded(link);
+	
+// 	if(m_mspace)
+// 	{
+// 		m_mspace->addLink(link);
+// 	}
+// 	else
+// 	{
+// 		qDebug() << "MNode::addLink: "<<link<<": No m_mspace setup yet!";
+// 	}
+		
+	
+	//qDebug() << "MNode::addLink(link): "<<this<<": num links: "<<m_links.size();
 }
 
 /** Convenience function, equivelant to calling sourceNode->addLink(new MLink(sourceNode,destNode,linkType)) */
 MLink *MNode::addLink(MNode *destNode, MindSpace::MLinkType linkType)
 {
+	//qDebug() << "MNode::addLink(node,type): "<<this<<": link -> "<<destNode;
 	MLink *link = new MLink(this, destNode, linkType);
-	addLink(link);
+	//qDebug() << "MNode::addLink(node,type): "<<this<<": Adding new link, links size:"<<m_links.size();
+	//addLink(link); // automatically added to both nodes by MLink() constructor
 	
 	if(m_mspace)
 	{
@@ -250,9 +267,9 @@ MLink *MNode::addLink(MNode *destNode, MindSpace::MLinkType linkType)
 	}
 	else
 	{
-		qDebug() << "MNode::addLink: "<<this<<" -> "<<destNode<<": No m_mspace setup yet!";
+		qDebug() << "MNode::addLink: "<<link<<": No m_mspace setup yet!";
 	}
-		
+
 	return link;
 }
 
@@ -260,7 +277,30 @@ MLink *MNode::addLink(MNode *destNode, MindSpace::MLinkType linkType)
 void MNode::removeLink(MLink *link)
 {
 	if(m_links.removeAll(link) > 0)
+	{
 		emit linkRemoved(link);
+			
+		if(link->node1() == this)
+			if(link->node2())
+				link->node2()->removeLink(link);
+			else
+			if(link->arguments().size() > 0)
+				foreach(MNode *node, link->arguments())
+					node->removeLink(link);
+		else
+			link->node1()->removeLink(link);
+		
+		
+	// 	if(m_mspace)
+	// 	{
+	// 		m_mspace->removeLink(link);
+	// 	}
+	// 	else
+	// 	{
+	// 		qDebug() << "MNode::removeLink: "<<link<<": No m_mspace setup yet!";
+	// 	}
+	}
+		
 }
 
 /** Set the 'data' property for this link to the value of \a data. emits dataChanged() */
@@ -402,8 +442,9 @@ MNode *MNode::linkedNode(const QString& content, MindSpace::MNodeType type, Mind
 		
 		if(initialData.isValid())
 			node->setData(initialData);
-			
+		
 		MLink *link = new MLink(this, node, linkType);
+		
 		if(m_mspace)
 		{
 			m_mspace->addNode(node);
@@ -413,6 +454,9 @@ MNode *MNode::linkedNode(const QString& content, MindSpace::MNodeType type, Mind
 		{
 			qDebug() << "MNode::linkedNode: "<<this<<" -> "<<content<<": No m_mspace setup yet!";
 		}
+		
+		// Link will call setNode() which calls node->addLink(), which calls m_mspace->addLink()
+		//MLink *link = new MLink(this, node, linkType);
 	}
 	
 	return node;
@@ -422,8 +466,9 @@ QList<MLink*> MNode::outgoingLinks() const
 {
 	QList<MLink*> out;
 	foreach(MLink *link, m_links)
-		if(link->node2() != this)
+		if(link->node1() == this)
 			out.append(link);
+	//qDebug() << "MNode::outgoingLinks(): "<<this<<" num raw links:"<<m_links.size()<<", num out links:"<<out.size();
 	return out;
 }
 

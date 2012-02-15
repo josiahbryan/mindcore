@@ -65,7 +65,6 @@ exception ( var ) - NOTE should we include arg for target value as well?
 			it can first see if any other goals accomplish the food
 			...
 			or just the first act in faux max(food) can be the findFood act, which reall is the findFood(Goal), ...      ..?
-			
 
 -------------------
 
@@ -103,3 +102,10 @@ Context
 - Need to compare the similarity of a context to another
 - Need to assign a probability that this context will lead to the goal
 
+
+
+James office #: 954-376-5378
+
+
+6737
+z
