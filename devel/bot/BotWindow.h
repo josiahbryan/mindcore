@@ -34,6 +34,7 @@ private slots:
 	
 protected:
 	void closeEvent(QCloseEvent*);
+	void resizeEvent(QResizeEvent*);
 	
 private:
 	MSpaceViewerWidget *m_mspaceViewer;

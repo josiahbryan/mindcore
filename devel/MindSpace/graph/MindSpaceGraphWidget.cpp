@@ -297,7 +297,7 @@ void MindSpaceGraphWidget::linkTruthValueChanged(MTruthValue tv)
 	
 	foreach(MindSpaceGraphEdge *edge, data.edges)
 	{
-		edge->setWeight(value * EDGE_WEIGHT_FACTOR);
+		edge->setWeight(qMax(0., value * EDGE_WEIGHT_FACTOR));
 		edge->setLabel(QString("%1 %2").arg(link->type().name()).arg(value!=1.0?QString::number(value):""));
 	}
 }

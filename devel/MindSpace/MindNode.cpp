@@ -257,6 +257,16 @@ void MNode::addLink(MLink *link)
 MLink *MNode::addLink(MNode *destNode, MindSpace::MLinkType linkType)
 {
 	//qDebug() << "MNode::addLink(node,type): "<<this<<": link -> "<<destNode;
+	foreach(MLink *link, m_links)
+	{
+		if(link->node1() == this && 
+		   link->node2() == destNode && 
+		   link->type() == linkType)
+		{
+			return link;
+		}
+	}
+	
 	MLink *link = new MLink(this, destNode, linkType);
 	//qDebug() << "MNode::addLink(node,type): "<<this<<": Adding new link, links size:"<<m_links.size();
 	//addLink(link); // automatically added to both nodes by MLink() constructor

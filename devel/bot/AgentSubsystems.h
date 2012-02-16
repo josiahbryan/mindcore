@@ -63,6 +63,9 @@ public:
 	
 	virtual QList<AgentSubsystem::ActionInfo> actions() { return m_actions; }
 	
+	virtual QList<MNode*> contextualVariables() { return m_vars; }
+	
+	
 	
 protected:
 	void raiseException(MNode *varNode=0, QVariant targetVal=0, const QString& message="");
@@ -72,6 +75,7 @@ protected:
 	MNode *m_node;
 	QList<AgentSubsystem::ActionInfo> m_actions;
 	MNode *m_currentAction;
+	QList<MNode*> m_vars;
 	
 };
 
@@ -155,23 +159,8 @@ protected:
 	MNode *m_touchSensor;
 };
 
-// class AgentTouchSystem : public AgentSubsystem
-// {
-// 	Q_OBJECT
-// public:
-// 	AgentTouchSystem(SimpleBotAgent *agent) : AgentSubsystem(agent) {}
-// 	
-// 	static QString className() { return staticMetaObject.className(); }
-// 	
-// 	QString name() { return "Touch"; }
-// 	void initMindSpace();
-// 	bool executeAction(MNode *);
-// 	
-// 	bool isTouchingSomething(); 
-// };
-
 /*
-class AgentHearingSystem : public AgnetSusbsystem
+class AgentHearingSystem : public AgentSubsystem
 {
 	Q_OBJECT
 public:
@@ -182,7 +171,7 @@ public:
 */
 
 /*
-class AgentSpeechSystem : public AgnetSusbsystem
+class AgentSpeechSystem : public AgentSubsystem
 {
 	Q_OBJECT
 public:

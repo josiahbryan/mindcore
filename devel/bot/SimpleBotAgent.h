@@ -58,19 +58,6 @@ public:
 	// Retrieve the info display item
 	InfoDisplay *infoItem();
 	
-	class StateInfo {
-	public:
-		StateInfo(int _id=-1, QString _name="") 
-			: id(_id)
-			, name(_name)
-			{}
-		bool isNull() { return id<0; }
-		
-		int id;
-		QString name;
-	};
-	
-	StateInfo state() { return m_state; }
 	
 	void actionException(MNode *currentAction, MNode *exceptionVar, QVariant targetVal, const QString& message);
 	
@@ -114,46 +101,6 @@ protected:
 	
 	QTimer m_advanceTimer;
 	
-	/* States:
-	   - Ident
-	   - Name
-	   - How to "do" it
-	   - Where to go from here
-	   - What triggers transition
-	*/
-	
-// 	typedef enum {
-// 		S_Unknown = 0,
-// 		S_Resting,
-// 		S_Searching,
-// 		S_Eating,
-// 		S_AskForMore,
-// 	} StateType;
-// 	
-// 	StateType m_state;
-
-	StateInfo m_state;
-	
-	//QString nameForState(StateType state);
-	void setState(StateInfo state);
-	double chooseVector();
-	
-	void updateHungerEnergyState();
-	double m_decayRate;
-	
-	void processSearching();
-	void processResting();
-	void processEating();
-	
-	void evaulateStateChangeRequired();
-	
-	double m_hunger;
-	double m_energy;
-	
-	QTime m_timer;
-	QTime m_stateTimer;
-	
-	QPointF m_vec;
 	
 	InfoDisplay *m_hud;
 	
@@ -196,11 +143,9 @@ protected:
 	//QList<MLink*> siblingGoals(MNode *goal);
 	MNode *evaulateSiblingGoalLinks(MNode *currentNode);
 	
+	MNode *m_contextNode;
+	void initContextNode(); 
+	
 };
 
-bool operator==(SimpleBotAgent::StateInfo a, SimpleBotAgent::StateInfo b); 
-bool operator!=(SimpleBotAgent::StateInfo a, SimpleBotAgent::StateInfo b);
-bool operator!(SimpleBotAgent::StateInfo a);
-//QDebug operator<<(QDebug dbg, SimpleBotAgent::StateInfo state);
-	
 #endif

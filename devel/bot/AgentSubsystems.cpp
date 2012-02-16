@@ -41,6 +41,10 @@ void AgentBioSystem::initMindSpace()
 		m_hungerVar = m_node->linkedNode("HungerValue", MNodeType::VariableNode(), MLinkType::PartOf(), 1.0);
 		m_energyVar = m_node->linkedNode("EnergyValue", MNodeType::VariableNode(), MLinkType::PartOf(), 1.0);
 		m_foodVar   = m_node->linkedNode("StoredFood",  MNodeType::VariableNode(), MLinkType::PartOf(), 0.0);
+		
+		m_vars  << m_hungerVar
+			<< m_energyVar
+			<< m_foodVar;
 	
 		// Add an action to the system node
 		MNode *act  = m_node->linkedNode("EatAction",   MNodeType::ActionNode());
@@ -197,6 +201,7 @@ void AgentMovementSystem::initMindSpace()
 	m_node = m_agent->node()->linkedNode("MovementSystem", MNodeType::ConceptNode());
 	{
 		m_touchSensor = m_node->linkedNode("TouchSensor", MNodeType::VariableNode(), MLinkType::PartOf(), true);
+		m_vars << m_touchSensor;
 		
 		// Find/create the action and link the vars to the act, and act to the system node
 		MNode *act = m_node->linkedNode("MoveAction", MNodeType::ActionNode());
@@ -321,7 +326,7 @@ void AgentMovementSystem::advance()
 			}
 			else
 			{
-				qDebug() << "AgentMovementSystem::advance: Out of energy, can't move.";
+				//qDebug() << "AgentMovementSystem::advance: Out of energy, can't move.";
 				raiseException(bio->node()->firstLinkedNode("EnergyValue"), 1., "Out of energy, can't move.");
 			}
 		}
@@ -342,6 +347,8 @@ void AgentMovementSystem::clearTouchSensorLink()
 		m_touchSensor->mindSpace()->removeLink(link);
 		delete link;
 	}
+	
+	m_touchSensor->setData("");
 }
 
 void AgentMovementSystem::changeAgentPosition()
@@ -356,17 +363,18 @@ void AgentMovementSystem::changeAgentPosition()
 	newPos.setX(qMin(qMax(newPos.x(), sceneRect.left() + 10), sceneRect.right()  - 10));
 	newPos.setY(qMin(qMax(newPos.y(), sceneRect.top()  + 10), sceneRect.bottom() - 10));
 	
-	if(m_touchSensor->data().toBool())
-		m_touchSensor->setData(false);
+	bool isTouching = false;
 		
 	if(newPos != expect)
 	{
 		//qDebug() << "AgentMovementSystem::changeAgentPosition: Hit wall, can't move any more. Flagging error.";
-		m_touchSensor->setData(true);
+		isTouching = true;
 		
 		clearTouchSensorLink();
 		
 		// TODO: Should we use a SpecificEntityNode linked to the concept of a Wall?
+		m_touchSensor->setData("Wall");
+		
 		MNode *wall = m_touchSensor->mindSpace()->node("Wall", MNodeType::ConceptNode());
 		m_touchSensor->addLink(wall, MLinkType::MemoryLink());
 			
@@ -385,21 +393,23 @@ void AgentMovementSystem::changeAgentPosition()
 		   item != m_agent->infoItem())
 		{
 			newPos = oldPos;
-			m_touchSensor->setData(true);
+			isTouching = true;
 			
 			clearTouchSensorLink();
 			
 			// TODO: This is CHEATING - we need to upcast the item to some generic type that returns an MNode* pointer
+			m_touchSensor->setData("Food");
+		
 			MNode *food = m_touchSensor->mindSpace()->node("Food", MNodeType::ConceptNode());
 			m_touchSensor->addLink(food, MLinkType::MemoryLink());
 			
 			raiseException(0, 0, tr("Hit another item, can't move any more."));
-			qDebug() << "AgentMovementSystem::changeAgentPosition(): Collided with item: "<<item;
+			//qDebug() << "AgentMovementSystem::changeAgentPosition(): Collided with item: "<<item;
 			item->setOpacity(0.3); 
 		}
 	}
 	
-	if(!m_touchSensor->data().toBool())
+	if(!isTouching)
 		clearTouchSensorLink();
 	
 	m_agent->setPos(newPos);
@@ -443,22 +453,3 @@ void AgentMovementSystem::setupRestingState(MNode *timeNode)
 	m_restFrameTimer.restart();
 }
 
-///
-
-// void AgentTouchSystem::initMindSpace()
-// {
-// 	// Create the system node
-// 	MSpace *ms = m_agent->mindSpace();
-// 	m_node = ms->node("Touchsystem", MNodeType::ConceptNode());
-// 	ms->link(m_agent->node(), m_node, MLinkType::PartOf());
-// 	
-// 	// Create and link the "sensor" node (variable) to the system node
-// 	MNode *touch = ms->node("TouchSensor", MNodeType::VariableNode());
-// 	ms->link(m_node, touch, MLinkType::PartOf());
-// }
-// 
-// bool AgentTouchSystem::executeAction(MNode *node)
-// {
-// 	m_currentAction = node;
-// 	return false;
-// }

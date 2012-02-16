@@ -77,6 +77,9 @@ void TweakedGraphicsView::scaleView(qreal scaleFactor)
 BotWindow::BotWindow()
 	: QWidget()
 {
+	QCoreApplication::setOrganizationName("Bryan Enterprises");
+	QCoreApplication::setApplicationName("BotWindow");
+
 	m_mspace = new MindSpace::MSpace();
 	if(!m_mspace->loadFromFile(SETTINGS_FILE))
 		m_mspace->writeToFile(SETTINGS_FILE); // write blank file if didn't load one
@@ -129,7 +132,14 @@ BotWindow::BotWindow()
 		<< MNodeType::VariableSnapshotNode()
 	);
 	
-	resize(1024,768);
+	QSettings settings;
+	QSize winSize = settings.value("window/size",QSize(1024,768)).toSize();
+	resize(winSize.width(), winSize.height());
+	
+	QVariant winPosVar = settings.value("window/pos");
+	if(winPosVar.isValid())
+		move(winPosVar.toPoint());
+	
 	//m_gv->fitInView(env->itemsBoundingRect(), Qt::KeepAspectRatio);
 	
 	//bot->setGoal("foobar"); 
@@ -139,8 +149,17 @@ BotWindow::BotWindow()
 
 void BotWindow::closeEvent(QCloseEvent*)
 {
- 	MSpace *mind = MSpace::activeSpace();
- 	mind->writeToFile(SETTINGS_FILE);
+	MSpace *mind = MSpace::activeSpace();
+	mind->writeToFile(SETTINGS_FILE);
+	
+	QSettings settings;
+	settings.setValue("window/pos", pos());
+}
+
+void BotWindow::resizeEvent(QResizeEvent *)
+{
+	QSettings settings;
+	settings.setValue("window/size",size());
 }
 
 

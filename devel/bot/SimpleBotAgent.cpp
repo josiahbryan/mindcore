@@ -4,10 +4,6 @@
 
 #include <math.h>
 
-bool operator==(SimpleBotAgent::StateInfo a, SimpleBotAgent::StateInfo b) { return a.id==b.id; } 
-bool operator!=(SimpleBotAgent::StateInfo a, SimpleBotAgent::StateInfo b) { return a.id!=b.id; }
-bool operator!(SimpleBotAgent::StateInfo a) { return a.isNull(); }
-
 SimpleBotAgent::InfoDisplay::InfoDisplay(SimpleBotAgent *agent)
 {
 	m_agent = agent;
@@ -90,9 +86,6 @@ SimpleBotAgent::SimpleBotAgent(MSpace *ms)
 	if(!m_mspace)
 		m_mspace = new MSpace();
 		
-	m_hunger = 1.0;
-	m_energy = 1.0;
-
 	// QGraphicsItem setup
 	setFlag(ItemIsMovable);
 	setFlag(ItemSendsGeometryChanges);
@@ -103,13 +96,10 @@ SimpleBotAgent::SimpleBotAgent(MSpace *ms)
 	connect(&m_advanceTimer, SIGNAL(timeout()), this, SLOT(advance()));
 	m_advanceTimer.setInterval( 1000 / 60 );
 	
-	m_timer.start();
-	m_state = StateUnknown;
-	
 	m_node = ms->node("Agent", MNodeType::SpecificEntityNode());
 	
 	initSubsystems();
-	
+	initContextNode();
 	initGoals();
 	
 	chooseCurrentGoal();
@@ -140,6 +130,19 @@ void SimpleBotAgent::addSubsystem(AgentSubsystem *sys)
 	sys->initMindSpace();
 	m_subsystems.append(sys);
 	m_subsysHash[sys->className()]  = sys;
+}
+
+void SimpleBotAgent::initContextNode()
+{
+	m_contextNode = m_node->linkedNode("AgentContext", MNodeType::ContextNode());
+	
+	foreach(AgentSubsystem *subsys, m_subsystems)
+	{
+		QList<MNode*> vars = subsys->contextualVariables();
+		foreach(MNode *varNode, vars)
+			// addLink() will check to make sure we don't duplicate this link if it already exisets from this node to the varNode
+			m_contextNode->addLink(varNode, MLinkType::ContextLink());
+	}
 }
 
 void SimpleBotAgent::initGoals()
@@ -378,7 +381,7 @@ double SimpleBotAgent::calcGoalActionProb(MNode *goal, MNode *action)
 
 void SimpleBotAgent::chooseAction()
 {
-	bool debug = false;
+	bool debug = true;
 	
 	// debug must be true for any of these to output anything:
 	bool debugActionProg = true;
@@ -388,17 +391,11 @@ void SimpleBotAgent::chooseAction()
 	
 	AgentSubsystem::ActionInfo maxInfo;
 	double maxProb = -65536.0;
-	static bool isSetup = false;
 	foreach(AgentSubsystem *subsys, m_subsystems)
 	{
 		QList<AgentSubsystem::ActionInfo> actions = subsys->actions();
 		foreach(AgentSubsystem::ActionInfo info, actions)
 		{
-			if(!isSetup)
-			{
-				//info.node->setLongTermImportance(1.0);
-			}
-			
 			double p = calcGoalActionProb(m_currentGoal, info.node);
 			if(debug && debugActionProg)
 				qDebug() << "SimpleBotAgent::chooseAction: p:"<<p<<", info.node:" << info.node;
@@ -410,10 +407,12 @@ void SimpleBotAgent::chooseAction()
 		}
 	}
 	
-	isSetup = true;
-
-	AgentSubsystem *bioPtr = subsystem(AgentBioSystem::className());
-	AgentBioSystem *bio = dynamic_cast<AgentBioSystem*>(bioPtr);
+// 	// FORCE use of Eating for debugging
+// 	maxInfo = m_subsystems.at(0)->actions().at(0);
+// 	qDebug() << "SimpleBotAgent::chooseAction: info.node:" << maxInfo.node;
+	
+	//AgentSubsystem *bioPtr = subsystem(AgentBioSystem::className());
+	//AgentBioSystem *bio = dynamic_cast<AgentBioSystem*>(bioPtr);
 
 	// clone clones first level links and nodes by default
 	//m_currentAction = maxInfo.node->clone();
@@ -570,11 +569,12 @@ void SimpleBotAgent::chooseAction()
 				//double changeSign = valueDelta < 0 ? -1 : +1;
 				
 				// Make sure ZERO change is marked as BAD
+				double rv = ((double)(rand() % 10) + 1) / 100.; // Add a random +/- 5% to the value to prevent deadlocking
 				if(valueDelta == 0.0)
-					valueDelta = -0.07 * expectedChangeSign;
+					valueDelta = -1 * rv * expectedChangeSign;
 					
 				/// TODO 0.1 = magic number, should it be configurable ?
-				double propLtiChange = 0.1 * valueDelta * expectedChangeSign; // Basically, for things that should be minimized 
+				double propLtiChange = rv * valueDelta * expectedChangeSign; // Basically, for things that should be minimized 
 											      // (MIN eval func, -1 change sign), invert the Lti 
 											      // change because the "good" delta will be going negative
 				
@@ -587,8 +587,8 @@ void SimpleBotAgent::chooseAction()
 				if(link)
 				{
 					double tv = goalActNode->longTermImportance();
-					if(tv < 0)
-						tv = 0.001;
+					//if(tv < 0)
+					//	tv = 0.001;
 					//if(tv > 10.0)
 					//	tv = tv/10.;
 					tv *= 1.5;
@@ -629,6 +629,25 @@ void SimpleBotAgent::chooseAction()
 		// - Time it took
 		// - "effort" .. ?
 		// - other variables...?
+		
+		
+		
+		// TODO: We need to construct some sort of matrix composed of:
+		// - Goal
+		// - Action
+		// - Context
+		// And associate that matrix with the results of the action...
+		// In reality, the context also includes the Goal...
+		// The matrix would then be used to calculate the probability in the future that a given action and a given context would lead to a given goal.
+		// The matrix should 'gracefully degrade' or provide a 'similarity value' for contexts that are similar but not the same........
+		// ...but how?
+		// And how do we store historical data in this matrix? Because the history of the context may be very relevant to the outcome of the action as well...wrt the goal anyway .
+		// Do we have some sort of long term matrix storage, and a short term "running history" (e.g. multiple snapshots of the matrix in the short term that eventually
+		// get compressed to one long term matrix...? Or ...?)
+		 
+		// Anyway, Art Depot board meeting to go to...comitting files to subversion for now. End notes, 2/16 5:21pm
+		
+		
 	}
 
 
@@ -734,7 +753,7 @@ void SimpleBotAgent::chooseAction()
 	m_exceptionVar = 0;
 }
 
-void SimpleBotAgent::actionCompleted(MNode *currentAction)
+void SimpleBotAgent::actionCompleted(MNode */*currentAction*/)
 {
 	//qDebug() << "SimpleBotAgent::actionCompleted: "<<currentAction;
 	chooseAction();
@@ -1084,27 +1103,9 @@ void SimpleBotAgent::advance()
 	// If this goal is no longer important, request a new goal
 	if(m_currentGoal->shortTermImportance() <= 0.0)
 	{
-		qDebug() << "SimpleBotAgent::advance(): STI of current goal is <= 0.0, requesting new goal";
+		//qDebug() << "SimpleBotAgent::advance(): STI of current goal is <= 0.0, requesting new goal";
 		chooseCurrentGoal();
 	}
-	
-	
-	
-	// Set initial state
-// 	if(m_state == StateUnknown)
-// 		setState(StateSearching);
-
-		
-	/*
-		Based on the new readme notes/thoughts on goals, etc, then we can express our SimpleBotAgent goals in terms of maximizing energy and minimizing hunger.
-		Somehow, we have to first determine a format to express the goals, then we have to link them to our agent and rank them in some order.
-		 
-	
-	*/
-	
-	//MNode *agentNode = m_mspace->node(
-	//MNode *hungerGoal = m_mspace->node("HungerGoal", MNodeType::GoalNode());
-	//MNode *energyGoal = m_mspace->node("EnergyGoal", MNodeType::GoalNode());
 	
 	
 	/*
@@ -1126,178 +1127,13 @@ void SimpleBotAgent::advance()
 		Well, I'll have to stop here for now...will continue coding as soon as possible.
 	*/
 	
-	/* Coding stopped here 2/3 */
-	
-	///
-	/* More thoughts:
-	
-		Actions---
-			ActionNode
-				
-	
-	*/
-	///
-	
 	
 	foreach(AgentSubsystem *subsys, m_subsystems)
 		subsys->advance();
 	
-// 	// Update bio variables
-// 	updateHungerEnergyState();
-// 	
-// 	// m_hunger increases as m_energy decreases
-// 	// m_energy increases when we eat or when we rest
-// 	// m_energy decreases as time progresses in any state other than resting or eating
-// 	
-// 	//m_label = QString("%1/%2").arg(m_hunger).arg(m_energy);
-// 	
-// 	// Process current state
-// 	if(m_state == StateResting)
-// 	{
-// 		processResting();
-// 	}
-// 	else
-// 	if(m_state == StateSearching)
-// 	{
-// 		processSearching();
-// 	}
-// 	else
-// 	if(m_state == StateEating)
-// 	{
-// 		processEating();
-// 	}
-// 	else
-// 	if(m_state == StateAsking)
-// 	{
-// 		//
-// 	}
-// 	
-// 	// Check to see if state change required
-// 	evaulateStateChangeRequired();
-		
+
 	// Update HUD item if present
 	if(m_hud)
 		m_hud->update();
 	
-}
-
-void SimpleBotAgent::evaulateStateChangeRequired()
-{
-	if(m_hunger < 0)
-		m_hunger = 0;
-	if(m_hunger > 1)
-		m_hunger = 1;
-	if(m_energy < 0)
-		m_energy = 0;
-	if(m_energy > 1)
-		m_energy = 1;
-		
-	if(m_stateTimer.elapsed() / 1000  > rand() % 10)
-			setState(StateSearching);
-	else
-	if(m_stateTimer.elapsed() / 1000 > rand() % 10) // || m_hunger > 0.9 || m_energy < 0.1)
-			setState(rand() % 10 > 5 ? StateEating : StateResting);
-			
-// 	if(m_stateTimer.elapsed() / 1000  > 1.0)
-// 			setState(StateSearching);
-}
-
-void SimpleBotAgent::updateHungerEnergyState()
-{
-	int elapsed = m_timer.restart();
-	double rate = (((double)elapsed) / 100.) * 0.1;
-	
-	m_hunger += rate * 0.5;
-	m_energy -= rate * 0.7;
-	
-	if(m_decayRate != rate)
-		m_decayRate = rate;
-}
-
-void SimpleBotAgent::processResting()
-{
-	// What do we do?
-	// When are we done?
-	m_energy += m_decayRate;
-	m_hunger -= m_decayRate * 0.1;
-}
-
-void SimpleBotAgent::processEating()
-{
-	m_hunger -= m_decayRate * 1.5;
-}
-
-void SimpleBotAgent::processSearching()
-{
-	if(m_vec.isNull())
-		chooseVector();
-		
-	QRectF sceneRect = scene()->sceneRect();
-	QPointF newPos = pos() + m_vec; //QPointF(xvel, yvel);
-	QPointF expect = newPos;
-	newPos.setX(qMin(qMax(newPos.x(), sceneRect.left() + 10), sceneRect.right()  - 10));
-	newPos.setY(qMin(qMax(newPos.y(), sceneRect.top()  + 10), sceneRect.bottom() - 10));
-	
-	if(newPos != expect)
-	{
-		chooseVector();
-		//double angle = chooseVector();
-		//qDebug() << "SimpleBotAgent::advance: S_Searching: new m_vec: "<<m_vec<<", new angle: "<<angle;
-	}
-	//else
-		//qDebug() << "SimpleBotAgent::advance: S_Searching: new pos: "<<newPos;
-	
-	setPos(newPos);
-}
-
-double SimpleBotAgent::chooseVector()
-{
-// 	m_vec = QPointF(
-// 		((double)(rand() % 100)) / 10. - 5.,
-// 		((double)(rand() % 100)) / 10. - 5.
-// 	);
-
-	double angle = ((double)(rand() % 359));
-	double speed = ((double)(rand() %  19)) + 1;
-	qDebug() << "SimpleBotAgent::chooseVector(): angle:"<<angle<<", speed:"<<speed;
-	
-	// X= R*cos(Theta)
-	// Y= R*sin(Theta)
-	double x = speed * cos(angle);
-	double y = speed * sin(angle);
-	
-	m_vec = QPointF(x,y);
-	
-	QLineF line(QPointF(0,0), m_vec);
-	//setRotation(line.angle());
-	
-	update();
-	
-	return line.angle();
-}
-
-void SimpleBotAgent::setState(StateInfo state)
-{
-// 	MNode *lastStateNode = 0;
-// 	if(m_state != StateUnknown)
-// 		lastStateNode = m_mspace->node(m_state.name);
-// 	
-// 	QString stateName = state.name;
-// 	qDebug() << "SimpleBotAgent::setState: "<<stateName;
-// 	m_state = state;
-// 	
-// 	m_stateTimer.restart();
-// 	
-// 	// Ensure node exists for this state
-// 	MNode *currentStateNode = m_mspace->node(stateName, MNodeType::ProcedureNode());
-// 		
-// 	if(lastStateNode)
-// 	{
-// 		MLink *foundLink = m_mspace->link(lastStateNode, currentStateNode);
-// 		
-// 		if(foundLink)
-// 			foundLink->setTruthValue(foundLink->truthValue().value() + 0.05);
-// 		else
-// 			m_mspace->addLink( new MLink(lastStateNode, currentStateNode, MLinkType::EventLink(), MTruthValue(0.1)) );
-// 	}
 }
