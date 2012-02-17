@@ -221,7 +221,8 @@ static bool SimpleBotAgent_goalSort(MNode *n1, MNode *n2)
 		return false;
 		
 	double delta = n1->shortTermImportance() - n2->shortTermImportance();
-	double rv = ((double)(rand() % 10) - 5.) / 100.; // Add a random +/- 5% to the value to prevent deadlocking
+	const double range = 5.;
+	double rv = ((double)(rand() % (int)range) - (range/2.)) / 100.; // Add a random +/- 5% to the value to prevent deadlocking
 	delta += rv;
 	
 	return delta > 0;
@@ -373,7 +374,9 @@ double SimpleBotAgent::calcGoalActionProb(MNode *goal, MNode *action)
 	//double lti = action->longTermImportance();
 	double lti = goalActNode->longTermImportance();
 	
-	double rv = ((double)(rand() % 10) - 5.) / 100.; // Add a random +/- 5% to the value to prevent deadlocking
+	const double range = 100.;
+	double rv = ((double)(rand() % (int)range) - (range/2.)) / 100.; // Add a random +/- <range>% to the value to prevent deadlocking
+	//double rv = ((double)(rand() % 10) - 5.) / 100.; // Add a random +/- 5% to the value to prevent deadlocking
 	lti += rv;
 	
 	return lti;
@@ -568,10 +571,11 @@ void SimpleBotAgent::chooseAction()
 				double valueDelta = thisValue.toDouble() - lastValue.toDouble();
 				//double changeSign = valueDelta < 0 ? -1 : +1;
 				
-				// Make sure ZERO change is marked as BAD
 				double rv = ((double)(rand() % 10) + 1) / 100.; // Add a random +/- 5% to the value to prevent deadlocking
-				if(valueDelta == 0.0)
-					valueDelta = -1 * rv * expectedChangeSign;
+				
+// 				// Make sure ZERO change is marked as BAD
+// 				if(valueDelta == 0.0)
+// 					valueDelta = -1 * rv * expectedChangeSign;
 					
 				/// TODO 0.1 = magic number, should it be configurable ?
 				double propLtiChange = rv * valueDelta * expectedChangeSign; // Basically, for things that should be minimized 
