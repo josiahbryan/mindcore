@@ -65,6 +65,7 @@ exception ( var ) - NOTE should we include arg for target value as well?
 			it can first see if any other goals accomplish the food
 			...
 			or just the first act in faux max(food) can be the findFood act, which reall is the findFood(Goal), ...      ..?
+			
 
 -------------------
 
@@ -103,9 +104,30 @@ Context
 - Need to assign a probability that this context will lead to the goal
 
 
+Thoughts on Learning
+--------------------
+- A Goal Seeking Agent and its interactions with the Enviornment can be modeled as a Markov decision process (MDP) [ref: http://en.wikipedia.org/wiki/Artificial_neural_network, 'Reinforcement Learning"]
+- A Markov decision process is a 4-tuple (S,A,P(),R()) where:
+	- S is a finite set of states
+	- A is a finite set of actions
+	- Pa(s,s') = Pr(s[t+1]=s'|s[t]=s,a[t]=a) is the probability that action 'a' in state 's' at time 't' will lead to state 's'' at time 't+1'
+	- Ra(s,s') is the immediate rewared (or expected immediate reward) rec'd after transition to state s' from state s with transition prob Pa(s,s')
+- MDP is based on finding a policy function f(s) that the agent will use to choose which action when in state 's'. 
+- Goal of f(s) is to maximize some cumultive function of the (random) rewards, given as:
+	sum(y[t]R[at](s[t],s[t+1]))
+- f(s) can be constructed based on Reinforcement Learning [ref: http://en.wikipedia.org/wiki/Markov_decision_process, 'Reinforcement Learning']
+	- f(s) can be given as:
+		Q(s,a) = sum(Pa(s,s')(Ra(s,s')+yV(s')))
+	- Thus the agent can build up an array of Q(s,a) values giving the outcome (reweard) - to quote wikipedia, "one has an array Q and uses experience to update it directly."
+	- This is known as Q-learning
+- Q-learning and its relation delayed-Q-learning give the "expected utlity of taking a given action in a given state and following a fixed policy thereafter"
+	- ref: http://en.wikipedia.org/wiki/Q-learning
+	- Q-learning can be implemented as an ANN
 
-James office #: 954-376-5378
+- One problem eventually arises: explore (try something unlearned even if another action has higher probability of success) or exploit current knowledge (use highest probable action of success)
+	- This tradeoff has been studied through the "multi-armed bandit" problem
+		- Ref: http://en.wikipedia.org/wiki/Multi-armed_bandit
+	- Ref: 3rd paragram, http://en.wikipedia.org/wiki/Reinforcement_learning
+	- Gittins index can be used to guage when a process is learned:
+		http://en.wikipedia.org/wiki/Gittins_index
 
-
-6737
-z
