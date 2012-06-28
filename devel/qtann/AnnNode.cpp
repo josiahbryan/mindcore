@@ -2,7 +2,7 @@
 
 AnnNode::AnnNode()
 	: m_value(0.)
-	, m_learnRate(0.25)
+	, m_learnRate(0.01)
 	, m_func(Linear)
 	, m_alphaParam(0.)
 	, m_betaParam(0.)
@@ -30,7 +30,7 @@ void AnnNode::addInput(AnnNode *input)
 	const double range = 5.;
 	double rv = ((double)(rand() % (int)range) - (range/2.)) / 100.; // Add a random +/- 5% to the value to prevent deadlocking
 	
-	m_weights[input] = 0.1 + rv;
+	m_weights[input] = 0.5 + rv;
 }
 
 void AnnNode::removeInput(AnnNode *input)
@@ -83,8 +83,11 @@ void AnnNode::adjustWeights(double error)
 	
 	foreach(AnnNode *node, inputs())
 	{
+		double oldWeight = m_weights[node];
 		m_weights[node] *= m_learnRate;
 		qDebug() << this << "AnnNode::adjustWeights(): error:"<<error<<", learnRate:"<<m_learnRate<<", node:"<<node<<", weight:"<<m_weights[node]<<", error sqd:"<<(1.0-error*error);
+		
+		node->adjustWeights(error);// * oldWeight);
 	} 
 }
 
