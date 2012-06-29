@@ -1,16 +1,29 @@
 #include "AnnNode.h"
 
+#define DEFAULT_MOMENTUM 0.0
+
+#define DEFAULT_LEARNING_RATE_LOGISTIC 0.3
+#define DEFAULT_LEARNING_RATE_TANH 0.1
+
+#define DEFAULT_MAX_NU 30
+#define DEFAULT_MIN_NU 0.00000001
+#define DEFAULT_NUUP 1.2
+#define DEFAULT_NUDOWN 0.8
+#define min(X, Y)  ((X) < (Y) ? (X) : (Y))
+#define max(X, Y)  ((X) > (Y) ? (X) : (Y))
+
+
 AnnNode::AnnNode()
 	: m_value(0.)
-	, m_learnRate(0.01)
-	, m_func(Linear)
+	, m_learnRate(0.1)
+	, m_func(TanH)
 	, m_alphaParam(0.)
 	, m_betaParam(0.)
 {
 	const double range = 5.;
 	double rv = ((double)(rand() % (int)range) - (range/2.)) / 100.; // Add a random +/- 5% to the value to prevent deadlocking
 	
-	//m_learnRate += rv;
+	m_learnRate += rv;
 }
 
 AnnNode::~AnnNode()
@@ -27,10 +40,13 @@ void AnnNode::setInputs(QList<AnnNode*> nodes)
 
 void AnnNode::addInput(AnnNode *input)
 {
-	const double range = 5.;
-	double rv = ((double)(rand() % (int)range) - (range/2.)) / 100.; // Add a random +/- 5% to the value to prevent deadlocking
-	
-	m_weights[input] = 0.5 + rv;
+	//const double range = 5.;
+	//double rv = ((double)(rand() % (int)range) - (range/2.)) / 100.; // Add a random +/- 5% to the value to prevent deadlocking
+	#define RANDOM_LARGE_WEIGHTS_LOGISTIC 0.1
+	#define RANDOM_LARGE_WEIGHTS_TANH 0.05
+	double range = RANDOM_LARGE_WEIGHTS_TANH;
+
+	m_weights[input] = range * ((double) rand () / RAND_MAX - 0.5);
 }
 
 void AnnNode::removeInput(AnnNode *input)
@@ -53,41 +69,93 @@ double AnnNode::value()
 	foreach(AnnNode *node, inputs())
 		sum += node->value() * m_weights[node];
 	
-	double avg = sum / (double)inputs().size();
+	//double val = sum / (double)inputs().size();
+	double val = sum;
 	
 	if(m_func == AnnNode::Linear)
-		return avg;
-		
+		m_value = val;
+	else
 	if(m_func == AnnNode::Threshold)
 	{
-		// defaults for alpha/beta are 0.5, so this just returns 0.1 if avg<0.5 and 0.99 if avg>=0.5, never returns 0.50 with default alpha/beta
-		if(avg < m_alphaParam)
-			return 0.01;
-		if(avg >= m_betaParam)
-			return 0.99;
-		return 0.50;
+		if(val < m_alphaParam)
+			m_value = -1.0;
+		else
+		if(val >= m_betaParam)
+			m_value = 1.0;
+		else
+			m_value = 0.0;
 	}
+	else
+	if(m_func == AnnNode::TanH)
+		m_value = tanh(val);
+	else
+	if(m_func == AnnNode::Logistic)
+		m_value = 1.0 / (1.0 + exp (-val));
 
 	// Fallthru...
-	return avg;
+	return m_value;
 }
 
-void AnnNode::adjustWeights(double error)
+double AnnNode::adjustWeights(double target)
 {
-	if(error > 0)
-		m_learnRate = fabs(m_learnRate)*-1;
-	else
-		m_learnRate = fabs(m_learnRate);
+	//compute_output_error
 	
-	m_learnRate /= (1.0-error*error);
+	double output = m_value;
+	double error = target - output;
+	
+	if(m_func == AnnNode::Logistic)
+	{
+		error = output * (1 - output) * error;
+	}
+	else
+	if(m_func == AnnNode::TanH)
+	{
+		error = (1 - output * output) * error;
+	}
+	
+	double returnError = error * error;
+	
+	//backpropagate_layer
+	double computeError = 0.;
+	//foreach(AnnNode *node, inputs())
+	//	computeError += m_weights[node] * m_weights[node];
+	
+// 	if(error > 0)
+// 		m_learnRate = fabs(m_learnRate)*-1;
+// 	else
+// 		m_learnRate = fabs(m_learnRate);
+// 	
+	//m_learnRate /= (1.0-error*error);
 	
 	foreach(AnnNode *node, inputs())
 	{
-		double oldWeight = m_weights[node];
-		m_weights[node] *= m_learnRate;
-		qDebug() << this << "AnnNode::adjustWeights(): error:"<<error<<", learnRate:"<<m_learnRate<<", node:"<<node<<", weight:"<<m_weights[node]<<", error sqd:"<<(1.0-error*error);
+		double output = node->value();
+		double thisError = error;;
+	
+		if(m_func == AnnNode::Logistic)
+		{
+			thisError = output * (1 - output) * error;
+		}
+		else
+		if(m_func == AnnNode::TanH)
+		{
+			thisError = (1 - output * output) * error;
+		}
 		
-		node->adjustWeights(error);// * oldWeight);
+		double learning_factor = DEFAULT_LEARNING_RATE_TANH * thisError;
+		
+		double delta =
+			learning_factor *
+			output;
+			//momentum * layer[l].neuron[nu].delta[nl];
+		m_weights[node] += delta;
+// 		layer[l].neuron[nu].delta[nl] = delta;
+// 		
+// 		double oldWeight = m_weights[node];
+// 		m_weights[node] += m_weights[node] * m_learnRate;
+		qDebug() << this << "AnnNode::adjustWeights(): error:"<<error<<", thisError:"<<thisError<<", learning_factor:"<<learning_factor<<", node:"<<node<<", weight:"<<m_weights[node];
+		
+		//node->adjustWeights(error);// * oldWeight);
 	} 
 }
 

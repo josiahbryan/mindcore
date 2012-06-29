@@ -18,8 +18,10 @@ int main(int argc, char **argv)
 	
 	node1->addInput(input1);
 	node1->addInput(input2);
+	
 	node2->addInput(input1);
 	node2->addInput(input2);
+	
 	node3->addInput(input1);
 	node3->addInput(input2);
 	
@@ -41,6 +43,8 @@ int main(int argc, char **argv)
 		output->adjustWeights(error);
 		
 		count ++;
+		
+		//error = 0;
 	}
 	
 	qDebug() << "main(): count:"<<count<<", final error:"<<error;

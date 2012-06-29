@@ -26,11 +26,13 @@ public:
 	
 	void setWeight(AnnNode *inputNode, double weight);
 	
-	void adjustWeights(double error);
+	double adjustWeights(double target);
 	
 	enum ActFunc {
 		Linear=0,
 		Threshold,
+		TanH,
+		Logistic,
 	};
 	
 	void setActFunc(ActFunc func, double alphaParam=0.5, double betaParam=0.5);
