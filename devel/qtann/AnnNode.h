@@ -21,10 +21,20 @@ public:
 	// Irrelevant if hasInputs()
 	void setInputValue(double);
 	
-	// Polls all inputs() for value() and uses actFunc() to calculate the return value
+	// Output of last compute
 	double value();
 	
+	// Polls all inputs() for output() and uses actFunc() to calculate the return value
+	double compute();
+	
+	double error() { return m_error; }
+	void setError(double error) { m_error = error; }
+	
 	void setWeight(AnnNode *inputNode, double weight);
+	double weight(AnnNode *inputNode) { return m_weights[inputNode]; }
+	
+	void setDelta(AnnNode *inputNode, double d) { m_deltas[inputNode]=d; }
+	double delta(AnnNode *inputNode) { return m_deltas[inputNode]; }
 	
 	double adjustWeights(double target);
 	
@@ -53,6 +63,7 @@ protected:
 // 	QList<AnnNode*> m_outputs;
 	
 	QHash<AnnNode*,double> m_weights;
+	QHash<AnnNode*,double> m_deltas;
 	double m_value;
 	
 	double m_learnRate;
@@ -60,6 +71,9 @@ protected:
 	ActFunc m_func;
 	double m_alphaParam;
 	double m_betaParam;
+	
+	double m_error;
+	double m_delta;
 	
 };
 

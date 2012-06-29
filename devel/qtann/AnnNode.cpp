@@ -19,6 +19,7 @@ AnnNode::AnnNode()
 	, m_func(TanH)
 	, m_alphaParam(0.)
 	, m_betaParam(0.)
+	, m_error(0.)
 {
 	const double range = 5.;
 	double rv = ((double)(rand() % (int)range) - (range/2.)) / 100.; // Add a random +/- 5% to the value to prevent deadlocking
@@ -62,6 +63,13 @@ void AnnNode::setInputValue(double val)
 
 double AnnNode::value()
 {
+	return m_value;
+}
+
+double AnnNode::compute()
+{
+	//qDebug() << "AnnNode::compute(): "<<this<<" hasInputs():"<<hasInputs();
+
 	if(!hasInputs())
 		return m_value;
 	
@@ -91,6 +99,8 @@ double AnnNode::value()
 	else
 	if(m_func == AnnNode::Logistic)
 		m_value = 1.0 / (1.0 + exp (-val));
+		
+	//qDebug() << "AnnNode::compute(): "<<this<<" m_value:"<<m_value;
 
 	// Fallthru...
 	return m_value;
