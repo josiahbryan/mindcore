@@ -8,5 +8,5 @@ DEPENDPATH += .
 INCLUDEPATH += .
 
 # Input
-HEADERS += AnnNode.h
-SOURCES += AnnNode.cpp main.cpp
+HEADERS += AnnNode.h AnnNetwork.h
+SOURCES += AnnNode.cpp AnnNetwork.cpp main.cpp

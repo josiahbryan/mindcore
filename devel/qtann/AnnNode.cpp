@@ -21,8 +21,8 @@ AnnNode::AnnNode()
 	, m_betaParam(0.)
 	, m_error(0.)
 {
-	const double range = 5.;
-	double rv = ((double)(rand() % (int)range) - (range/2.)) / 100.; // Add a random +/- 5% to the value to prevent deadlocking
+	const float range = 5.;
+	float rv = ((float)(rand() % (int)range) - (range/2.)) / 100.; // Add a random +/- 5% to the value to prevent deadlocking
 	
 	m_learnRate += rv;
 }
@@ -33,7 +33,10 @@ AnnNode::~AnnNode()
 
 void AnnNode::setInputs(QList<AnnNode*> nodes)
 {
+	m_inputs.clear();
 	m_weights.clear();
+	m_deltas.clear();
+	m_sumDeltas.clear();
 	
 	foreach(AnnNode *node, nodes)
 		addInput(node);
@@ -41,44 +44,56 @@ void AnnNode::setInputs(QList<AnnNode*> nodes)
 
 void AnnNode::addInput(AnnNode *input)
 {
-	//const double range = 5.;
-	//double rv = ((double)(rand() % (int)range) - (range/2.)) / 100.; // Add a random +/- 5% to the value to prevent deadlocking
+	//const float range = 5.;
+	//float rv = ((float)(rand() % (int)range) - (range/2.)) / 100.; // Add a random +/- 5% to the value to prevent deadlocking
+	
 	#define RANDOM_LARGE_WEIGHTS_LOGISTIC 0.1
 	#define RANDOM_LARGE_WEIGHTS_TANH 0.05
-	double range = RANDOM_LARGE_WEIGHTS_TANH;
+	float range = RANDOM_LARGE_WEIGHTS_TANH;
 
-	m_weights[input] = range * ((double) rand () / RAND_MAX - 0.5);
+	if(m_inputs.contains(input))
+		return;
+		
+	m_inputs.append(input);
+	
+	m_deltas[input] = 0;
+	m_sumDeltas[input] = 0;
+	
+	m_weights[input] = range * ((float) rand () / RAND_MAX - 0.5);
 }
 
 void AnnNode::removeInput(AnnNode *input)
 {
 	m_weights.remove(input);
+	m_deltas.remove(input);
+	m_sumDeltas.remove(input);
+	m_inputs.removeAll(input);
 }
 
-void AnnNode::setInputValue(double val)
+void AnnNode::setInputValue(float val)
 {
 	if(!hasInputs())
 		m_value = val;
 }
 
-double AnnNode::value()
+float AnnNode::value()
 {
 	return m_value;
 }
 
-double AnnNode::compute()
+float AnnNode::compute()
 {
 	//qDebug() << "AnnNode::compute(): "<<this<<" hasInputs():"<<hasInputs();
 
 	if(!hasInputs())
 		return m_value;
 	
-	double sum = 0.;
+	float sum = 0.;
 	foreach(AnnNode *node, inputs())
 		sum += node->value() * m_weights[node];
 	
-	//double val = sum / (double)inputs().size();
-	double val = sum;
+	//float val = sum / (float)inputs().size();
+	float val = sum;
 	
 	if(m_func == AnnNode::Linear)
 		m_value = val;
@@ -106,12 +121,12 @@ double AnnNode::compute()
 	return m_value;
 }
 
-double AnnNode::adjustWeights(double target)
+float AnnNode::adjustWeights(float target)
 {
 	//compute_output_error
 	
-	double output = m_value;
-	double error = target - output;
+	float output = m_value;
+	float error = target - output;
 	
 	if(m_func == AnnNode::Logistic)
 	{
@@ -123,10 +138,10 @@ double AnnNode::adjustWeights(double target)
 		error = (1 - output * output) * error;
 	}
 	
-	double returnError = error * error;
+	float returnError = error * error;
 	
 	//backpropagate_layer
-	double computeError = 0.;
+	float computeError = 0.;
 	//foreach(AnnNode *node, inputs())
 	//	computeError += m_weights[node] * m_weights[node];
 	
@@ -139,8 +154,8 @@ double AnnNode::adjustWeights(double target)
 	
 	foreach(AnnNode *node, inputs())
 	{
-		double output = node->value();
-		double thisError = error;;
+		float output = node->value();
+		float thisError = error;;
 	
 		if(m_func == AnnNode::Logistic)
 		{
@@ -152,16 +167,16 @@ double AnnNode::adjustWeights(double target)
 			thisError = (1 - output * output) * error;
 		}
 		
-		double learning_factor = DEFAULT_LEARNING_RATE_TANH * thisError;
+		float learning_factor = DEFAULT_LEARNING_RATE_TANH * thisError;
 		
-		double delta =
+		float delta =
 			learning_factor *
 			output;
 			//momentum * layer[l].neuron[nu].delta[nl];
 		m_weights[node] += delta;
 // 		layer[l].neuron[nu].delta[nl] = delta;
 // 		
-// 		double oldWeight = m_weights[node];
+// 		float oldWeight = m_weights[node];
 // 		m_weights[node] += m_weights[node] * m_learnRate;
 		qDebug() << this << "AnnNode::adjustWeights(): error:"<<error<<", thisError:"<<thisError<<", learning_factor:"<<learning_factor<<", node:"<<node<<", weight:"<<m_weights[node];
 		
@@ -169,12 +184,12 @@ double AnnNode::adjustWeights(double target)
 	} 
 }
 
-void AnnNode::setWeight(AnnNode *inputNode, double weight)
+void AnnNode::setWeight(AnnNode *inputNode, float weight)
 {
 	m_weights[inputNode] = weight;
 }
 
-void AnnNode::setActFunc(ActFunc func, double alphaParam, double betaParam)
+void AnnNode::setActFunc(ActFunc func, float alphaParam, float betaParam)
 {
 	m_func = func;
 	m_alphaParam = alphaParam;
